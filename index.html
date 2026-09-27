@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="manifest" href="manifest.json">
+    <title>Mi App Personal</title>
+
+    <link rel="stylesheet" href="estilos.css">
+</head>
+
+<body>
+
+    <header>
+        <h1>Mi App Personal</h1>
+        <p>Organiza tu tiempo, tus metas y tu crecimiento</p>
+    </header>
+
+    <main class="contenedor">
+
+        <section class="bienvenida">
+            <h2>👋 Bienvenido</h2>
+            <p>Este será tu centro personal de organización.</p>
+            <p><strong>Hoy vamos a construir algo que realmente te ayude.</strong></p>
+        </section>
+
+        <section class="modulos">
+
+            <div class="modulo" onclick="mostrarPantalla('seccionTareas')">
+                 <div class="icono">✅</div>
+                 <h3>Tareas</h3>
+                 <p>Pendientes y actividades</p>
+            </div>
+
+           <div class="modulo" onclick="mostrarPantalla('seccionFechas')">
+                <div class="icono">📅</div>
+                <h3>Agenda</h3>
+                <p>Eventos y fechas importantes</p>
+           </div>
+
+            <div class="modulo">
+                <div class="icono">🧠</div>
+                <h3>¿Qué aprendí?</h3>
+                <p>Notas y aprendizajes diarios</p>
+            </div>
+
+            <div class="modulo">
+                <div class="icono">💰</div>
+                <h3>Finanzas</h3>
+                <p>Ingresos, gastos y pagos</p>
+            </div>
+
+            <div class="modulo">
+                <div class="icono">🏋️</div>
+                <h3>Entrenamiento</h3>
+                <p>Ejercicios y progreso</p>
+            </div>
+
+            <div class="modulo">
+                <div class="icono">🎯</div>
+                <h3>Objetivos</h3>
+                <p>Metas y seguimiento</p>
+            </div>
+
+            <div class="modulo">
+                <div class="icono">⏱️</div>
+                <h3>¿En qué se me fue el tiempo?</h3>
+                <p>Distracciones y procrastinación</p>
+            </div>
+
+            <div class="modulo">
+                <div class="icono">📋</div>
+                <h3>Proyectos</h3>
+                <p>Checklists y planes de trabajo</p>
+            </div>
+
+        </section>
+
+
+    <section id="seccionTareas" class="seccion-tareas pantalla">
+
+      <button
+       class="boton-regresar"
+       onclick="mostrarInicio()">
+       ← Inicio
+      </button>
+
+    <h2>✅ Mis tareas</h2>
+    <div class="nueva-tarea">
+
+    <input
+        type="text"
+        id="textoTarea"
+        placeholder="¿Qué necesitas hacer?"
+    >
+
+    <input
+        type="date"
+        id="fechaTarea"
+    >
+
+    <input
+        type="time"
+        id="horaTarea"
+    >
+
+    <select id="prioridadTarea">
+        <option value="baja">🟢 Baja</option>
+        <option value="media" selected>🟡 Media</option>
+        <option value="alta">🔴 Alta</option>
+    </select>
+
+    <select id="categoriaTarea">
+        <option value="trabajo">💼 Trabajo</option>
+        <option value="personal">👤 Personal</option>
+        <option value="familia">🏠 Familia</option>
+        <option value="estudio">📚 Estudio</option>
+        <option value="otros">📌 Otros</option>
+    </select>
+
+    <select id="recordatorioTarea">
+     <option value="ninguno">🔕 Sin recordatorio</option>
+     <option value="5">🔔 5 minutos antes</option>
+     <option value="15">🔔 15 minutos antes</option>
+     <option value="30">🔔 30 minutos antes</option>
+     <option value="60">🔔 1 hora antes</option>
+     <option value="1440">🔔 1 día antes</option>
+    </select>
+
+    <select id="repeticionTarea">
+     <option value="ninguna">🔁 No repetir</option>
+     <option value="diaria">🔁 Cada día</option>
+     <option value="semanal">🔁 Cada semana</option>
+     <option value="quincenal">🔁 Cada 2 semanas</option>
+     <option value="mensual">🔁 Cada mes</option>
+     <option value="anual">🔁 Cada año</option>
+    </select>
+
+    <button onclick="agregarTarea()">
+        + Agregar tarea
+    </button>
+
+
+</div>
+
+    <div id="listaTareas"></div>
+</section>
+
+<section id="seccionFechas" class="seccion-fechas pantalla">
+
+    <button
+    class="boton-regresar"
+    onclick="mostrarInicio()">
+    ← Inicio
+    </button>
+    
+    <h2>📅 Fechas importantes</h2>
+
+   <div class="nueva-fecha">
+
+    <input
+        type="text"
+        id="nombreFecha"
+        placeholder="Nombre (ej. Cumpleaños de mamá)"
+    >
+
+    <select id="tipoFecha">
+        <option value="cumpleanos">🎂 Cumpleaños</option>
+        <option value="aniversario">❤️ Aniversario</option>
+        <option value="importante">📅 Fecha importante</option>
+    </select>
+
+    <input
+        type="date"
+        id="fechaImportante"
+    >
+
+    <input 
+        type="time" 
+        id="horaImportante" >
+
+    <select id="recordatorioFecha">
+
+        <option value="ninguno">
+            🔕 Sin recordatorio
+        </option>
+
+        <option value="5">
+            🔔 5 minutos antes
+        </option>
+
+        <option value="15">
+            🔔 15 minutos antes
+        </option>
+
+        <option value="30">
+            🔔 30 minutos antes
+        </option>
+
+        <option value="60">
+            🔔 1 hora antes
+        </option>
+
+        <option value="1440">
+            🔔 1 día antes
+        </option>
+
+    </select>
+
+    <button onclick="agregarFecha()">
+        + Agregar fecha
+    </button>
+
+</div>
+
+
+<div class="buscador-fechas">
+
+    <input
+        type="text"
+        id="buscarFecha"
+        placeholder="🔍 Buscar por palabra clave..."
+        oninput="buscarFechas()"
+    >
+
+    <button
+        type="button"
+        onclick="limpiarBusqueda()">
+        ✕
+    </button>
+
+</div>
+
+<div class="filtros-fechas">
+
+    <button
+    type="button"
+    onclick="filtrarFechasPorTipo('cumpleanos')">
+    🎂 Cumpleaños
+    </button>
+
+    <button
+    type="button"
+    onclick="filtrarFechasPorTipo('aniversario')">
+    ❤️ Aniversarios
+   </button>
+
+    <button
+    type="button"
+    onclick="filtrarFechasPorTipo('importante')">
+    📅 Importantes
+    </button>
+
+</div>
+
+<div id="listaFechas"></div>
+
+    <div id="listaFechas"></div>
+
+</section>
+
+
+<div id="ventanaEdicion" class="ventana-edicion pantalla">
+
+    <div class="contenido-edicion">
+
+        <h2>✏️ Editar tarea</h2>
+
+        <label>Tarea</label>
+        <input type="text" id="editarTexto">
+
+        <label>Fecha</label>
+        <input type="date" id="editarFecha">
+
+        <label>Hora</label>
+        <input type="time" id="editarHora">
+
+        <label>Prioridad</label>
+        <select id="editarPrioridad">
+            <option value="baja">🟢 Baja</option>
+            <option value="media">🟡 Media</option>
+            <option value="alta">🔴 Alta</option>
+        </select>
+
+        <label>Categoría</label>
+        <select id="editarCategoria">
+            <option value="trabajo">💼 Trabajo</option>
+            <option value="personal">👤 Personal</option>
+            <option value="familia">🏠 Familia</option>
+            <option value="estudio">📚 Estudio</option>
+            <option value="otros">📌 Otros</option>
+        </select>
+
+        <label>🔔 Recordatorio</label>
+        <select id="editarRecordatorio">
+            <option value="ninguno">Sin recordatorio</option>
+            <option value="5">5 minutos antes</option>
+            <option value="15">15 minutos antes</option>
+            <option value="30">30 minutos antes</option>
+            <option value="60">1 hora antes</option>
+            <option value="1440">1 día antes</option>
+        </select>
+
+        <label>🔁 Repetir</label>
+        <select id="editarRepeticion">
+            <option value="ninguna">No repetir</option>
+            <option value="diaria">Cada día</option>
+            <option value="semanal">Cada semana</option>
+            <option value="quincenal">Cada 2 semanas</option>
+            <option value="mensual">Cada mes</option>
+            <option value="anual">Cada año</option>
+        </select>
+
+        <div class="botones-edicion">
+
+            <button onclick="cerrarEdicion()">
+                Cancelar
+            </button>
+
+            <button onclick="guardarEdicion()">
+                💾 Guardar cambios
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="ventanaEdicionFecha" class="ventana-edicion-fecha">
+
+    <div class="contenido-edicion-fecha">
+
+        <h2>✏️ Editar fecha</h2>
+
+        <label>Nombre</label>
+        <input type="text" id="editarNombreFecha">
+
+        <label>Tipo</label>
+        <select id="editarTipoFecha">
+            <option value="cumpleanos">🎂 Cumpleaños</option>
+            <option value="aniversario">❤️ Aniversario</option>
+            <option value="importante">📅 Fecha importante</option>
+        </select>
+
+        <label>Fecha</label>
+        <input 
+          type="date" 
+          id="editarFechaImportante"
+        >
+        <input
+          type="time"
+          id="editarHoraImportante"
+        >
+    
+      <select id="editarRecordatorioFecha">
+
+    <option value="ninguno">
+        🔕 Sin recordatorio
+    </option>
+
+    <option value="5">
+        🔔 5 minutos antes
+    </option>
+
+    <option value="15">
+        🔔 15 minutos antes
+    </option>
+
+    <option value="30">
+        🔔 30 minutos antes
+    </option>
+
+    <option value="60">
+        🔔 1 hora antes
+    </option>
+
+    <option value="1440">
+        🔔 1 día antes
+    </option>
+
+      </select>
+
+      
+        <div class="botones-edicion-fecha">
+
+            <button onclick="cancelarEdicionFecha()">
+                Cancelar
+            </button>
+
+            <button onclick="guardarEdicionFecha()">
+                Guardar
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+    </main>
+<script src="app.js"></script>
+</body>
+</html>
