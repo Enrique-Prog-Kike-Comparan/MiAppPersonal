@@ -1853,10 +1853,21 @@ console.log(
     token
 );
 
-alert(
-    "✅ Token FCM obtenido:\n\n" +
-    token
-);
+try {
+    await navigator.clipboard.writeText(token);
+
+    alert(
+        "✅ Token FCM obtenido y COPIADO.\n\n" +
+        "Ahora puedes pegarlo directamente en Firebase."
+    );
+
+} catch (error) {
+
+    alert(
+        "⚠️ El token se obtuvo, pero no se pudo copiar automáticamente."
+    );
+
+}
 
 } catch (error) {
 
