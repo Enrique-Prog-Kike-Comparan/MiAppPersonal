@@ -1862,6 +1862,11 @@ alert("✅ MiAppPersonal\n\nToken FCM obtenido correctamente.");
         error
     );
 
+    alert(
+        "❌ Error en notificaciones:\n\n" +
+        error.message
+    );
+
 }
 
 }
