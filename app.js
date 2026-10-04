@@ -1853,7 +1853,7 @@ console.log(
     token
 );
 
-alert("✅ MiAppPersonal\n\nToken FCM obtenido correctamente.");
+alert("VERSION NUEVA 12H.23.5.3");
 
 } catch (error) {
 
