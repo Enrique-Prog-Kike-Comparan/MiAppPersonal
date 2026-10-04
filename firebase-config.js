@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyArWT1QVjXnTpdjlAiku0N6dSuHw8UdkKY",
+    apiKey: "AIzaSyArWT1QVnXjTpdjlAiku0N6dSuHw8UdkKY",
     authDomain: "miapppersonal-5068d.firebaseapp.com",
     projectId: "miapppersonal-5068d",
     storageBucket: "miapppersonal-5068d.firebasestorage.app",
