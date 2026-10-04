@@ -1853,6 +1853,8 @@ console.log(
     token
 );
 
+alert("✅ MiAppPersonal\n\nToken FCM obtenido correctamente.");
+
 } catch (error) {
 
     console.error(
