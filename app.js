@@ -1853,7 +1853,10 @@ console.log(
     token
 );
 
-alert("VERSION NUEVA 12H.23.5.3");
+alert(
+    "✅ Token FCM obtenido:\n\n" +
+    token
+);
 
 } catch (error) {
 
