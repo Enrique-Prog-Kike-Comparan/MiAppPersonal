@@ -1,3 +1,5 @@
+
+
 let tareas = JSON.parse(localStorage.getItem("tareas")) || [];
 
 let tareaEditando = null;
@@ -298,28 +300,44 @@ function eliminarTarea(indice) {
 
 mostrarListaTareas();
 
+
+
 function calcularEdad(fechaNacimiento) {
 
-    const nacimiento = new Date(fechaNacimiento + "T00:00:00");
-    const hoy = new Date();
+    const nacimiento =
+        new Date(fechaNacimiento + "T00:00:00");
 
-    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const hoy =
+        new Date();
 
-    const mesActual = hoy.getMonth();
-    const mesNacimiento = nacimiento.getMonth();
+    let anioCumpleanos =
+        hoy.getFullYear();
 
-    const diaActual = hoy.getDate();
-    const diaNacimiento = nacimiento.getDate();
+    const mesNacimiento =
+        nacimiento.getMonth();
 
-    if (
-        mesActual < mesNacimiento ||
-        (mesActual === mesNacimiento && diaActual < diaNacimiento)
-    ) {
-        edad--;
+    const diaNacimiento =
+        nacimiento.getDate();
+
+    const cumpleanosEsteAnio =
+        new Date(
+            anioCumpleanos,
+            mesNacimiento,
+            diaNacimiento
+        );
+
+    if (cumpleanosEsteAnio < hoy) {
+        anioCumpleanos++;
     }
 
-    return edad;
+    return (
+        anioCumpleanos -
+        nacimiento.getFullYear()
+    );
 }
+
+
+
 
 function obtenerProximaFecha(fecha) {
 
@@ -1142,7 +1160,7 @@ function mostrarFechas() {
         if (fecha.tipo === "cumpleanos") {
 
             const edad =
-                calcularEdad(fecha.fecha);
+            calcularEdad(fecha.fecha);
 
 
             const esCumpleanos =
@@ -1767,4 +1785,81 @@ function probarRecordatoriosFechas() {
         );
 
     });
+}
+
+
+async function solicitarPermisoNotificaciones() {
+
+    const permiso =
+        await Notification.requestPermission();
+
+    console.log(
+        "Permiso de notificaciones:",
+        permiso
+    );
+
+    if (permiso !== "granted") {
+
+        console.log(
+            "Las notificaciones no fueron autorizadas."
+        );
+
+        return;
+    }
+
+    try {
+
+    console.log("PASO 1: Entró al bloque de notificaciones");
+
+    const registro =
+        await navigator.serviceWorker.ready;
+
+    console.log("PASO 2: Service Worker listo");
+
+    const { getMessaging, getToken } =
+        await import(
+            "https://www.gstatic.com/firebasejs/12.19.0/firebase-messaging.js"
+        );
+
+    console.log("PASO 3: Firebase Messaging cargado");
+
+    const { app } =
+        await import("./firebase-config.js");
+
+    console.log("PASO 4: Firebase Config cargado");
+
+    const messaging =
+        getMessaging(app);
+
+    console.log("PASO 5: Messaging creado");
+
+    console.log("PASO 6: Intentando obtener token FCM");
+
+const token =
+    await getToken(messaging, {
+
+        vapidKey:
+            "BMPwZmDjhAjIT_-m8rbw4u2uIWFJGDRKPQzxEYUAOICcDIRb9SjWiYE08ZADbKXxgjaiGtpz6s19oXw2FQ809L4",
+
+        serviceWorkerRegistration:
+            registro
+
+    });
+
+console.log("PASO 7: Token FCM obtenido");
+
+console.log(
+    "Token FCM:",
+    token
+);
+
+} catch (error) {
+
+    console.error(
+        "ERROR EN NOTIFICACIONES:",
+        error
+    );
+
+}
+
 }
