@@ -1,5 +1,6 @@
 
 
+
 let tareas = JSON.parse(localStorage.getItem("tareas")) || [];
 
 let tareaEditando = null;
@@ -1789,6 +1790,13 @@ function probarRecordatoriosFechas() {
 
 
 async function solicitarPermisoNotificaciones() {
+     const registro =
+        await navigator.serviceWorker.ready;
+
+     registro.active.postMessage("PRUEBA_NOTIFICACION");
+
+     return;
+
 
     const permiso =
         await Notification.requestPermission();
@@ -1853,21 +1861,10 @@ console.log(
     token
 );
 
-try {
-    await navigator.clipboard.writeText(token);
-
-    alert(
-        "✅ Token FCM obtenido y COPIADO.\n\n" +
-        "Ahora puedes pegarlo directamente en Firebase."
-    );
-
-} catch (error) {
-
-    alert(
-        "⚠️ El token se obtuvo, pero no se pudo copiar automáticamente."
-    );
-
-}
+alert(
+    "✅ Token FCM obtenido:\n\n" +
+    token
+);
 
 } catch (error) {
 
