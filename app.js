@@ -1790,10 +1790,11 @@ function probarRecordatoriosFechas() {
 
 
 async function solicitarPermisoNotificaciones() {
-      alert("🔔 LA FUNCIÓN SÍ SE EJECUTA");
-    
+    alert("🔔 PASO 1 — FUNCIÓN EJECUTÁNDOSE");
      const registro =
         await navigator.serviceWorker.ready;
+
+    alert("🔔 PASO 2 — SERVICE WORKER LISTO");
 
      registro.active.postMessage("PRUEBA_NOTIFICACION");
 
