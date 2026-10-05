@@ -1798,6 +1798,9 @@ async function solicitarPermisoNotificaciones() {
 
      registro.active.postMessage("PRUEBA_NOTIFICACION");
 
+    alert("🔔 PASO 3 — ORDEN ENVIADA AL SERVICE WORKER");
+
+    
      return;
 
 
