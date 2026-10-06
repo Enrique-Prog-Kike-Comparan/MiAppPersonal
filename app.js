@@ -1790,19 +1790,6 @@ function probarRecordatoriosFechas() {
 
 
 async function solicitarPermisoNotificaciones() {
-    alert("🔔 PASO 1 — FUNCIÓN EJECUTÁNDOSE");
-     const registro =
-        await navigator.serviceWorker.ready;
-
-    alert("🔔 PASO 2 — SERVICE WORKER LISTO");
-
-     registro.active.postMessage("PRUEBA_NOTIFICACION");
-
-    alert("🔔 PASO 3 — ORDEN ENVIADA AL SERVICE WORKER");
-
-    
-     return;
-
 
     const permiso =
         await Notification.requestPermission();
@@ -1880,9 +1867,9 @@ alert(
     );
 
     alert(
-    "✅ Token FCM obtenido:\n\n" +
-    token
-    );
+    "❌ Error en notificaciones:\n\n" +
+    error.message
+   );
 
 }
 
