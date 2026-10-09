@@ -1,6 +1,5 @@
 
 
-
 let tareas = JSON.parse(localStorage.getItem("tareas")) || [];
 
 let tareaEditando = null;
@@ -1854,10 +1853,27 @@ console.log(
     token
 );
 
+
+try {
+await navigator.clipboard.writeText(token);
+
 alert(
-    "✅ Token FCM obtenido:\n\n" +
-    token
+    "✅ Token FCM obtenido y copiado al portapapeles.\n\n" +
+    "Ya puedes pegarlo en Firebase Console."
 );
+
+} catch (error) {
+
+console.error("Error al copiar el token:", error);
+
+alert(
+    "✅ Token FCM obtenido.\n\n" +
+    "No se pudo copiar automáticamente. " +
+    "Revisa la consola para obtener más información."
+);
+
+}
+
 
 } catch (error) {
 
