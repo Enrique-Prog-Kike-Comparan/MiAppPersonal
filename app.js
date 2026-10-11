@@ -454,6 +454,35 @@ function obtenerMomentoRecordatorio(fecha) {
     const minutos =
         parseInt(partesHora[1], 10);
 
+    const ahora =
+        new Date();
+
+    const fechaOriginal =
+        new Date(fecha.fecha + "T00:00:00");
+
+    const fechaEsHoy =
+        fechaOriginal.getMonth() === ahora.getMonth() &&
+        fechaOriginal.getDate() === ahora.getDate();
+
+    if (fechaEsHoy) {
+
+        const eventoHoy =
+            new Date(
+                ahora.getFullYear(),
+                fechaOriginal.getMonth(),
+                fechaOriginal.getDate(),
+                horas,
+                minutos,
+                0,
+                0
+            );
+
+        if (eventoHoy >= ahora) {
+            proximaFecha.setTime(eventoHoy.getTime());
+        }
+
+    }
+
     proximaFecha.setHours(
         horas,
         minutos,
@@ -556,24 +585,71 @@ function marcarRecordatorioProcesado(fecha) {
 }
 
 
-function procesarRecordatorioFecha(fecha) {
+async function procesarRecordatorioFecha(fecha) {
 
     if (!debeProcesarRecordatorio(fecha)) {
         return false;
     }
 
-    marcarRecordatorioProcesado(fecha);
+    if (
+        typeof Notification === "undefined" ||
+        Notification.permission !== "granted" ||
+        !("serviceWorker" in navigator)
+    ) {
+        return false;
+    }
 
-    return true;
+    if (fecha.recordatorioEnProceso) {
+        return false;
+    }
+
+    fecha.recordatorioEnProceso = true;
+
+    try {
+
+        const registro =
+            await navigator.serviceWorker.ready;
+
+        await registro.showNotification(
+            "🔔 MiAppPersonal",
+            {
+                body:
+                    "Es momento de: " +
+                    (fecha.nombre || "una fecha importante"),
+                icon: "Icono.png",
+                badge: "Icono.png"
+            }
+        );
+
+        delete fecha.recordatorioEnProceso;
+
+        marcarRecordatorioProcesado(fecha);
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "Error al mostrar el recordatorio:",
+            error
+        );
+
+        return false;
+
+    } finally {
+
+        delete fecha.recordatorioEnProceso;
+
+    }
 }
 
-function revisarRecordatoriosFechas() {
+async function revisarRecordatoriosFechas() {
 
-    fechasImportantes.forEach(function(fecha) {
+    for (const fecha of fechasImportantes) {
 
-        procesarRecordatorioFecha(fecha);
+        await procesarRecordatorioFecha(fecha);
 
-    });
+    }
 }
 
 if ("serviceWorker" in navigator) {
@@ -1771,6 +1847,8 @@ function mostrarInicio() {
         behavior: "smooth"
     });
 }
+
+revisarRecordatoriosFechas();
 
 setInterval(function() {
 
