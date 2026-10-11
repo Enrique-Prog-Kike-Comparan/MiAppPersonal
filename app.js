@@ -943,7 +943,7 @@ function obtenerMesAgendaActual() {
 }
 
 
-function mostrarFechas() {
+function mostrarFechas(omitirDesplazamiento) {
 
 
 
@@ -952,11 +952,17 @@ function mostrarFechas() {
 
     lista.innerHTML = "";
 
-    document
-        .getElementById("seccionFechas")
-        .scrollIntoView({
-            behavior: "smooth"
-        });
+    const mostrarTodasLasFechas =
+        document.getElementById("buscarFecha").value.trim() !== "" ||
+        tipoFiltroActivo !== null;
+
+    if (!omitirDesplazamiento) {
+        document
+            .getElementById("seccionFechas")
+            .scrollIntoView({
+                behavior: "smooth"
+            });
+    }
 
 
     fechasImportantes.sort(function(a, b) {
@@ -1394,8 +1400,11 @@ informacionRecordatorio +
 
 
                 if (
-                    mesFecha !== mesAgendaSeleccionado.mes ||
-                    añoFecha !== mesAgendaSeleccionado.año
+                    !mostrarTodasLasFechas &&
+                    (
+                        mesFecha !== mesAgendaSeleccionado.mes ||
+                        añoFecha !== mesAgendaSeleccionado.año
+                    )
                 ) {
 
                     return;
@@ -1613,6 +1622,8 @@ clavesMeses.forEach(function(clave) {
 
 });
 
+    buscarFechas();
+
 }
 let tipoFiltroActivo = null;
 let mesAgendaSeleccionado = null;
@@ -1677,7 +1688,7 @@ function limpiarBusqueda() {
 
     });
 
-    buscarFechas();
+    mostrarFechas(true);
 }
 
 
@@ -1707,7 +1718,7 @@ function filtrarFechasPorTipo(tipo) {
 
     });
 
-    buscarFechas();
+    mostrarFechas(true);
 }
 
 
