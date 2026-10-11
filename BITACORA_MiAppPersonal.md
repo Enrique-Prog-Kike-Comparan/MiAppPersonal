@@ -38,10 +38,10 @@ Los archivos anteriores estaban presentes al revisar `C:\MiAppPersonal` el 11/10
 
 ## Estado de Git y respaldo
 
-- Último commit conocido: `e10a159`.
-- El commit de respaldo local más reciente es `4f74a73` — **Completar recordatorios y documentar avance 12H.23.5.7**.
+- Commit base antes de los avances recientes: `e10a159` — **Corregir busqueda global de fechas en Agenda**.
+- El respaldo previo fue `4f74a73` — **Completar recordatorios y documentar avance 12H.23.5.7**.
 - Ese commit se publicó en GitHub en la rama `backup/2026-10-11-12H-23-5-7`; la rama remota `main` se dejó intacta porque tiene un historial independiente.
-- Al 11/10/2026, el árbol local estaba limpio después del respaldo. Los cambios del punto 12H.23.5.8 son posteriores y aún no están respaldados.
+- El cambio de 12H.23.5.8 se guardó en `11cb13b` — **Abrir Agenda al tocar una notificacion** y se publicó en `backup/2026-10-11-12H-23-5-8`.
 
 ## Pendientes conocidos
 
@@ -49,7 +49,7 @@ Los archivos anteriores estaban presentes al revisar `C:\MiAppPersonal` el 11/10
 2. Registrar cada cambio con su punto numerado, qué se hizo y cómo se verificó; diferenciar trabajo completado de trabajo pendiente.
 3. Confirmar y documentar los casos concretos de pruebas de la búsqueda global de fechas de Agenda si hace falta continuar esa parte.
 4. Seguir validando el flujo de notificaciones push; distinguir la notificación local/de prueba del envío y recepción push reales en segundo plano.
-5. Respaldar en GitHub los cambios nuevos después de validarlos, sin modificar `main` hasta resolver el historial independiente.
+5. Mantener los siguientes respaldos en ramas nuevas; no modificar `main` hasta resolver el historial independiente.
 
 ## Reglas para continuar
 
@@ -98,3 +98,4 @@ Los archivos anteriores estaban presentes al revisar `C:\MiAppPersonal` el 11/10
 - Revisión estática del diff completada; `git diff --check` no reportó errores de formato. No se ejecutaron pruebas automatizadas.
 - La persona usuaria reportó que la prueba manual en computadora fue exitosa. El detalle de los escenarios exactos no quedó especificado; la prueba en el celular sigue pendiente porque allí está instalada una versión anterior.
 - **12H.23.5.8 queda validado manualmente en computadora según el reporte de la persona usuaria.**
+- Commit: `11cb13b` — **Abrir Agenda al tocar una notificacion**. Respaldo en GitHub: `backup/2026-10-11-12H-23-5-8`; `main` sigue intacta.
