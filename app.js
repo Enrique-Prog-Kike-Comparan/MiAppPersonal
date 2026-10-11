@@ -617,7 +617,10 @@ async function procesarRecordatorioFecha(fecha) {
                     "Es momento de: " +
                     (fecha.nombre || "una fecha importante"),
                 icon: "Icono.png",
-                badge: "Icono.png"
+                badge: "Icono.png",
+                data: {
+                    url: "./index.html?abrir=agenda"
+                }
             }
         );
 
@@ -1855,6 +1858,42 @@ setInterval(function() {
     revisarRecordatoriosFechas();
 
 }, 60000);
+
+function abrirAgendaDesdeNotificacion() {
+
+    mostrarPantalla("seccionFechas");
+
+}
+
+if ("serviceWorker" in navigator) {
+
+    navigator.serviceWorker.addEventListener("message", function(event) {
+
+        if (
+            event.data &&
+            event.data.tipo === "ABRIR_AGENDA"
+        ) {
+            abrirAgendaDesdeNotificacion();
+        }
+
+    });
+
+}
+
+const parametrosPagina =
+    new URLSearchParams(window.location.search);
+
+if (parametrosPagina.get("abrir") === "agenda") {
+
+    abrirAgendaDesdeNotificacion();
+
+    window.history.replaceState(
+        null,
+        "",
+        window.location.pathname + window.location.hash
+    );
+
+}
 
 
 function probarRecordatoriosFechas() {

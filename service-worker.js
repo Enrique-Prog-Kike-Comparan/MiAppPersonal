@@ -46,10 +46,58 @@ self.addEventListener("message", function(event) {
             {
                 body: "¡Las notificaciones están funcionando!",
                 icon: "Icono.png",
-                badge: "Icono.png"
+                badge: "Icono.png",
+                data: {
+                    url: "./index.html?abrir=agenda"
+                }
             }
         );
 
     }
+
+});
+
+self.addEventListener("notificationclick", function(event) {
+
+    event.notification.close();
+
+    const destino =
+        new URL(
+            event.notification.data?.url || "./index.html?abrir=agenda",
+            self.registration.scope
+        );
+
+    if (destino.origin !== self.location.origin) {
+        return;
+    }
+
+    event.waitUntil((async function() {
+
+        const ventanas =
+            await self.clients.matchAll({
+                type: "window",
+                includeUncontrolled: true
+            });
+
+        const ventanaMiApp =
+            ventanas.find(function(ventana) {
+                return new URL(ventana.url).origin === self.location.origin;
+            });
+
+        if (ventanaMiApp) {
+
+            await ventanaMiApp.focus();
+
+            ventanaMiApp.postMessage({
+                tipo: "ABRIR_AGENDA"
+            });
+
+            return;
+
+        }
+
+        await self.clients.openWindow(destino.href);
+
+    })());
 
 });

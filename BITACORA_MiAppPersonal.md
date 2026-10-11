@@ -39,17 +39,17 @@ Los archivos anteriores estaban presentes al revisar `C:\MiAppPersonal` el 11/10
 ## Estado de Git y respaldo
 
 - Último commit conocido: `e10a159`.
-- Estado limpio reportado inmediatamente después de ese commit.
-- La decisión conversada fue **continuar el desarrollo y después respaldar en GitHub**. No se debe interpretar como que ya se hizo el push. Registrar aquí el commit de respaldo cuando se realice.
-- Durante esta revisión, `git rev-parse --show-toplevel` identificó `C:/MiAppPersonal`, pero `git status` devolvió que no está dentro de un árbol de trabajo. El estado limpio anterior se conserva como dato reportado por la conversación y conviene verificar Git antes de respaldar.
+- El commit de respaldo local más reciente es `4f74a73` — **Completar recordatorios y documentar avance 12H.23.5.7**.
+- Ese commit se publicó en GitHub en la rama `backup/2026-10-11-12H-23-5-7`; la rama remota `main` se dejó intacta porque tiene un historial independiente.
+- Al 11/10/2026, el árbol local estaba limpio después del respaldo. Los cambios del punto 12H.23.5.8 son posteriores y aún no están respaldados.
 
 ## Pendientes conocidos
 
-1. Definir la siguiente actividad y su numeración desde la continuidad del plan; no asignar un nuevo subpaso sin confirmar su alcance.
+1. Probar el punto 12H.23.5.8 en el celular después de actualizar la versión publicada.
 2. Registrar cada cambio con su punto numerado, qué se hizo y cómo se verificó; diferenciar trabajo completado de trabajo pendiente.
 3. Confirmar y documentar los casos concretos de pruebas de la búsqueda global de fechas de Agenda si hace falta continuar esa parte.
 4. Seguir validando el flujo de notificaciones push; distinguir la notificación local/de prueba del envío y recepción push reales en segundo plano.
-5. Después de continuar el desarrollo, verificar rama, estado y commit y realizar el respaldo en GitHub según lo acordado. No hay evidencia en el contexto de que el push ya se haya hecho.
+5. Respaldar en GitHub los cambios nuevos después de validarlos, sin modificar `main` hasta resolver el historial independiente.
 
 ## Reglas para continuar
 
@@ -57,7 +57,7 @@ Los archivos anteriores estaban presentes al revisar `C:\MiAppPersonal` el 11/10
 - Seguir la numeración vigente, sin añadir subpasos ni marcar puntos completos sin contexto o verificación.
 - Avanzar paso a paso y explicar en español claro qué archivo se toca, qué cambio se realiza y cómo comprobarlo. La persona usuaria prefiere instrucciones adecuadas para alguien que está aprendiendo.
 - Al cerrar cada paso, actualizar esta bitácora con fecha, resultado, pruebas realmente ejecutadas, commit si existe y siguiente paso confirmado.
-- No subir cambios a GitHub hasta el momento acordado: primero continuar el desarrollo y luego respaldar.
+- Respaldar los cambios en la rama de respaldo de GitHub después de validar el punto; no forzar actualizaciones sobre `main`.
 
 ## Registro de continuación
 
@@ -87,3 +87,14 @@ Los archivos anteriores estaban presentes al revisar `C:\MiAppPersonal` el 11/10
 - Se ajustó `obtenerMomentoRecordatorio()` para usar la ocurrencia de este año cuando el evento cae hoy y su hora aún no ha pasado.
 - El cambio es local al cálculo del recordatorio; `obtenerProximaFecha()` y las funciones visuales de la Agenda no se modificaron.
 - Prueba manual en computadora reportada exitosa por la persona usuaria con una fecha de hoy y aviso de 5 minutos. No se ejecutaron pruebas automatizadas.
+
+## Avance 12H.23.5.8 — Abrir Agenda al tocar una notificación
+
+**Fecha:** 11/10/2026
+
+- Las notificaciones de recordatorio y de prueba ahora incluyen un destino a la Agenda.
+- Se agregó al Service Worker la acción de toque: enfoca una ventana MiAppPersonal existente y le solicita abrir la Agenda; si no hay ventana, abre `index.html` directamente en esa sección.
+- `app.js` atiende el mensaje del Service Worker y también reconoce el parámetro de destino al iniciar la app.
+- Revisión estática del diff completada; `git diff --check` no reportó errores de formato. No se ejecutaron pruebas automatizadas.
+- La persona usuaria reportó que la prueba manual en computadora fue exitosa. El detalle de los escenarios exactos no quedó especificado; la prueba en el celular sigue pendiente porque allí está instalada una versión anterior.
+- **12H.23.5.8 queda validado manualmente en computadora según el reporte de la persona usuaria.**
