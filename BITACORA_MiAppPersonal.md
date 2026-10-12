@@ -47,7 +47,7 @@ Los archivos anteriores estaban presentes al revisar `C:\MiAppPersonal` el 11/10
 
 ## Pendientes conocidos
 
-1. Probar el punto 12H.23.5.8 en el celular después de actualizar la versión publicada.
+1. Definir y numerar la siguiente actividad después de completar 12H.23.5.8, conservando el contexto disponible.
 2. Registrar cada cambio con su punto numerado, qué se hizo y cómo se verificó; diferenciar trabajo completado de trabajo pendiente.
 3. Confirmar y documentar los casos concretos de pruebas de la búsqueda global de fechas de Agenda si hace falta continuar esa parte.
 4. Seguir validando el flujo de notificaciones push; distinguir la notificación local/de prueba del envío y recepción push reales en segundo plano.
@@ -98,7 +98,8 @@ Los archivos anteriores estaban presentes al revisar `C:\MiAppPersonal` el 11/10
 - Se agregó al Service Worker la acción de toque: enfoca una ventana MiAppPersonal existente y le solicita abrir la Agenda; si no hay ventana, abre `index.html` directamente en esa sección.
 - `app.js` atiende el mensaje del Service Worker y también reconoce el parámetro de destino al iniciar la app.
 - Revisión estática del diff completada; `git diff --check` no reportó errores de formato. No se ejecutaron pruebas automatizadas.
-- La persona usuaria reportó que la prueba manual en computadora fue exitosa. El detalle de los escenarios exactos no quedó especificado; la prueba en el celular sigue pendiente porque allí está instalada una versión anterior.
-- **12H.23.5.8 queda validado manualmente en computadora según el reporte de la persona usuaria.**
+- La persona usuaria reportó que la prueba manual en computadora fue exitosa. El detalle de los escenarios exactos no quedó especificado.
+- El 12/10/2026, la persona usuaria informó que la prueba en el teléfono fue exitosa: al tocar la notificación, MiAppPersonal regresó a la Agenda.
+- **12H.23.5.8 queda validado manualmente en computadora y teléfono según los reportes de la persona usuaria.**
 - Commit: `11cb13b` — **Abrir Agenda al tocar una notificacion**. Respaldo en GitHub: `backup/2026-10-11-12H-23-5-8`; `main` sigue intacta.
-- Publicado el 12/10/2026 en la misma rama de Pages; la página pública sirve los archivos actualizados. Falta validar la actualización y el toque de notificación en el celular.
+- Publicado el 12/10/2026 en la misma rama de Pages; la página pública sirve los archivos actualizados. La actualización y el toque de notificación quedaron validados en el celular.
