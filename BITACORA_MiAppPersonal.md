@@ -42,6 +42,8 @@ Los archivos anteriores estaban presentes al revisar `C:\MiAppPersonal` el 11/10
 - El respaldo previo fue `4f74a73` — **Completar recordatorios y documentar avance 12H.23.5.7**.
 - Ese commit se publicó en GitHub en la rama `backup/2026-10-11-12H-23-5-7`; la rama remota `main` se dejó intacta porque tiene un historial independiente.
 - El cambio de 12H.23.5.8 se guardó en `11cb13b` — **Abrir Agenda al tocar una notificacion** y se publicó en `backup/2026-10-11-12H-23-5-8`.
+- El 12/10/2026, GitHub Pages se cambió de `main` a `backup/2026-10-11-12H-23-5-8` (carpeta raíz). La publicación automática terminó correctamente en la ejecución `38245762860`; `main` no se modificó.
+- Verificación del sitio publicado: `app.js` y `service-worker.js` respondieron HTTP 200 y contienen el destino `abrir=agenda` y el manejador `notificationclick`.
 
 ## Pendientes conocidos
 
@@ -99,3 +101,4 @@ Los archivos anteriores estaban presentes al revisar `C:\MiAppPersonal` el 11/10
 - La persona usuaria reportó que la prueba manual en computadora fue exitosa. El detalle de los escenarios exactos no quedó especificado; la prueba en el celular sigue pendiente porque allí está instalada una versión anterior.
 - **12H.23.5.8 queda validado manualmente en computadora según el reporte de la persona usuaria.**
 - Commit: `11cb13b` — **Abrir Agenda al tocar una notificacion**. Respaldo en GitHub: `backup/2026-10-11-12H-23-5-8`; `main` sigue intacta.
+- Publicado el 12/10/2026 en la misma rama de Pages; la página pública sirve los archivos actualizados. Falta validar la actualización y el toque de notificación en el celular.
