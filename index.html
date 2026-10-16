@@ -10,285 +10,190 @@
 </head>
 
 <body>
+<aside class="barra-lateral" aria-label="Navegación"><strong class="marca-app">MiAppPersonal</strong><nav class="grupos-navegacion"><section><h2>Organizar</h2><button class="boton-nav" data-pantalla="seccionObjetivos" onclick="mostrarPantalla('seccionObjetivos')">🎯 Objetivos</button><button class="boton-nav" data-pantalla="seccionFechas" onclick="mostrarPantalla('seccionFechas')">🎂 Fechas especiales</button><button class="boton-nav" data-pantalla="seccionTareas" onclick="mostrarPantalla('seccionTareas')">✅ Tareas</button><button class="boton-nav" data-pantalla="seccionPagos" onclick="mostrarPantalla('seccionPagos')">💡 Pagos pendientes</button><button class="boton-nav" data-pantalla="seccionFinanzas" onclick="mostrarPantalla('seccionFinanzas')">💰 Finanzas</button><button class="boton-nav" data-pantalla="seccionEntrenamiento" onclick="mostrarPantalla('seccionEntrenamiento')">🏋️ Entrenamiento</button><button class="boton-nav" data-pantalla="seccionAprendizajes" onclick="mostrarPantalla('seccionAprendizajes')">🧠 ¿Qué aprendí?</button><button class="boton-nav" data-pantalla="seccionTiempo" onclick="mostrarPantalla('seccionTiempo')">⏱️ ¿En qué se me fue el tiempo?</button><button class="boton-nav" data-pantalla="seccionProyectos" onclick="mostrarPantalla('seccionProyectos')">📋 Proyectos</button></section><section class="grupo-resultados"><h2>Resultados</h2><button class="boton-nav" data-pantalla="resultadoFinanzas" onclick="mostrarPantalla('resultadoFinanzas')">📊 Resultados financieros</button><button class="boton-nav" data-pantalla="resultadoPagos" onclick="mostrarPantalla('resultadoPagos')">💡 Resumen de pagos</button><button class="boton-nav" data-pantalla="resultadoEntrenamiento" onclick="mostrarPantalla('resultadoEntrenamiento')">🏋️ Resumen entrenamiento</button><button class="boton-nav" data-pantalla="resultadoTareas" onclick="mostrarPantalla('resultadoTareas')">✅ Resultado de tareas</button><button class="boton-nav" data-pantalla="resultadoTiempo" onclick="mostrarPantalla('resultadoTiempo')">⏱️ Resultado del tiempo</button></section></nav></aside>
 
     <header>
         <h1>Mi App Personal</h1>
         <p>Organiza tu tiempo, tus metas y tu crecimiento</p>
-    </header>
+    </header><button class="boton-cuenta-app" onclick="mostrarPantalla('seccionCuenta')">👤 Mi cuenta</button><div id="barraAvisos" class="barra-avisos"><span>Aquí aparecerán avisos de fechas especiales y pagos.</span><button onclick="cerrarAvisos()" aria-label="Cerrar aviso">×</button></div>
 
     <main class="contenedor">
 
-        <section class="bienvenida">
+        <section id="inicio" class="bienvenida pantalla activa">
             <h2>👋 Bienvenido</h2>
             <p>Este será tu centro personal de organización.</p>
             <p><strong>Hoy vamos a construir algo que realmente te ayude.</strong></p>
         </section>
 
-        <section class="modulos">
+        <section id="seccionCuenta" class="panel-cuenta pantalla" aria-labelledby="tituloCuenta">
+    <h2 id="tituloCuenta">👤 Cuentas de MiAppPersonal</h2>
+    <p>La Agenda se sincroniza con tu cuenta. Cada fecha es privada, a menos que elijas compartirla con la otra cuenta vinculada. Las Tareas siguen guardándose en este dispositivo.</p>
 
-            <div class="modulo" onclick="mostrarPantalla('seccionTareas')">
-                 <div class="icono">✅</div>
-                 <h3>Tareas</h3>
-                 <p>Pendientes y actividades</p>
+    <div id="estadoCuenta" class="estado-cuenta" role="status" aria-live="polite">
+        Conectando con el servicio de cuentas...
+    </div>
+
+    <div id="sesionActiva" class="sesion-activa" hidden>
+        <p id="correoSesion"></p>
+
+        <section id="panelVinculo" class="panel-vinculo" aria-labelledby="tituloVinculo">
+            <h3 id="tituloVinculo">Vincular las dos cuentas</h3>
+            <p>Cualquiera de ustedes puede generar el código. La otra persona lo acepta desde su propia sesión. Después, cada quien podrá compartir elementos propios para que ambas cuentas los vean y editen.</p>
+            <p id="estadoVinculo" class="estado-vinculo" role="status" aria-live="polite">Revisando el vínculo...</p>
+
+            <div id="invitacionPendiente" class="invitacion-pendiente" hidden>
+                <p>Comparte este código solo con tu esposa:</p>
+                <code id="codigoInvitacion"></code>
+                <button id="copiarCodigoInvitacion" class="boton-secundario" type="button">Copiar código</button>
+                <button id="cancelarInvitacion" class="boton-secundario" type="button">Cancelar invitación</button>
             </div>
 
-           <div class="modulo" onclick="mostrarPantalla('seccionFechas')">
-                <div class="icono">📅</div>
-                <h3>Agenda</h3>
-                <p>Eventos y fechas importantes</p>
-           </div>
+            <form id="formCrearVinculo" class="formulario-vinculo" hidden>
+                <button type="submit">Generar código de invitación</button>
+            </form>
 
-            <div class="modulo">
-                <div class="icono">🧠</div>
-                <h3>¿Qué aprendí?</h3>
-                <p>Notas y aprendizajes diarios</p>
+            <form id="formAceptarVinculo" class="formulario-vinculo" hidden>
+                <label for="codigoAInvitacion">Si recibiste un código, pégalo aquí</label>
+                <input id="codigoAInvitacion" name="codigo" type="text" minlength="32" maxlength="64" autocomplete="off" required>
+                <button type="submit">Revisar y aceptar invitación</button>
+            </form>
+
+            <div id="vinculoActivo" class="vinculo-activo" hidden>
+                <p id="detalleVinculoActivo"></p>
+                <button id="desvincularCuentas" class="boton-secundario" type="button">Desvincular cuentas</button>
             </div>
-
-            <div class="modulo">
-                <div class="icono">💰</div>
-                <h3>Finanzas</h3>
-                <p>Ingresos, gastos y pagos</p>
-            </div>
-
-            <div class="modulo">
-                <div class="icono">🏋️</div>
-                <h3>Entrenamiento</h3>
-                <p>Ejercicios y progreso</p>
-            </div>
-
-            <div class="modulo">
-                <div class="icono">🎯</div>
-                <h3>Objetivos</h3>
-                <p>Metas y seguimiento</p>
-            </div>
-
-            <div class="modulo">
-                <div class="icono">⏱️</div>
-                <h3>¿En qué se me fue el tiempo?</h3>
-                <p>Distracciones y procrastinación</p>
-            </div>
-
-            <div class="modulo">
-                <div class="icono">📋</div>
-                <h3>Proyectos</h3>
-                <p>Checklists y planes de trabajo</p>
-            </div>
-
-             <div class="modulo" onclick="solicitarPermisoNotificaciones()">
-                <div class="icono">🔔</div>
-                <h3>Notificaciones</h3>
-                <p>Activar notificaciones</p>
-             </div>
-
-
         </section>
 
+        <button id="cerrarSesion" type="button">Cerrar sesión</button>
+    </div>
 
-    <section id="seccionTareas" class="seccion-tareas pantalla">
+    <div id="formulariosCuenta" class="formularios-cuenta">
+        <form id="formCrearCuenta" class="formulario-cuenta">
+            <h3>Crear cuenta</h3>
+            <label for="correoNuevo">Tu correo electrónico</label>
+            <input id="correoNuevo" name="correo" type="email" autocomplete="email" required>
+            <label for="contrasenaNueva">Contraseña para MiAppPersonal</label>
+            <input id="contrasenaNueva" name="contrasena" type="password" autocomplete="new-password" minlength="6" required>
+            <small>Usa una contraseña propia de la aplicación, de al menos 6 caracteres. No es necesario que sea la de tu correo.</small>
+            <button type="submit">Crear mi cuenta</button>
+        </form>
 
-      <button
-       class="boton-regresar"
-       onclick="mostrarInicio()">
-       ← Inicio
-      </button>
+        <form id="formIniciarSesion" class="formulario-cuenta">
+            <h3>Ya tengo cuenta</h3>
+            <label for="correoExistente">Tu correo electrónico</label>
+            <input id="correoExistente" name="correo" type="email" autocomplete="email" required>
+            <label for="contrasenaExistente">Contraseña de MiAppPersonal</label>
+            <input id="contrasenaExistente" name="contrasena" type="password" autocomplete="current-password" required>
+            <button type="submit">Iniciar sesión</button>
+            <button id="recuperarContrasena" class="boton-secundario" type="button">Olvidé mi contraseña</button>
+        </form>
+    </div>
+
+    <p id="mensajeCuenta" class="mensaje-cuenta" aria-live="polite"></p>
+</section>
+
+            <section id="seccionTareas" class="seccion-tareas pantalla">
+
+
 
     <h2>✅ Mis tareas</h2>
-    <div class="nueva-tarea">
-
-    <input
-        type="text"
-        id="textoTarea"
-        placeholder="¿Qué necesitas hacer?"
-    >
-
-    <input
-        type="date"
-        id="fechaTarea"
-    >
-
-    <input
-        type="time"
-        id="horaTarea"
-    >
-
-    <select id="prioridadTarea">
-        <option value="baja">🟢 Baja</option>
-        <option value="media" selected>🟡 Media</option>
-        <option value="alta">🔴 Alta</option>
-    </select>
-
-    <select id="categoriaTarea">
-        <option value="trabajo">💼 Trabajo</option>
-        <option value="personal">👤 Personal</option>
-        <option value="familia">🏠 Familia</option>
-        <option value="estudio">📚 Estudio</option>
-        <option value="otros">📌 Otros</option>
-    </select>
-
-    <select id="recordatorioTarea">
-     <option value="ninguno">🔕 Sin recordatorio</option>
-     <option value="5">🔔 5 minutos antes</option>
-     <option value="15">🔔 15 minutos antes</option>
-     <option value="30">🔔 30 minutos antes</option>
-     <option value="60">🔔 1 hora antes</option>
-     <option value="1440">🔔 1 día antes</option>
-    </select>
-
-    <select id="repeticionTarea">
-     <option value="ninguna">🔁 No repetir</option>
-     <option value="diaria">🔁 Cada día</option>
-     <option value="semanal">🔁 Cada semana</option>
-     <option value="quincenal">🔁 Cada 2 semanas</option>
-     <option value="mensual">🔁 Cada mes</option>
-     <option value="anual">🔁 Cada año</option>
-    </select>
-
-    <button onclick="agregarTarea()">
-        + Agregar tarea
-    </button>
-
-
-</div>
-
+    <div class="nueva-tarea"><button type="button" onclick="agregarTarea()">+ Nueva tarea</button></div>
+    <section class="herramientas-tareas" aria-label="Buscar y filtrar tareas">
+        <h3>Buscar y filtrar tareas</h3>
+        <div class="filtros-tareas-controles">
+            <div class="campo-busqueda-tareas">
+                <label for="buscarTarea">Buscar por texto</label>
+                <input type="search" id="buscarTarea" placeholder="Ej. llamar al doctor" oninput="filtrarTareas()">
+            </div>
+            <div class="campo-prioridad-tareas">
+                <label for="filtroPrioridadTarea">Prioridad</label>
+                <select id="filtroPrioridadTarea" onchange="filtrarTareas()">
+                    <option value="">Todas las prioridades</option><option value="ninguna">⚪ Sin prioridad</option>
+                    <option value="alta">🔴 Alta</option>
+                    <option value="media">🟡 Media</option>
+                    <option value="baja">🟢 Baja</option>
+                </select>
+            </div>
+            <button type="button" class="boton-limpiar-filtros-tareas" onclick="limpiarFiltrosTareas()">Limpiar filtros</button>
+        </div>
+        <p id="contadorTareasFiltradas" class="contador-tareas" aria-live="polite"></p>
+    </section>
+    <p id="estadoFiltrosTareas" class="estado-filtros-tareas" hidden></p>
     <div id="listaTareas"></div>
 </section>
 
 <section id="seccionFechas" class="seccion-fechas pantalla">
 
-    <button
-    class="boton-regresar"
-    onclick="mostrarInicio()">
-    ← Inicio
-    </button>
-    
-    <h2>📅 Fechas importantes</h2>
-
-   <div class="nueva-fecha">
-
-    <input
-        type="text"
-        id="nombreFecha"
-        placeholder="Nombre (ej. Cumpleaños de mamá)"
-    >
-
-    <select id="tipoFecha">
-        <option value="cumpleanos">🎂 Cumpleaños</option>
-        <option value="aniversario">❤️ Aniversario</option>
-        <option value="importante">📅 Fecha importante</option>
-    </select>
-
-    <input
-        type="date"
-        id="fechaImportante"
-    >
-
-    <input 
-        type="time" 
-        id="horaImportante" >
-
-    <select id="recordatorioFecha">
-
-        <option value="ninguno">
-            🔕 Sin recordatorio
-        </option>
-
-        <option value="5">
-            🔔 5 minutos antes
-        </option>
-
-        <option value="15">
-            🔔 15 minutos antes
-        </option>
-
-        <option value="30">
-            🔔 30 minutos antes
-        </option>
-
-        <option value="60">
-            🔔 1 hora antes
-        </option>
-
-        <option value="1440">
-            🔔 1 día antes
-        </option>
-
-    </select>
-
-    <button onclick="agregarFecha()">
-        + Agregar fecha
-    </button>
-
-</div>
 
 
-<div class="buscador-fechas">
+    <h2>🎂 Fechas especiales</h2>
+    <p id="estadoSincronizacionAgenda" class="estado-sincronizacion" role="status" aria-live="polite">Las fechas de prueba se conservan en este dispositivo.</p>
 
-    <input
-        type="text"
-        id="buscarFecha"
-        placeholder="🔍 Buscar por palabra clave..."
-        oninput="mostrarFechas(true)"
-    >
+    <div class="acciones-fechas">
+        <p>Organiza cumpleaños, aniversarios y fechas importantes. Usa la búsqueda y los filtros para encontrar un registro.</p>
+        <button type="button" class="boton-nueva-fecha" onclick="abrirNuevaFecha()">＋ Agregar fecha especial</button>
+    </div>
 
-    <button
-        type="button"
-        onclick="limpiarBusqueda()">
-        ✕
-    </button>
-
-</div>
-
-<div class="filtros-fechas">
-
-    <button
-    type="button"
-    onclick="filtrarFechasPorTipo('cumpleanos')">
-    🎂 Cumpleaños
-    </button>
-
-    <button
-    type="button"
-    onclick="filtrarFechasPorTipo('aniversario')">
-    ❤️ Aniversarios
-   </button>
-
-    <button
-    type="button"
-    onclick="filtrarFechasPorTipo('importante')">
-    📅 Importantes
-    </button>
-
-</div>
-
+    <section class="herramientas-fechas" aria-label="Buscar y filtrar fechas especiales">
+        <div class="cabecera-herramientas-fechas">
+            <h3>Buscar y filtrar</h3>
+            <span id="contadorFechas" class="contador-fechas" aria-live="polite"></span>
+        </div>
+                <label for="buscarFecha">Buscar por nombre, tipo o fecha</label>
+        <div class="buscador-fechas">
+            <span class="icono-busqueda" aria-hidden="true">⌕</span>
+            <input type="search" id="buscarFecha" placeholder="Ej. cumpleaños de mamá" oninput="mostrarFechas(true)">
+            <button type="button" class="boton-limpiar-busqueda" onclick="limpiarBusqueda()" aria-label="Limpiar búsqueda">Limpiar</button>
+        </div>
+        <div class="filtros-fechas" role="group" aria-label="Filtrar fechas por tipo">
+            <button type="button" class="filtro-activo" data-filtro="todos" onclick="filtrarFechasPorTipo(null)">Todas</button>
+            <button type="button" data-filtro="cumpleanos" onclick="filtrarFechasPorTipo('cumpleanos')">🎂 Cumpleaños</button>
+            <button type="button" data-filtro="aniversario" onclick="filtrarFechasPorTipo('aniversario')">❤️ Aniversarios</button>
+            <button type="button" data-filtro="importante" onclick="filtrarFechasPorTipo('importante')">📅 Importantes</button>
+        </div>
+    </section>
 <div id="listaFechas"></div>
 
 
 </section>
 
 
-<div id="ventanaEdicion" class="ventana-edicion pantalla">
+<section id="seccionPagos" class="pantalla vista-modulo"><h2>💡 Pagos pendientes</h2><p>Registra pagos como agua, luz o predial. Estos registros se guardan localmente en este dispositivo.</p><div class="formulario-pago"><label for="nombrePago">Concepto del pago</label><input id="nombrePago" type="text" maxlength="120" placeholder="Ej. Agua, luz o predial"><label for="fechaPago">Fecha de vencimiento</label><input id="fechaPago" type="date"><label for="montoPago">Monto en pesos</label><input id="montoPago" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00"><label class="estado-pago"><input id="pagoRealizado" type="checkbox"> Ya realicé este pago</label><div class="acciones-pago"><button id="botonGuardarPago" type="button" onclick="guardarPago()">Agregar pago</button><button id="botonCancelarPago" type="button" class="boton-secundario" onclick="cancelarEdicionPago()" hidden>Cancelar edición</button></div></div><div id="listaPagos" class="lista-pagos"></div></section>
+<section id="seccionFinanzas" class="pantalla vista-modulo"><h2>💰 Finanzas</h2><p>Registra tus gastos por día. Por ahora, estos datos se guardan en este dispositivo.</p><div class="barra-finanzas-dia"><label for="fechaFinanzas">Día seleccionado</label><input id="fechaFinanzas" type="date" onchange="seleccionarFechaFinanzas(this.value)"><button type="button" onclick="abrirNuevoGasto()">＋ Agregar gasto</button></div><div id="resumenDiaFinanzas" class="resumen-dia-finanzas"></div><div id="listaGastos" class="lista-gastos"></div></section>
+<section id="seccionEntrenamiento" class="pantalla vista-modulo"><h2>🏋️ Entrenamiento</h2><p>Organiza tus ejercicios físicos y mentales por día. Tus registros se guardan en este dispositivo.</p><div class="acciones-entrenamiento"><p>Elige una actividad sugerida o escribe una propia para el día seleccionado.</p><button type="button" class="boton-nueva-entrenamiento" onclick="abrirNuevoEntrenamiento()">＋ Agregar actividad</button></div><div id="listaEntrenamientos" class="lista-entrenamientos"></div></section>
+<div id="modalEntrenamiento" class="ventana-edicion ventana-entrenamiento" role="dialog" aria-modal="true" aria-labelledby="tituloModalEntrenamiento"><div class="contenido-edicion"><h2 id="tituloModalEntrenamiento">＋ Nueva actividad</h2><label for="tipoEntrenamiento">Tipo</label><select id="tipoEntrenamiento"><option value="fisico">🏋️ Ejercicio físico</option><option value="mental">🧠 Ejercicio mental</option></select><label for="actividadEntrenamiento">Actividad</label><input id="actividadEntrenamiento" type="text" maxlength="120" list="sugerenciasEntrenamiento" placeholder="Ej. caminar, movilidad, meditación"><datalist id="sugerenciasEntrenamiento"><option value="Caminar"><option value="Fuerza"><option value="Movilidad y estiramiento"><option value="Cardio"><option value="Respiración consciente"><option value="Meditación"><option value="Lectura enfocada"><option value="Memoria y atención"></datalist><label for="fechaEntrenamiento">Día</label><input id="fechaEntrenamiento" type="date"><label for="repeticionEntrenamiento">🔁 Repetir</label><select id="repeticionEntrenamiento" onchange="actualizarCampoFinRepeticionEntrenamiento()"><option value="ninguna">No repetir</option><option value="diaria">Cada día</option><option value="semanal">Cada semana</option><option value="quincenal">Cada 2 semanas</option><option value="mensual">Cada mes</option><option value="anual">Cada año</option></select><div id="grupoFinRepeticionEntrenamiento" class="campo-fin-repeticion" hidden><label for="repeticionHastaEntrenamiento">Se repetirá hasta</label><input type="date" id="repeticionHastaEntrenamiento"><small>La última actividad aparecerá en esta fecha, inclusive.</small></div><label for="duracionEntrenamiento">Duración en minutos (opcional)</label><input id="duracionEntrenamiento" type="number" min="1" max="1440" inputmode="numeric" placeholder="Ej. 20"><label for="notaEntrenamiento">Nota (opcional)</label><textarea id="notaEntrenamiento" rows="3" maxlength="1000" placeholder="Agrega un detalle si lo necesitas"></textarea><div class="botones-edicion"><button type="button" onclick="cerrarModalEntrenamiento()">Cancelar</button><button id="botonGuardarEntrenamiento" type="button" onclick="guardarEntrenamiento()">Guardar actividad</button></div></div></div>
+<section id="seccionTiempo" class="pantalla vista-modulo"><h2>⏱️ ¿En qué se me fue el tiempo?</h2><p>Aquí podrás registrar comentarios por día.</p></section>
+<section id="seccionProyectos" class="pantalla vista-modulo"><h2>📋 Proyectos</h2><p>Solo aparecerán los proyectos que agregues manualmente, con sus subtareas y estados.</p></section>
+<section id="seccionAprendizajes" class="pantalla vista-modulo"><h2>🧠 ¿Qué aprendí?</h2><p>Guarda tus aprendizajes por día. Se almacenan localmente en este dispositivo.</p><div class="formulario-aprendizaje"><label for="fechaAprendizaje">Día</label><input id="fechaAprendizaje" type="date"><label for="textoAprendizaje">¿Qué aprendiste?</label><textarea id="textoAprendizaje" rows="4" maxlength="3000" placeholder="Escribe aquí tu aprendizaje..."></textarea><div class="acciones-aprendizaje"><button id="botonGuardarAprendizaje" type="button" onclick="guardarAprendizaje()">Guardar aprendizaje</button><button id="botonCancelarAprendizaje" type="button" class="boton-secundario" onclick="cancelarEdicionAprendizaje()" hidden>Cancelar edición</button></div></div><div id="listaAprendizajes" class="lista-aprendizajes"></div></section>
+<section id="seccionObjetivos" class="pantalla vista-modulo"><h2>🎯 Objetivos</h2><p>Este módulo se construirá en una etapa posterior.</p></section>
+<section id="resultadoFinanzas" class="pantalla vista-modulo"><h2>📊 Resultados financieros</h2><p>Consulta tus gastos por día, semana, mes o año. Los resultados se calculan con los gastos guardados en este dispositivo.</p><div class="controles-resumen-finanzas"><div><label for="periodoResumenFinanzas">Periodo</label><select id="periodoResumenFinanzas" onchange="mostrarResumenFinanzas()"><option value="dia">Día</option><option value="semana">Semana</option><option value="mes" selected>Mes</option><option value="anio">Año</option></select></div><div><label for="fechaReferenciaFinanzas">Fecha de referencia</label><input id="fechaReferenciaFinanzas" type="date" onchange="mostrarResumenFinanzas()"></div></div><div id="panelResumenFinanzas" class="panel-resumen-finanzas"></div></section><section id="resultadoPagos" class="pantalla vista-modulo"><h2>💡 Resumen de Pagos pendientes</h2><p>Balance de todos los pagos registrados en este dispositivo.</p><div id="resumenPagos" class="resumen-pagos"></div></section>
+<section id="resultadoEntrenamiento" class="pantalla vista-modulo"><h2>🏋️ Resumen de entrenamiento</h2><p>Resumen pendiente hasta construir Entrenamiento.</p></section>
+<section id="resultadoTareas" class="pantalla vista-modulo"><h2>✅ Resultado de tareas</h2><p>Resumen pendiente hasta completar Tareas.</p></section>
+<section id="resultadoTiempo" class="pantalla vista-modulo"><h2>⏱️ Resultado del tiempo</h2><p>Resumen pendiente hasta construir el registro del tiempo.</p></section>
+<div id="ventanaEdicion" class="ventana-edicion pantalla" role="dialog" aria-modal="true" aria-labelledby="tituloEdicionTarea">
 
     <div class="contenido-edicion">
 
-        <h2>✏️ Editar tarea</h2>
+        <h2 id="tituloEdicionTarea">✏️ Editar tarea</h2>
 
-        <label>Tarea</label>
+        <label for="editarTexto">Tarea</label>
         <input type="text" id="editarTexto">
 
-        <label>Fecha</label>
+        <label for="editarFechaImportante">Fecha</label>
         <input type="date" id="editarFecha">
 
-        <label>Hora</label>
+        <label for="editarHora">Hora</label>
         <input type="time" id="editarHora">
 
-        <label>Prioridad</label>
+        <label for="editarPrioridad">Prioridad</label>
         <select id="editarPrioridad">
+            <option value="ninguna">⚪ Sin prioridad</option>
             <option value="baja">🟢 Baja</option>
             <option value="media">🟡 Media</option>
             <option value="alta">🔴 Alta</option>
         </select>
 
-        <label>Categoría</label>
+        <label for="editarCategoria">Categoría</label>
         <select id="editarCategoria">
             <option value="trabajo">💼 Trabajo</option>
             <option value="personal">👤 Personal</option>
@@ -297,7 +202,7 @@
             <option value="otros">📌 Otros</option>
         </select>
 
-        <label>🔔 Recordatorio</label>
+        <label for="editarRecordatorio">🔔 Recordatorio</label>
         <select id="editarRecordatorio">
             <option value="ninguno">Sin recordatorio</option>
             <option value="5">5 minutos antes</option>
@@ -307,8 +212,8 @@
             <option value="1440">1 día antes</option>
         </select>
 
-        <label>🔁 Repetir</label>
-        <select id="editarRepeticion">
+        <label for="editarRepeticion">🔁 Repetir</label>
+        <select id="editarRepeticion" onchange="actualizarCampoFinRepeticion()">
             <option value="ninguna">No repetir</option>
             <option value="diaria">Cada día</option>
             <option value="semanal">Cada semana</option>
@@ -317,13 +222,19 @@
             <option value="anual">Cada año</option>
         </select>
 
+        <div id="grupoFinRepeticion" class="campo-fin-repeticion" hidden>
+            <label for="editarRepeticionHasta">Se repetirá hasta</label>
+            <input type="date" id="editarRepeticionHasta">
+            <small>La última repetición aparecerá en esta fecha, inclusive.</small>
+        </div>
+
         <div class="botones-edicion">
 
             <button onclick="cerrarEdicion()">
                 Cancelar
             </button>
 
-            <button onclick="guardarEdicion()">
+            <button id="botonGuardarTarea" onclick="guardarEdicion()">
                 💾 Guardar cambios
             </button>
 
@@ -333,70 +244,67 @@
 
 </div>
 
-<div id="ventanaEdicionFecha" class="ventana-edicion-fecha">
+<div id="modalGasto" class="ventana-edicion" role="dialog" aria-modal="true" aria-labelledby="tituloModalGasto" style="display:none">
+    <div class="contenido-edicion">
+        <h2 id="tituloModalGasto">＋ Nuevo gasto</h2>
+        <label for="conceptoGasto">Concepto</label>
+        <input id="conceptoGasto" type="text" maxlength="120" placeholder="Ej. comida, gasolina, consulta">
+        <label for="montoGasto">Monto en pesos</label>
+        <input id="montoGasto" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="0.00">
+        <label for="fechaGasto">Fecha</label>
+        <input id="fechaGasto" type="date">
+        <label for="categoriaGasto">Categoría</label>
+        <select id="categoriaGasto"><option value="fijos_esenciales">🏠 Fijos y esenciales</option><option value="variables_necesarios">🛒 Variables necesarios</option><option value="compromisos_financieros">💳 Compromisos financieros</option><option value="gustos_salidas">🎉 Gustos y salidas</option></select>
+        <label for="notaGasto">Nota (opcional)</label>
+        <textarea id="notaGasto" rows="3" maxlength="500" placeholder="Agrega un detalle si lo necesitas"></textarea>
+        <div class="botones-edicion"><button type="button" onclick="cerrarModalGasto()">Cancelar</button><button id="botonGuardarGasto" type="button" onclick="guardarGasto()">Guardar gasto</button></div>
+    </div>
+</div>
+
+<div id="ventanaEdicionFecha" class="ventana-edicion-fecha" role="dialog" aria-modal="true" aria-labelledby="tituloEdicionFecha">
 
     <div class="contenido-edicion-fecha">
 
-        <h2>✏️ Editar fecha</h2>
+        <h2 id="tituloEdicionFecha">Nueva fecha especial</h2>
 
-        <label>Nombre</label>
+        <label for="editarNombreFecha">Nombre</label>
         <input type="text" id="editarNombreFecha">
 
-        <label>Tipo</label>
+        <label for="editarTipoFecha">Tipo de fecha</label>
         <select id="editarTipoFecha">
             <option value="cumpleanos">🎂 Cumpleaños</option>
             <option value="aniversario">❤️ Aniversario</option>
             <option value="importante">📅 Fecha importante</option>
         </select>
 
-        <label>Fecha</label>
-        <input 
-          type="date" 
+        <label for="editarFechaImportante">Fecha</label>
+        <input
+          type="date"
           id="editarFechaImportante"
         >
-        <input
-          type="time"
-          id="editarHoraImportante"
-        >
-    
-      <select id="editarRecordatorioFecha">
+                <label for="editarHoraImportante">Hora (opcional)</label>
+        <input type="time" id="editarHoraImportante">
 
-    <option value="ninguno">
-        🔕 Sin recordatorio
-    </option>
+        <label for="editarRecordatorioFecha">Recordatorio</label>
+        <select id="editarRecordatorioFecha">
+            <option value="ninguno">🔕 Sin recordatorio</option>
+            <option value="5">🔔 5 minutos antes</option>
+            <option value="15">🔔 15 minutos antes</option>
+            <option value="30">🔔 30 minutos antes</option>
+            <option value="60">🔔 1 hora antes</option>
+            <option value="1440">🔔 1 día antes</option>
+        </select>
 
-    <option value="5">
-        🔔 5 minutos antes
-    </option>
+        <label class="opcion-compartir"><input id="editarCompartirFecha" type="checkbox" disabled> Compartir esta fecha con la otra cuenta</label>
+        <small id="ayudaEditarCompartirFecha" class="ayuda-compartir"></small>
 
-    <option value="15">
-        🔔 15 minutos antes
-    </option>
-
-    <option value="30">
-        🔔 30 minutos antes
-    </option>
-
-    <option value="60">
-        🔔 1 hora antes
-    </option>
-
-    <option value="1440">
-        🔔 1 día antes
-    </option>
-
-      </select>
-
-      
         <div class="botones-edicion-fecha">
 
             <button onclick="cancelarEdicionFecha()">
                 Cancelar
             </button>
 
-            <button onclick="guardarEdicionFecha()">
-                Guardar
-            </button>
+            <button id="botonGuardarFecha" onclick="guardarEdicionFecha()">Guardar fecha</button>
 
         </div>
 
@@ -405,8 +313,11 @@
 </div>
 
 
-    </main>
+    <aside id="calendarioContextual" class="panel-calendario" hidden><div class="cabecera-calendario"><h2 id="tituloCalendario">Calendario</h2><div><button onclick="moverMesCalendario(-1)" aria-label="Mes anterior">‹</button><button onclick="moverMesCalendario(1)" aria-label="Mes siguiente">›</button></div></div><p id="mesCalendarioTitulo" class="mes-calendario"></p><div id="cuadriculaCalendario" class="cuadricula-calendario"></div><div id="detalleCalendario" class="detalle-calendario"></div></aside></main>
 <script type="module" src="firebase-config.js"></script>
 <script src="app.js"></script>
+<script type="module" src="cuenta.js"></script>
+    <script type="module" src="vinculo.js"></script>
+    <script type="module" src="agenda-cloud.js"></script>
 </body>
 </html>

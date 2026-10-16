@@ -1,0 +1,179 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function pairPath(pairId) {
+      return /databases/$(database)/documents/accountPairs/$(pairId);
+    }
+
+    function activePairContains(pairId, firstUid, secondUid) {
+      return pairId is string
+        && exists(pairPath(pairId))
+        && get(pairPath(pairId)).data.status == 'active'
+        && (
+          (get(pairPath(pairId)).data.ownerUid == firstUid
+            && get(pairPath(pairId)).data.inviteeUid == secondUid)
+          || (get(pairPath(pairId)).data.ownerUid == secondUid
+            && get(pairPath(pairId)).data.inviteeUid == firstUid)
+        );
+    }
+
+    function validPairInvite(data) {
+      return data.keys().hasOnly([
+          'ownerUid', 'ownerEmail', 'inviteeUid', 'inviteeEmail',
+          'status', 'createdAt', 'updatedAt', 'acceptedAt'
+        ])
+        && data.keys().hasAll([
+          'ownerUid', 'ownerEmail', 'inviteeUid', 'inviteeEmail',
+          'status', 'createdAt', 'updatedAt', 'acceptedAt'
+        ])
+        && data.ownerUid is string
+        && data.ownerEmail is string
+        && data.inviteeUid == null
+        && data.inviteeEmail == null
+        && data.status == 'pending'
+        && data.createdAt is timestamp
+        && data.updatedAt is timestamp
+        && data.acceptedAt == null;
+    }
+
+    function isAcceptingInvite() {
+      return signedIn()
+        && resource.data.status == 'pending'
+        && resource.data.ownerUid != request.auth.uid
+        && resource.data.inviteeUid == null
+        && request.resource.data.status == 'active'
+        && request.resource.data.inviteeUid == request.auth.uid
+        && request.resource.data.inviteeEmail == request.auth.token.email
+        && request.resource.data.acceptedAt == request.time
+        && request.resource.data.updatedAt == request.time
+        && request.resource.data.ownerUid == resource.data.ownerUid
+        && request.resource.data.ownerEmail == resource.data.ownerEmail
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['inviteeUid', 'inviteeEmail', 'status', 'acceptedAt', 'updatedAt']);
+    }
+
+    function isRevokingInviteOrPair() {
+      return signedIn()
+        && request.resource.data.status == 'revoked'
+        && request.resource.data.updatedAt == request.time
+        && (
+          (resource.data.status == 'pending'
+            && resource.data.ownerUid == request.auth.uid)
+          || (resource.data.status == 'active'
+            && (resource.data.ownerUid == request.auth.uid
+              || resource.data.inviteeUid == request.auth.uid))
+        )
+        && request.resource.data.diff(resource.data).affectedKeys()
+          .hasOnly(['status', 'updatedAt']);
+    }
+
+    match /accountPairs/{pairId} {
+      // Para aceptar, se necesita el código aleatorio y una sesión distinta a la creadora.
+      allow get: if signedIn()
+        && (resource.data.ownerUid == request.auth.uid
+          || resource.data.inviteeUid == request.auth.uid
+          || resource.data.status == 'pending');
+
+      allow list: if signedIn()
+        && (resource.data.ownerUid == request.auth.uid
+          || resource.data.inviteeUid == request.auth.uid);
+
+      allow create: if signedIn()
+        && validPairInvite(request.resource.data)
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.ownerEmail == request.auth.token.email
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if isAcceptingInvite() || isRevokingInviteOrPair();
+      allow delete: if false;
+    }
+
+    function isOwner(record) {
+      return signedIn() && record.ownerUid == request.auth.uid;
+    }
+
+    function isSharedWithActivePartner(record) {
+      return signedIn()
+        && record.sharedWithUids is list
+        && record.sharedWithUids.size() == 1
+        && request.auth.uid in record.sharedWithUids
+        && record.pairId is string
+        && activePairContains(record.pairId, record.ownerUid, request.auth.uid);
+    }
+
+    function validRecordSharing(record) {
+      return (record.sharedWithUids.size() == 0 && record.pairId == null)
+        || (record.sharedWithUids.size() == 1
+          && record.sharedWithUids[0] is string
+          && record.sharedWithUids[0] != record.ownerUid
+          && record.pairId is string
+          && activePairContains(record.pairId, record.ownerUid, record.sharedWithUids[0]));
+    }
+
+    function validRecord(record) {
+      return record.keys().hasOnly([
+          'ownerUid', 'sharedWithUids', 'pairId', 'module',
+          'data', 'createdAt', 'updatedAt'
+        ])
+        && record.keys().hasAll([
+          'ownerUid', 'sharedWithUids', 'pairId', 'module',
+          'data', 'createdAt', 'updatedAt'
+        ])
+        && record.ownerUid is string
+        && record.sharedWithUids is list
+        && record.sharedWithUids.size() <= 1
+        && record.module in [
+          'agenda', 'tareas', 'aprendizajes', 'finanzas',
+          'entrenamiento', 'objetivos', 'tiempo', 'proyectos'
+        ]
+        && record.data is map
+        && record.createdAt is timestamp
+        && record.updatedAt is timestamp
+        && validRecordSharing(record);
+    }
+
+    match /records/{recordId} {
+      allow get, list: if isOwner(resource.data)
+        || isSharedWithActivePartner(resource.data);
+
+      allow create: if signedIn()
+        && validRecord(request.resource.data)
+        && request.resource.data.ownerUid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.updatedAt == request.time;
+
+      allow update: if (
+          isOwner(resource.data)
+          && validRecord(request.resource.data)
+          && request.resource.data.ownerUid == resource.data.ownerUid
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.updatedAt == request.time
+        )
+        || (
+          isSharedWithActivePartner(resource.data)
+          && validRecord(request.resource.data)
+          && request.resource.data.ownerUid == resource.data.ownerUid
+          && request.resource.data.sharedWithUids == resource.data.sharedWithUids
+          && request.resource.data.pairId == resource.data.pairId
+          && request.resource.data.module == resource.data.module
+          && request.resource.data.createdAt == resource.data.createdAt
+          && request.resource.data.updatedAt == request.time
+          && request.resource.data.diff(resource.data).affectedKeys()
+            .hasOnly(['data', 'updatedAt'])
+        );
+
+      allow delete: if isOwner(resource.data);
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

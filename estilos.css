@@ -340,3 +340,189 @@ header p {
     text-align: center;
     font-size: 16px;
 }
+/* Panel inicial de registro e inicio de sesión */
+.panel-cuenta {
+    margin: 20px 0;
+    padding: 20px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.panel-cuenta h2,
+.formulario-cuenta h3 {
+    margin-top: 0;
+}
+
+.formularios-cuenta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.formulario-cuenta {
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    padding: 16px;
+    background: #f8fafc;
+    border-radius: 12px;
+}
+
+.formulario-cuenta input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.formulario-cuenta small {
+    color: #475569;
+    line-height: 1.45;
+}
+
+.formulario-cuenta button,
+.sesion-activa button {
+    padding: 11px 14px;
+    border: 0;
+    border-radius: 9px;
+    background: #2563eb;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.formulario-cuenta button.boton-secundario {
+    background: #64748b;
+}
+
+.estado-cuenta,
+.mensaje-cuenta {
+    min-height: 1.4em;
+    line-height: 1.45;
+}
+
+.sesion-activa {
+    padding: 12px;
+    background: #eff6ff;
+    border-radius: 10px;
+}
+
+/* Vinculación privada de las dos cuentas */
+.panel-vinculo {
+    margin: 16px 0;
+    padding: 16px;
+    border: 1px solid #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+}
+.panel-vinculo h3 { margin-top: 0; }
+.panel-vinculo p, .estado-vinculo { line-height: 1.5; }
+.formulario-vinculo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 12px;
+}
+.formulario-vinculo input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 11px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 16px;
+}
+.formulario-vinculo button, .panel-vinculo button {
+    padding: 10px 13px;
+    border: 0;
+    border-radius: 9px;
+    background: #2563eb;
+    color: white;
+    font-size: 15px;
+    cursor: pointer;
+}
+.panel-vinculo button.boton-secundario {
+    margin: 6px 6px 0 0;
+    background: #64748b;
+}
+.invitacion-pendiente, .vinculo-activo {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 10px;
+    background: #eff6ff;
+}
+#codigoInvitacion {
+    display: block;
+    overflow-wrap: anywhere;
+    margin: 8px 0;
+    padding: 10px;
+    border-radius: 8px;
+    background: white;
+    font-size: 16px;
+    user-select: all;
+}
+
+/* Sincronización y privacidad de Agenda */
+.estado-sincronizacion { padding: 10px 12px; border-radius: 9px; background: #eff6ff; color: #1e3a8a; line-height: 1.45; }
+.opcion-compartir { display: flex; align-items: center; gap: 9px; margin: 12px 0 4px; font-weight: 600; }
+.opcion-compartir input { width: 20px; height: 20px; }
+.ayuda-compartir { display: block; color: #475569; line-height: 1.45; margin: 4px 0 12px; }
+.etiqueta-privacidad { display: inline-block; margin: 8px 0; padding: 4px 9px; border-radius: 999px; background: #e2e8f0; color: #334155; font-size: 0.85em; }
+
+/* 12H.23.5.9.5 — navegación principal */
+*{box-sizing:border-box}[hidden]{display:none!important}
+body{display:grid;grid-template-columns:245px minmax(0,1fr);align-items:start;min-width:320px;min-height:100vh;background:#f3f5fa;color:#202938}
+body>header{grid-column:2;grid-row:1;background:#fff;color:#202938;text-align:left;padding:18px 30px;border-bottom:1px solid #e5e9f1}
+.barra-lateral{position:sticky;top:0;grid-column:1;grid-row:1/3;height:100vh;min-height:620px;display:flex;flex-direction:column;padding:20px 12px;background:#17243a;color:#fff;overflow-y:auto;z-index:2}
+.marca-app{margin:0 8px 22px;font-size:19px}.grupos-navegacion{flex:1;display:flex;flex-direction:column}.grupos-navegacion h2{margin:0 8px 8px;color:#cbd5e1;font-size:12px;letter-spacing:.1em;text-transform:uppercase}.grupos-navegacion section{display:flex;flex-direction:column}.grupo-resultados{margin-top:auto;padding-top:18px}
+.boton-nav{width:100%;padding:9px 8px;margin:2px 0;border:0;border-radius:8px;text-align:left;background:transparent;color:#e8edf6;font-size:13px;cursor:pointer}.boton-nav:hover,.boton-nav.activo{background:#2c3d59;color:#fff}
+body>.contenedor{grid-column:2;grid-row:2;width:auto;max-width:none;margin:0;padding:18px 30px;display:grid;grid-template-columns:minmax(0,1fr) 300px;align-items:start;gap:18px}.contenedor>.pantalla{display:none}.contenedor>.pantalla.activa{display:block;grid-column:1;margin:0;min-width:0}.contenedor>.panel-calendario{grid-column:2;grid-row:1;position:sticky;top:18px}
+.panel-calendario{padding:18px;border:1px solid #e5e9f1;border-radius:14px;background:#fff;box-shadow:0 3px 12px rgba(27,39,59,.05)}.cabecera-calendario{display:flex;justify-content:space-between;align-items:center}.cabecera-calendario h2{font-size:18px}.cabecera-calendario button{width:34px;height:34px;border:1px solid #e1e6ef;border-radius:8px;background:#fff;font-size:22px;cursor:pointer}.mes-calendario{text-align:center;text-transform:capitalize;font-weight:bold}
+.cuadricula-calendario{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}.dia-semana{text-align:center;color:#788397;font-size:11px;font-weight:bold;padding:5px 0}.dia-calendario{position:relative;min-height:34px;border:0;border-radius:8px;background:transparent;cursor:pointer}.dia-calendario.hoy{outline:1px solid #7894bd}.dia-calendario.seleccionado{background:#234b7c;color:white}.dia-calendario.con-elementos:after{content:"";position:absolute;bottom:3px;left:calc(50% - 2px);width:5px;height:5px;border-radius:50%;background:#e49b38}.detalle-calendario{margin-top:12px;padding-top:10px;border-top:1px solid #e7ebf2;font-size:13px}.vista-modulo{padding:22px;border:1px solid #e5e9f1;border-radius:14px;background:#fff}.vista-modulo p{line-height:1.55;color:#596579}
+.barra-avisos{grid-column:2;grid-row:3;display:flex;justify-content:space-between;margin:10px 30px 0;padding:10px 14px;border:1px solid #f3d28c;border-radius:9px;background:#fff8e8;color:#6b4c0c}.barra-avisos button{border:0;background:transparent;font-size:22px;cursor:pointer}
+@media(max-width:900px){body{grid-template-columns:200px minmax(0,1fr)}body>.contenedor{grid-template-columns:minmax(0,1fr)}.contenedor>.panel-calendario{grid-column:1;grid-row:auto;position:static}}
+@media(max-width:560px){body{grid-template-columns:138px minmax(0,1fr)}.barra-lateral{padding:14px 6px}.marca-app{font-size:14px}.boton-nav{font-size:11px;padding:8px 5px}.grupos-navegacion h2{font-size:10px;margin-left:5px}body>header{padding:14px 10px}body>header h1{font-size:20px}body>.contenedor{padding:12px 9px}.barra-avisos{margin:10px 9px 0;font-size:12px}}
+
+/* Ajustes del encabezado y orden de la barra */
+.barra-lateral{grid-row:1/4}.barra-avisos{grid-row:2}body>.contenedor{grid-row:3}.boton-cuenta-app{position:absolute;top:24px;right:30px;padding:9px 13px;border:1px solid #d8deea;border-radius:9px;background:#fff;color:#27364e;cursor:pointer}@media(max-width:560px){.boton-cuenta-app{top:14px;right:10px;padding:7px;font-size:12px}}
+
+/* Captura y lista de aprendizajes por día — 12H.23.5.9.6 */
+.formulario-aprendizaje{display:grid;gap:9px;margin:18px 0 24px}.formulario-aprendizaje label{font-weight:650}.formulario-aprendizaje input,.formulario-aprendizaje textarea{width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit}.formulario-aprendizaje textarea{resize:vertical}.acciones-aprendizaje{display:flex;gap:9px;flex-wrap:wrap}.acciones-aprendizaje button,.acciones-aprendizaje .boton-secundario,.tarjeta-aprendizaje button{padding:9px 13px;border:0;border-radius:8px;background:#2563eb;color:#fff;cursor:pointer}.acciones-aprendizaje .boton-secundario,.tarjeta-aprendizaje button{background:#64748b}.tarjeta-aprendizaje{margin:10px 0;padding:14px;border:1px solid #e5e9f1;border-radius:11px;background:#fff}.tarjeta-aprendizaje h3{margin:0 0 8px;font-size:15px}.tarjeta-aprendizaje p{white-space:pre-wrap;overflow-wrap:anywhere}.acciones-tarjeta-aprendizaje{display:flex;gap:8px;margin-top:10px}
+
+/* Pagos pendientes y resumen de importes */
+.formulario-pago{display:grid;gap:9px;margin:18px 0 24px}.formulario-pago>label{font-weight:650}.formulario-pago input:not([type=checkbox]){width:100%;padding:11px;border:1px solid #cbd5e1;border-radius:9px;font:inherit}.estado-pago{display:flex;align-items:center;gap:9px}.estado-pago input{width:19px;height:19px}.acciones-pago,.acciones-pago-tarjeta{display:flex;gap:9px;flex-wrap:wrap}.acciones-pago button,.acciones-pago-tarjeta button{padding:9px 13px;border:0;border-radius:8px;background:#2563eb;color:#fff;cursor:pointer}.acciones-pago .boton-secundario{background:#64748b}.tarjeta-pago{margin:10px 0;padding:14px;border:1px solid #e5e9f1;border-radius:11px;background:#fff}.tarjeta-pago h3{margin:0 0 8px;font-size:15px}.tarjeta-pago p{line-height:1.5}.tarjetas-resumen-pagos{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:20px 0}.tarjeta-metrica-pago{display:flex;flex-direction:column;gap:7px;padding:16px;border:1px solid #e5e9f1;border-radius:11px;background:#fff}.tarjeta-metrica-pago strong{font-size:20px;color:#1e3a5f}.tarjeta-metrica-pago span{font-size:13px;color:#596579}.grupo-resumen-pagos{margin:18px 0;padding:16px;border:1px solid #e5e9f1;border-radius:11px;background:#fff}.grupo-resumen-pagos h3{margin-top:0}.grupo-resumen-pagos li{margin:8px 0}
+/* 12H.23.5.9.8 — Alta y edición de Tareas en ventana emergente */
+.ventana-edicion{display:none;position:fixed;inset:0;width:100%;height:100%;padding:12px;background:rgba(0,0,0,.5);justify-content:center;align-items:center;z-index:1001}
+.contenido-edicion{width:min(92vw,460px);max-height:calc(100vh - 24px);overflow-y:auto;padding:22px;border-radius:15px;background:#fff;box-shadow:0 5px 20px rgba(0,0,0,.2)}
+.contenido-edicion h2{margin:0 0 12px}.contenido-edicion label{display:block;margin:13px 0 5px;font-weight:650}.contenido-edicion input,.contenido-edicion select{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;box-sizing:border-box;font:inherit}
+.botones-edicion{display:flex;justify-content:flex-end;gap:10px;margin-top:20px;flex-wrap:wrap}.botones-edicion button{padding:10px 16px;border:0;border-radius:8px;background:#2563eb;color:white;cursor:pointer}.botones-edicion button:first-child{background:#64748b}
+.nueva-tarea button{padding:12px 18px;border:0;border-radius:8px;background:#2563eb;color:white;font-size:15px;cursor:pointer}
+/* 12H.23.5.9.9 — Alta/edición emergente y filtros claros de Fechas especiales */
+.acciones-fechas{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:16px 0;padding:16px 18px;border:1px solid #dbe5f3;border-radius:13px;background:linear-gradient(135deg,#f8fbff,#eef5ff)}.acciones-fechas p{margin:0;color:#526176;line-height:1.5}.boton-nueva-fecha{flex:0 0 auto;padding:11px 16px;border:0;border-radius:9px;background:#2563eb;color:#fff;font:inherit;font-weight:650;cursor:pointer}.boton-nueva-fecha:hover{background:#1d4ed8}
+.herramientas-fechas{margin:18px 0;padding:16px;border:1px solid #e1e7f0;border-radius:13px;background:#fff;box-shadow:0 3px 12px rgba(27,39,59,.04)}.cabecera-herramientas-fechas{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}.cabecera-herramientas-fechas h3{margin:0;font-size:17px}.contador-fechas{color:#64748b;font-size:13px}.herramientas-fechas>label{display:block;margin:0 0 7px;color:#526176;font-size:13px;font-weight:600}.buscador-fechas{display:flex;align-items:center;gap:8px;padding:5px 7px 5px 12px;border:1px solid #cbd5e1;border-radius:10px;background:#f8fafc}.buscador-fechas:focus-within{border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.14)}.buscador-fechas .icono-busqueda{font-size:23px;color:#64748b;line-height:1}.buscador-fechas input{flex:1;min-width:0;padding:9px 2px;border:0;outline:0;background:transparent;font:inherit}.buscador-fechas input:focus{outline:0}.boton-limpiar-busqueda{padding:8px 10px;border:0;border-radius:7px;background:#e8eef7;color:#334155;font:inherit;font-size:13px;cursor:pointer}.filtros-fechas{display:flex;gap:8px;margin:12px 0 0;flex-wrap:wrap}.filtros-fechas button{padding:8px 12px;border:1px solid #dce3ed;border-radius:999px;background:#fff;color:#334155;box-shadow:none;cursor:pointer;font:inherit;font-size:13px;transition:background .15s,border-color .15s,color .15s}.filtros-fechas button:hover{border-color:#93b4e5;background:#f3f7ff}.filtros-fechas button.filtro-activo{border-color:#2563eb;background:#2563eb;color:#fff;font-weight:650;box-shadow:0 2px 7px rgba(37,99,235,.2);transform:none}
+.ventana-edicion-fecha{padding:12px;overflow-y:auto}.contenido-edicion-fecha{width:min(92vw,460px);max-height:calc(100vh - 24px);overflow-y:auto;padding:22px}.contenido-edicion-fecha h2{margin-bottom:14px}.contenido-edicion-fecha label{margin-top:12px}.contenido-edicion-fecha input[type="text"],.contenido-edicion-fecha input[type="date"],.contenido-edicion-fecha input[type="time"],.contenido-edicion-fecha select{font:inherit}.contenido-edicion-fecha .opcion-compartir{display:flex;align-items:center;gap:9px}.contenido-edicion-fecha .opcion-compartir input{width:20px;height:20px;flex:0 0 auto}
+@media(max-width:560px){.acciones-fechas{align-items:stretch;flex-direction:column}.boton-nueva-fecha{width:100%}.herramientas-fechas{padding:13px}.filtros-fechas{gap:7px}.filtros-fechas button{padding:8px 10px;font-size:12px}}
+/* 12H.23.5.9.11 — Búsqueda y filtro de prioridad en Tareas */
+.herramientas-tareas{margin:18px 0;padding:16px;border:1px solid #e1e7f0;border-radius:13px;background:#fff;box-shadow:0 3px 12px rgba(27,39,59,.04)}.herramientas-tareas h3{margin:0 0 12px;font-size:17px}.filtros-tareas-controles{display:grid;grid-template-columns:minmax(0,1fr) minmax(170px,.55fr) auto;align-items:end;gap:12px}.campo-busqueda-tareas,.campo-prioridad-tareas{display:grid;gap:6px;min-width:0}.campo-busqueda-tareas label,.campo-prioridad-tareas label{color:#526176;font-size:13px;font-weight:600}.campo-busqueda-tareas input,.campo-prioridad-tareas select{width:100%;min-width:0;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#f8fafc;font:inherit}.campo-busqueda-tareas input:focus,.campo-prioridad-tareas select:focus{outline:0;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.14)}.boton-limpiar-filtros-tareas{padding:10px 12px;border:1px solid #dce3ed;border-radius:9px;background:#eef2f7;color:#334155;font:inherit;cursor:pointer}.boton-limpiar-filtros-tareas:hover{background:#e2e8f0}.contador-tareas{margin:10px 0 0;color:#64748b;font-size:13px}.tarea[hidden]{display:none!important}
+@media(max-width:620px){.filtros-tareas-controles{grid-template-columns:1fr}.boton-limpiar-filtros-tareas{width:100%}.herramientas-tareas{padding:13px}}
+/* 12H.23.5.9.12 — Tareas visibles por día y sin prioridad */
+.estado-filtros-tareas{margin:14px 0;padding:13px;border:1px dashed #cbd5e1;border-radius:10px;background:#f8fafc;color:#526176;line-height:1.5}.contenido-edicion select#editarPrioridad option[value="ninguna"]{color:#475569}
+
+/* 12H.23.5.9.13 — Marcadores de tareas por prioridad */
+.dia-calendario.con-tareas::after{display:none}.marcadores-tareas{position:absolute;left:50%;bottom:3px;display:flex;gap:2px;transform:translateX(-50%);pointer-events:none}.marcador-prioridad{width:6px;height:6px;border-radius:50%;box-shadow:0 0 0 1px #fff}.marcador-prioridad.prioridad-alta{background:#dc2626}.marcador-prioridad.prioridad-media{background:#f59e0b}.marcador-prioridad.prioridad-baja{background:#16a34a}.detalle-calendario li{margin:7px 0}
+/* 12H.23.5.9.14 — Fecha límite de repetición en Tareas */
+.campo-fin-repeticion{display:grid;gap:6px;margin-top:10px}.campo-fin-repeticion[hidden]{display:none}.campo-fin-repeticion input{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#f8fafc;font:inherit}.campo-fin-repeticion small{color:#64748b;font-size:12px;line-height:1.45}
+.barra-finanzas-dia{display:grid;grid-template-columns:minmax(140px,.6fr) minmax(150px,1fr) auto;align-items:end;gap:10px;margin:18px 0;padding:14px;border:1px solid #e1e7f0;border-radius:12px;background:#f8fafc}.barra-finanzas-dia label{grid-column:1/-1;font-weight:650}.barra-finanzas-dia input{width:100%;padding:10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff;font:inherit}.barra-finanzas-dia button,.acciones-gasto button{padding:9px 13px;border:0;border-radius:8px;background:#2563eb;color:#fff;font:inherit;cursor:pointer}.resumen-dia-finanzas{margin:14px 0;padding:13px 15px;border-radius:10px;background:#eff6ff;color:#1e3a5f;font-weight:650}.lista-gastos{display:grid;gap:10px}.tarjeta-gasto{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 12px;padding:14px;border:1px solid #e5e9f1;border-radius:11px;background:#fff}.tarjeta-gasto h3{margin:0;font-size:16px}.tarjeta-gasto>strong{color:#1e3a5f}.tarjeta-gasto p{grid-column:1/-1;margin:0;color:#596579;line-height:1.5}.acciones-gasto{grid-column:1/-1;display:flex;gap:8px;margin-top:7px}.acciones-gasto button:last-child{background:#64748b}.estado-vacio-finanzas{padding:14px;border:1px dashed #cbd5e1;border-radius:10px;color:#64748b}.contenido-edicion textarea{width:100%;box-sizing:border-box;padding:10px;border:1px solid #cbd5e1;border-radius:8px;font:inherit}@media(max-width:560px){.barra-finanzas-dia{grid-template-columns:1fr}.barra-finanzas-dia label{grid-column:auto}.barra-finanzas-dia button{width:100%}}
+/* 12H.23.5.9.15 — Resumen mensual e iconos de Fechas especiales */
+.iconos-categorias-gasto{position:absolute;left:50%;bottom:1px;display:flex;justify-content:center;gap:1px;max-width:100%;transform:translateX(-50%);pointer-events:none}.mini-icono-gasto{font-size:8px;line-height:10px}.dia-calendario.seleccionado .mini-icono-gasto{filter:drop-shadow(0 0 1px #fff)}
+.dia-calendario.con-elementos:after{display:block}.dia-calendario.con-fechas-especiales:after,.dia-calendario.con-gastos:after{display:none}
+#listaFechas{display:grid;gap:14px}.resumen-cumpleanos{min-width:0;padding:14px;border:1px solid #f0d8aa;border-radius:12px;background:#fffaf0}.resumen-cumpleanos h3{margin:0 0 10px;font-size:15px}.fila-cumpleanos{display:flex;gap:9px;overflow-x:auto;padding:2px 1px 7px}.mini-tarjeta-cumpleanos{flex:0 0 210px;display:grid;gap:6px;padding:11px;border:1px solid #f1dfbf;border-radius:10px;background:#fff;box-shadow:0 2px 7px rgba(70,50,20,.05)}.mini-tarjeta-cumpleanos strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mini-tarjeta-cumpleanos>span{font-size:12px;color:#64748b}.acciones-mini-cumpleanos{display:flex;gap:6px}.acciones-mini-cumpleanos button{padding:5px 8px;border:1px solid #dbe2eb;border-radius:7px;background:#f8fafc;cursor:pointer}.estado-vacio-fechas{padding:14px;border:1px dashed #cbd5e1;border-radius:10px;color:#64748b;line-height:1.5}.dia-calendario.con-elementos:after{display:none}.iconos-fechas-especiales{position:absolute;left:50%;bottom:1px;display:flex;justify-content:center;gap:1px;max-width:100%;transform:translateX(-50%);pointer-events:none}.mini-icono-fecha{font-size:9px;line-height:10px}
+/* 12H.23.5.9.16.3 — Resumen financiero por periodo */
+.controles-resumen-finanzas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:18px 0}.controles-resumen-finanzas label{display:grid;gap:6px;font-weight:650;color:#526176}.controles-resumen-finanzas select,.controles-resumen-finanzas input{width:100%;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font:inherit}.tarjetas-resumen-finanzas{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:10px;margin:16px 0}.tarjeta-metrica-finanzas{display:flex;flex-direction:column;gap:7px;padding:16px;border:1px solid #e5e9f1;border-radius:11px;background:#fff}.tarjeta-metrica-finanzas strong{font-size:20px;color:#1e3a5f}.tarjeta-metrica-finanzas span{font-size:13px;color:#596579}.grafica-categorias-finanzas,.grafica-tendencia-finanzas{margin:16px 0;padding:16px;border:1px solid #e5e9f1;border-radius:12px;background:#fff}.grafica-categorias-finanzas h3,.grafica-tendencia-finanzas h3{margin:0 0 14px}.fila-grafica-finanzas{display:grid;grid-template-columns:minmax(125px,auto) minmax(60px,1fr) auto;align-items:center;gap:10px;margin:12px 0}.etiqueta-grafica-finanzas{font-size:13px}.barra-grafica-fondo{height:12px;overflow:hidden;border-radius:99px;background:#edf1f6}.barra-grafica-finanzas{height:100%;min-width:0;border-radius:99px;background:#2563eb}.barra-grafica-finanzas.barra-fijos_esenciales{background:#0f766e}.barra-grafica-finanzas.barra-variables_necesarios{background:#2563eb}.barra-grafica-finanzas.barra-compromisos_financieros{background:#7c3aed}.barra-grafica-finanzas.barra-gustos_salidas{background:#ea580c}.fila-grafica-finanzas>strong{font-size:13px;color:#334155}.grafica-barras-finanzas{display:flex;align-items:stretch;gap:7px;height:210px;overflow-x:auto;padding:8px 3px 0;border-bottom:1px solid #cbd5e1}.columna-grafica-finanzas{flex:1 0 20px;min-width:20px;height:100%;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:5px}.barra-periodo-finanzas{display:block;width:min(70%,32px);min-height:2px;border-radius:5px 5px 0 0;background:linear-gradient(180deg,#60a5fa,#2563eb)}.etiqueta-periodo-finanzas{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:#64748b}.valor-periodo-finanzas{font-size:9px;color:#475569;white-space:nowrap}@media(max-width:560px){.controles-resumen-finanzas{grid-template-columns:1fr}.grafica-categorias-finanzas,.grafica-tendencia-finanzas{padding:12px}.fila-grafica-finanzas{grid-template-columns:minmax(105px,auto) minmax(35px,1fr) auto;gap:7px}.etiqueta-grafica-finanzas,.fila-grafica-finanzas>strong{font-size:11px}}
+.barra-grafica-valor{display:block;height:100%;min-width:0;border-radius:99px;background:#2563eb}.barra-grafica-valor.barra-fijos_esenciales{background:#0f766e}.barra-grafica-valor.barra-variables_necesarios{background:#2563eb}.barra-grafica-valor.barra-compromisos_financieros{background:#7c3aed}.barra-grafica-valor.barra-gustos_salidas{background:#ea580c}.columna-grafica-finanzas small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;color:#64748b}
+
+/* 12H.23.5.9.17 — Rutinas físicas y ejercicios mentales por día */
+.acciones-entrenamiento{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:18px 0;padding:15px 17px;border:1px solid #dbe5f3;border-radius:12px;background:#f8fbff}.acciones-entrenamiento p{margin:0;color:#526176;line-height:1.5}.boton-nueva-entrenamiento{flex:0 0 auto;padding:10px 15px;border:0;border-radius:9px;background:#2563eb;color:#fff;font:inherit;font-weight:650;cursor:pointer}.ventana-entrenamiento{z-index:1002}.ventana-entrenamiento select,.ventana-entrenamiento input[type="text"],.ventana-entrenamiento input[type="date"],.ventana-entrenamiento input[type="number"],.ventana-entrenamiento textarea{width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #cbd5e1;border-radius:9px;background:#fff;font:inherit}.lista-entrenamientos{display:grid;gap:11px}.tarjeta-entrenamiento{padding:15px;border:1px solid #e5e9f1;border-radius:12px;background:#fff;box-shadow:0 2px 8px rgba(27,39,59,.04)}.tarjeta-entrenamiento.entrenamiento-completado{border-color:#a7d8bc;background:#f5fcf7}.encabezado-entrenamiento{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}.encabezado-entrenamiento h3{margin:0;font-size:16px}.encabezado-entrenamiento>span{flex:0 0 auto;padding:4px 8px;border-radius:999px;background:#eef2f7;color:#475569;font-size:11px}.detalle-entrenamiento,.nota-entrenamiento{margin:8px 0 0;color:#596579;line-height:1.5}.acciones-tarjeta-entrenamiento{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px}.check-entrenamiento{display:flex;align-items:center;gap:7px;margin-right:auto;font-weight:650}.check-entrenamiento input{width:19px;height:19px}.acciones-tarjeta-entrenamiento button{padding:8px 11px;border:0;border-radius:8px;background:#64748b;color:#fff;cursor:pointer}.estado-vacio-entrenamiento{padding:14px;border:1px dashed #cbd5e1;border-radius:10px;color:#64748b;line-height:1.5}.dia-calendario.con-entrenamientos:after{display:none}.iconos-entrenamiento{position:absolute;left:50%;bottom:1px;display:flex;justify-content:center;gap:1px;max-width:100%;transform:translateX(-50%);pointer-events:none}.mini-icono-entrenamiento{font-size:8px;line-height:10px}.dia-calendario.seleccionado .mini-icono-entrenamiento{filter:drop-shadow(0 0 1px #fff)}@media(max-width:560px){.acciones-entrenamiento{align-items:stretch;flex-direction:column}.boton-nueva-entrenamiento{width:100%}.encabezado-entrenamiento{flex-direction:column;gap:7px}.acciones-tarjeta-entrenamiento{gap:6px}.check-entrenamiento{width:100%;margin:0 0 4px}}
