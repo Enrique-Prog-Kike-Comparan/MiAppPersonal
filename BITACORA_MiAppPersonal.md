@@ -207,3 +207,10 @@ La validación pendiente de Objetivos se cancela. No se implementará sincroniza
 - Se añadieron el botón, el fondo de cierre, los estados accesibles del control y los estilos móviles. No se cambiaron datos de la aplicación.
 - Revisión de formato con `git diff --check`; no se ejecutaron pruebas automatizadas ni se ha validado manualmente en el celular.
 - Siguiente paso: publicar en la rama `backup/2026-10-11-12H-23-5-8` y probar abrir/cerrar el menú y seleccionar una sección desde el teléfono.
+
+### 12H.23.5.9.37 — Forzar actualización del menú en celular — publicado; validación pendiente — 17/10/2026
+
+- Kike reportó que el botón «Menú» aparecía, pero no respondía y la barra seguía visible. El comportamiento es consistente con que el teléfono conservara los archivos CSS y JavaScript anteriores.
+- Se agregaron versiones en las referencias de `estilos.css` y `app.js` para que la app solicite archivos nuevos después de actualizarse. No se borraron datos ni se cambió la lógica del menú.
+- Se revisó el diff y `git diff --check`; no se ejecutaron pruebas automatizadas ni se pudo confirmar aún en el teléfono.
+- Siguiente paso: publicar y pedir a Kike que cierre y reabra la app con internet para comprobar el botón y el cierre de la barra.
