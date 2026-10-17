@@ -477,3 +477,227 @@ Continuar **12H.23.5.9.10** con validación de alta y edición de Tareas en comp
 ### Siguiente actividad
 
 **12H.23.5.9.17.1.2 — Validar repetición y marcadores de Entrenamiento**, comprobando que al completar una ocurrencia se quite su icono en ese día, las demás repeticiones mantengan sus iconos y la actividad siga visible en su lista.
+### 12H.23.5.9.17.1.2 — Validación manual de repetición e iconos de Entrenamiento — 16/10/2026
+
+- Kike confirmó que la prueba funcionó: la repetición y el comportamiento del icono al marcar una actividad como realizada quedaron como se esperaba.
+- No especificó dispositivo ni frecuencias probadas; la bitácora registra la confirmación general, sin asumir una cobertura más amplia.
+### 12H.23.5.9.17.2 — Resultados de Entrenamiento por periodo — 16/10/2026
+
+- Se añadió una vista con filtros por día, semana, mes y año, usando una fecha de referencia.
+- El resumen cuenta las ocurrencias de actividades, actividades completadas, minutos programados y realizados, y porcentaje de cumplimiento. También separa ejercicios físicos y mentales y muestra una gráfica por actividad, día o mes según el periodo.
+- Las repeticiones se expanden dentro del rango consultado y el estado realizado se calcula por cada fecha. Los cálculos usan datos guardados localmente y no sincronizan con Firebase.
+- Pendiente validación manual de periodos, recurrencias, conteos y presentación en computadora y teléfono. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.17.2.1 — Validar Resultados de Entrenamiento**, comparando los resúmenes de una actividad recurrente con fecha límite en día, semana, mes y año.
+### 12H.23.5.9.17.2.1 — Validación manual de Resultados de Entrenamiento — 16/10/2026
+
+- Kike confirmó que el resumen de Entrenamiento funciona correctamente.
+- No se especificó el dispositivo ni qué periodos se revisaron; la confirmación se registra sin asumir más cobertura de la indicada.
+### 12H.23.5.9.18 — Objetivos con fecha meta y seguimiento de avance — 16/10/2026
+
+- Se reemplazó la pantalla provisional por gestión de objetivos: crear, editar y eliminar, con título, descripción opcional, fecha meta opcional, estado y porcentaje de avance.
+- Los objetivos se muestran en una lista ordenada por fecha meta. El calendario señala con 🎯 los días de fecha meta y su detalle identifica los objetivos correspondientes.
+- Marcar el estado como Completado lleva el progreso al 100%. La información se guarda localmente en este dispositivo; no sincroniza con Firebase.
+- Queda pendiente la validación manual de alta, edición, progreso, estado, eliminación y fecha meta. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.18.1 — Validar el módulo Objetivos**, comprobando el avance, los estados y los iconos de fecha meta en el calendario.
+### 12H.23.5.9.18.2 — Separar objetivos completados y retirarlos del calendario — 16/10/2026
+
+- Los objetivos cuyo estado es Completado ahora se conservan en una lista desplegable al final de la pantalla; la lista inicia cerrada y muestra cuántos hay.
+- Los objetivos activos y en pausa permanecen en la lista principal superior. Si no hay pendientes, se muestra un mensaje y los completados siguen accesibles abajo.
+- Los objetivos completados dejan de generar el icono 🎯 en el calendario y ya no aparecen en su detalle diario. Sus tarjetas conservan las acciones de edición y eliminación dentro del desplegable.
+- Los datos existentes se mantienen guardados en este dispositivo. El cambio de presentación no migra ni sincroniza objetivos con Firebase.
+- Pendiente validar manualmente que completar un objetivo lo mueva al desplegable y quite su marcador, y que al reabrirlo como pendiente vuelva a la lista superior/calendario. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.18.2.1 — Validar separación de objetivos completados**, comprobando lista plegable, edición y marcadores del calendario.
+
+### 12H.23.5.9.18.2.1 — Validación manual de objetivos completados — 16/10/2026
+
+- Kike confirmó que la separación de objetivos completados funcionó como esperaba.
+- La confirmación no detalla cada interacción probada; se registra como validación general del cambio.
+
+### 12H.23.5.9.19 — Registro diario de ¿En qué se me fue el tiempo? — 16/10/2026
+
+- Se reemplazó la pantalla provisional por un registro de comentarios libres asociados a un día. Se pueden guardar varios comentarios en la misma fecha.
+- El calendario permite elegir el día y muestra un indicador ⏱️ cuando tiene comentarios; el detalle diario muestra sus textos. El selector de fecha también cambia el día consultado.
+- Cada comentario se puede crear, editar o eliminar. El módulo muestra solo los comentarios de la fecha seleccionada para mantener la navegación por calendario.
+- Los registros se guardan localmente en este dispositivo, sin sincronización de Firebase. El resumen de resultados del tiempo sigue pendiente.
+- Pendiente validación manual de guardado, consulta por día, edición, eliminación y marcador del calendario. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.19.1 — Validar el registro diario del tiempo**, comprobando varios comentarios en una fecha y que el calendario y su selector consulten el mismo día.
+
+### 12H.23.5.9.19.1 — Registro explícito de actividades que quitan tiempo — 16/10/2026
+
+- A partir de la aclaración de Kike, el campo ahora pregunta qué actividad siente que le hizo perder tiempo e incluye “scrollear redes sociales” como ejemplo.
+- Cada registro permite añadir opcionalmente una duración aproximada en minutos; al anotarla, se muestra en la tarjeta y en el detalle del calendario.
+- Se conservan los registros previos como texto libre; el tiempo aproximado queda vacío para esos registros hasta que Kike decida editarlos.
+- No se añaden categorías predeterminadas: Kike puede describir la actividad con sus propias palabras. Los datos continúan locales y sin sincronización de Firebase.
+- Pendiente validar registro de actividad, duración opcional, edición, consulta por día y marcador del calendario. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.19.1.1 — Validar registro de actividades que quitan tiempo**, comprobando un registro de “scrollear”, su duración y que los registros sin duración sigan funcionando.
+
+### 12H.23.5.9.19.1.1 — Validación manual del registro de actividades que quitan tiempo — 16/10/2026
+
+- Kike confirmó que el registro quedó como esperaba y funciona correctamente.
+- No indicó cuáles registros o períodos revisó; se registra la confirmación general sin asumir cobertura adicional.
+
+### 12H.23.5.9.19.2 — Resumen de actividades que quitan tiempo — 16/10/2026
+
+- Se añadió el resumen por día, semana, mes y año con selector de fecha de referencia.
+- Las tarjetas muestran cantidad de actividades registradas, minutos aproximados anotados, cantidad de registros con duración y actividad más repetida.
+- La gráfica agrupa actividades por texto (sin distinguir mayúsculas/minúsculas), muestra su frecuencia y suma los minutos que se anotaron. Los comentarios antiguos sin duración se cuentan y se identifican como “sin duración anotada”; no se les asigna tiempo estimado.
+- Se muestran hasta 10 actividades por frecuencia. Los datos se calculan localmente y no se sincronizan con Firebase.
+- Pendiente validar los cuatro períodos y comparar las métricas con registros conocidos. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.19.2.1 — Validar Resultado del tiempo**, contrastando frecuencia y minutos aproximados por día, semana, mes y año.
+
+### 12H.23.5.9.19.2.1 — Validación manual de Resultado del tiempo — 16/10/2026
+
+- Kike confirmó que la vista de resultados quedó como esperaba y funciona correctamente.
+- No indicó cada período revisado ni cifras comparadas; se registra como validación general, sin asumir cobertura adicional.
+
+### 12H.23.5.9.19.3 — Lista de 50 actividades frecuentes y opción propia — 16/10/2026
+
+- El campo de actividad presenta 50 sugerencias actuales, desde scrollear redes y revisar notificaciones hasta cambiar constantemente de tarea o prolongar pausas.
+- La lista funciona como sugerencia de búsqueda: Kike también puede escribir una actividad que no aparezca entre las 50. El campo conserva una sola actividad por registro y sigue admitiendo los registros anteriores.
+- La duración aproximada opcional permanece disponible. No se agregan categorías obligatorias ni se alteran datos almacenados.
+- Pendiente validar que aparezcan las sugerencias y que se pueda guardar una actividad personalizada fuera de la lista. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.19.3.1 — Validar las sugerencias y la actividad personalizada**, probando una opción de la lista y otra escrita por Kike.
+
+### 12H.23.5.9.19.3.1 — Validación manual de sugerencias y actividad personalizada — 16/10/2026
+
+- Kike confirmó que la lista le gustó y funciona.
+- La revisión de interfaz confirmó que el campo ofrece 50 sugerencias, acepta una opción de la lista y también permite escribir texto personalizado. El texto usado para comprobar escritura libre se limpió sin guardarlo; no se añadieron registros temporales.
+
+### 12H.23.5.9.20 — Registro de Proyectos con subtareas y estados — 16/10/2026
+
+- Se reemplazó la pantalla provisional por una lista de proyectos agregados manualmente; el módulo no utiliza calendario.
+- Se pueden crear, editar y eliminar proyectos con nombre, descripción opcional y estado: por iniciar, en progreso, en pausa o completado.
+- Cada proyecto permite agregar subtareas, cambiar cada subtarea entre pendiente, en curso y completada, y quitarla. Las subtareas se mantienen al editar el proyecto.
+- Los proyectos se guardan localmente en este dispositivo y no se sincronizan con Firebase.
+- Pendiente validación manual de proyectos, estados, subtareas y persistencia tras recargar. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.20.1 — Validar el módulo Proyectos**, comprobando crear/editar proyectos, agregar ramas y subramas, cambiar estados y conservar datos tras recargar.
+
+### 12H.23.5.9.20.2 — Diagrama horizontal de proyectos — 16/10/2026
+
+- Kike solicitó que cada proyecto pueda dividirse en ramificaciones a la derecha, como un diagrama de flujo horizontal.
+- Se amplió el modelo local para admitir ramas y subramas recursivas, cada una con estado pendiente, en curso o completada, y opción para quitarla junto con sus descendientes.
+- Las subtareas planas ya registradas se muestran como ramas iniciales al cargar el módulo; se conserva el campo original para compatibilidad y no se borran datos existentes.
+- La vista no usa el calendario y conserva almacenamiento local en este dispositivo; no se conecta a Firebase.
+- Pendiente validación manual en la app, incluida la adaptación visual en pantalla angosta. No se hizo commit ni push.
+
+### Siguiente actividad
+
+### 12H.23.5.9.20.3 — Checks y porcentajes de avance en Proyectos — 16/10/2026
+
+- Se añadió una casilla de completado al proyecto y a cada rama o subrama. Marcar un nodo completa también sus descendientes; quitar la marca los devuelve a pendientes cuando corresponda.
+- Cada grupo de ramas hermanas reparte el 100% de la aportación. Al agregar o quitar una rama, los pesos se ajustan conservando la proporción relativa existente cuando es posible.
+- Kike puede modificar el peso de una rama; el porcentaje restante se redistribuye entre sus hermanas para que el grupo siga sumando 100%.
+- Se muestra el aporte efectivo de cada nodo al proyecto y, junto al nombre del proyecto, su porcentaje de avance con barra visual. El avance se calcula recursivamente según los pesos y las ramas completadas; completar el proyecto lleva el avance a 100%.
+- Los porcentajes iniciales se asignan por igual entre ramas existentes. Los datos continúan locales en este dispositivo, sin calendario ni sincronización Firebase.
+- Validación manual confirmada por Kike en **12H.23.5.9.20.4.1**. No se hizo commit ni push.
+
+### Siguiente actividad
+
+### 12H.23.5.9.20.4 — Avance por rama y lista de proyectos realizados — 16/10/2026
+
+- Al marcar una rama o subrama como completada, su indicador de avance queda en 100%. El porcentaje de peso que aporta al proyecto se conserva como un valor distinto.
+- Marcar el proyecto lo establece como completado al 100% y también completa sus ramas descendientes.
+- Los proyectos completados se retiran de la lista principal y se guardan visibles dentro de un desplegable “Proyectos realizados”. Se mantienen sus opciones para consultar, editar o reabrir; si se reabren, vuelven a pendientes.
+- El avance del proyecto permanece junto al nombre en las tarjetas pendientes, y el porcentaje de cada rama se muestra en su tarjeta.
+- Kike confirmó que la prueba funcionó. Se valida el marcado de ramas/proyecto, el avance y el paso a/desde la lista desplegable, según la actividad indicada. No se hizo commit ni push.
+
+### 12H.23.5.9.20.4.1 — Validación manual de proyectos realizados — 16/10/2026
+
+- Kike confirmó que la prueba fue exitosa.
+- Kike indicó que los datos guardados en la aplicación corresponden a pruebas y no le sirven. Acordó solicitar la eliminación de todos los datos al terminar el proyecto.
+- No eliminar datos todavía. Realizar la limpieza total únicamente cuando Kike lo solicite explícitamente al final del proyecto.
+- No se hizo commit ni push.
+
+### 12H.23.5.9.21 — Resultados de ¿Qué aprendí? — 16/10/2026
+
+- El registro diario de aprendizajes ya existía; lo que faltaba era su acceso dentro de Resultados.
+- Se agregó el botón **Resultado de aprendizajes** y un resumen con filtros por día, semana, mes y año.
+- El resumen muestra la cantidad de anotaciones y los días con aprendizajes, y lista las notas originales ordenadas por fecha. No clasifica, modifica ni elimina el texto del usuario.
+- Lee los registros locales existentes; no se agregaron datos de prueba y no se alteró el almacenamiento.
+- Queda pendiente la validación manual de los cuatro periodos y de la vista vacía. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.21.1 — Validar Resultados de ¿Qué aprendí?**, comprobando que los filtros por periodo incluyan las anotaciones esperadas y que el resumen vacío aparezca cuando no hay registros.
+
+### 12H.23.5.9.21.2 — Icono de aprendizajes en el calendario — 16/10/2026
+
+- Al guardar uno o más aprendizajes en una fecha, el calendario de **¿Qué aprendí?** muestra un icono 🧠 en ese día.
+- El icono se actualiza con el mismo refresco del calendario que acompaña el guardado, edición y eliminación de aprendizajes. El lector de pantalla también recibe el detalle de las notas del día en la etiqueta accesible de la fecha.
+- No se modificó ni se creó ningún registro almacenado.
+- Pendiente validación manual: guardar una nota y comprobar el icono; editar y borrar para comprobar que se actualice. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.21.2.1 — Validar el icono de aprendizajes**, comprobando que aparezca al guardar y se mantenga/actualice correctamente al editar o eliminar una nota.
+
+### 12H.23.5.9.22 — Módulos Salud y Mi peque Izel — 16/10/2026
+
+- Se añadieron las pantallas **Salud** y **Mi peque Izel** a Organizar y sus accesos de resumen a Resultados. Ambos módulos disponen de calendario contextual.
+- Salud permite registrar por fecha peso, presión sistólica/diastólica, glucosa, profesional/lugar, notas y una próxima revisión indicada por el médico. El calendario muestra 🩺 para el registro y 📅 en la fecha próxima; Resultados presenta filtros por día, semana, mes y año con la última medición disponible en el periodo, sin interpretar ni diagnosticar valores.
+- La frecuencia de seguimiento queda a criterio del profesional de salud. La interfaz enlaza las Cartillas Nacionales de Salud 2026 de la Secretaría de Salud para orientación preventiva. No se preconfiguró una frecuencia clínica universal.
+- Mi peque Izel permite agregar vacunas con fecha programada, tareas/pendientes y fechas especiales; los registros se pueden editar, eliminar y marcar como realizados cuando corresponda. El calendario usa iconos por tipo (💉/✅, ☑️ y 🌟) y Resultados resume vacunas pendientes, tareas pendientes y fechas especiales con filtros de periodo.
+- Ambos módulos conservan los datos en el almacenamiento local de este dispositivo. **Izel todavía no se comparte ni sincroniza con la cuenta de la esposa.** El aviso de la pantalla lo explica; la conexión compartida requiere un paso posterior en la capa de Firestore y ampliar/publicar sus reglas para el módulo Izel. No se migraron ni borraron datos existentes.
+- Pendiente validación manual de alta, edición, estado, calendario, iconos y resúmenes en ambos módulos, además de acordar y probar el uso compartido de Izel con las dos cuentas antes de considerarlo completo. No se hizo commit ni push.
+
+### Siguiente actividad
+
+### 12H.23.5.9.22.1 — Repetición de vacunas, pendientes y fechas de Izel — 16/10/2026
+
+- El formulario permite no repetir, repetir cada día, semana, dos semanas, mes o año; al elegir repetición, la fecha “Se repetirá hasta” es obligatoria y la ocurrencia final puede coincidir con esa fecha.
+- Las ocurrencias se muestran en el calendario, lista diaria y resultados del periodo. Las vacunas y tareas recurrentes guardan su estado por fecha, de modo que marcar una ocurrencia no completa las demás. Las fechas especiales también se pueden repetir.
+- Al editar se conserva el historial de ocurrencias completadas cuando se mantiene la misma serie. Los registros antiguos sin repetición siguen leyéndose como elementos de una sola fecha.
+- Kike confirmó la prueba manual: la repetición funcionó y le gustó. No se hizo commit ni push.
+
+### Siguiente actividad
+
+**12H.23.5.9.22.1.1 — Validar repetición en Mi peque Izel**, probando una frecuencia, la fecha final inclusive, el check de una sola ocurrencia y sus resultados. Después completar la validación general de Salud/Izel y conectar el uso compartido con la cuenta vinculada en **12H.23.5.9.22.2**.
+
+### 12H.23.5.9.23 — Avisos diarios y recordatorios — 16/10/2026
+
+- La tarjeta superior muestra los elementos de hoy: Fechas especiales; tareas de prioridad alta que no estén completadas; pagos sin pagar que vencen hoy; entrenamientos de hoy todavía sin check; registros y próximas revisiones de Salud; y todas las ocurrencias del día de Mi peque Izel.
+- Las notificaciones del navegador incluyen las mismas categorías, excepto Entrenamiento. El resumen diario se emite una vez por día cuando hay avisos y el permiso de notificaciones ya está concedido.
+- Se activó el procesamiento del recordatorio configurado en Tareas. Considera las ocurrencias repetidas y anticipaciones de hasta un día; requiere que la tarea tenga hora y evita avisar si la ocurrencia ya está completada. Los recordatorios de Fechas especiales existentes siguen activos.
+- La tarjeta se actualiza al guardar tareas, pagos, fechas, entrenamiento y registros de Salud, al navegar entre pantallas y cada minuto. Cerrar la tarjeta la oculta hasta el día siguiente.
+- Las notificaciones del navegador dependen de que la aplicación esté abierta; las notificaciones en segundo plano de Firebase siguen pendientes para la etapa final acordada. No se solicitaron permisos nuevos, no se tocaron ni borraron datos guardados y no se hizo commit ni push.
+- Pendiente validación manual de cada categoría, tareas y fechas con recordatorio, el check de entrenamiento, cierre de la tarjeta y deduplicación de notificaciones.
+
+### Siguiente actividad
+
+**12H.23.5.9.23.1 — Validar avisos y recordatorios**, usando registros de prueba para confirmar que la tarjeta lista lo del día, se oculta al cerrar y que las notificaciones respetan categorías, horarios y checks.
+
+### 12H.23.5.9.24 — Check de objetivos alcanzados — 16/10/2026
+
+- Cada tarjeta de objetivo, pendiente o alcanzado, incluye un check.
+- Al marcarlo, el estado cambia a **Alcanzado**, el progreso se fija automáticamente en 100%, se muestra una flecha verde y el objetivo se mueve al desplegable **Objetivos alcanzados**.
+- Si se quita el check, el objetivo vuelve a pendientes y recupera el progreso anterior al check; para objetivos completados desde el formulario sin un progreso previo guardado, se reinicia a 0% al reabrirlos.
+- La fecha meta deja de mostrarse como objetivo pendiente en el calendario al completarlo. Los registros continúan locales; no se borró información ni se hizo commit o push.
+- Pendiente validación manual al completar y reabrir un objetivo, comprobar el porcentaje, la flecha, el desplegable y el calendario.
+
+### Siguiente actividad
+
+**12H.23.5.9.24.1 — Validar Objetivos alcanzados**, marcando un objetivo incompleto y confirmando 100%, flecha verde y traslado al desplegable; después quitar el check para confirmar que vuelve a pendientes.

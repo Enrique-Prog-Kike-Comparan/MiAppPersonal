@@ -1,5 +1,7 @@
 
 
+let saludRegistros = JSON.parse(localStorage.getItem("saludRegistros") || "[]"), saludEditando = null;
+let izelRegistros = JSON.parse(localStorage.getItem("izelRegistros") || "[]"), izelEditando = null;
 let tareas = JSON.parse(localStorage.getItem("tareas")) || [];
 let gastos = JSON.parse(localStorage.getItem("gastosFinanzas") || "[]");
 let gastoEditando = null;
@@ -9,7 +11,12 @@ let tipoFiltroActivo = null;
 let mesContextual=new Date(new Date().getFullYear(),new Date().getMonth(),1),diaSeleccionado=claveDiaCalendario(new Date());
 let aprendizajes=JSON.parse(localStorage.getItem("aprendizajes")||"[]"),aprendizajeEditando=null;
 let entrenamientos=JSON.parse(localStorage.getItem("entrenamientos")||"[]"),entrenamientoEditando=null;
+let objetivos=JSON.parse(localStorage.getItem("objetivos")||"[]"),objetivoEditando=null;
+let registrosTiempo=JSON.parse(localStorage.getItem("registrosTiempo")||"[]"),registroTiempoEditando=null;
+let proyectos=JSON.parse(localStorage.getItem("proyectos")||"[]"),proyectoEditando=null;
 let pagosPendientes=JSON.parse(localStorage.getItem("pagosPendientes")||"[]"),pagoEditando=null;
+let avisosOcultosParaHoy = "";
+const notificacionesEnProceso = new Set();
 
 function mostrarTareas() {
     document.getElementById("seccionTareas").scrollIntoView({
@@ -19,6 +26,7 @@ function mostrarTareas() {
 
 function guardarTareas() {
     localStorage.setItem("tareas", JSON.stringify(tareas));
+    if (typeof actualizarAvisosDelDia === "function") actualizarAvisosDelDia();
 }
 
 function mostrarListaTareas() {
@@ -262,6 +270,7 @@ function guardarEdicion() {
     const tareaAnterior = tareaEditando === null ? null : tareas[tareaEditando];
     const mismaSerie = tareaAnterior && tareaAnterior.fecha === fecha && (tareaAnterior.repeticion || "ninguna") === repeticion;
     const nuevaTarea = {
+        id: tareaAnterior?.id || "tarea-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
         texto,
         fecha,
         hora: document.getElementById("editarHora").value,
@@ -776,6 +785,7 @@ function esFechaEsteMes(fecha) {
 function guardarFechas() {
     const llave = agendaUsuarioUid ? "fechasImportantes:" + agendaUsuarioUid : "fechasImportantes";
     localStorage.setItem(llave, JSON.stringify(fechasImportantes));
+    if (typeof actualizarAvisosDelDia === "function") actualizarAvisosDelDia();
 }
 function mensajeAgenda(texto, error) {
     const estado = document.getElementById("estadoSincronizacionAgenda");
@@ -1131,17 +1141,20 @@ function filtrarFechasPorTipo(tipo) {
 }
 
 
-function mostrarPantalla(id){document.querySelectorAll(".pantalla").forEach(p=>p.classList.remove("activa"));const modal=document.getElementById("ventanaEdicion");if(modal)modal.style.display="none";const modalGasto=document.getElementById("modalGasto");if(modalGasto)modalGasto.style.display="none";const modalEntrenamiento=document.getElementById("modalEntrenamiento");if(modalEntrenamiento)modalEntrenamiento.style.display="none";const v=document.getElementById(id);if(!v)return;v.classList.add("activa");
-const useCal=["seccionFechas","seccionTareas","seccionPagos","seccionFinanzas","seccionEntrenamiento","seccionTiempo","seccionAprendizajes","seccionObjetivos"].includes(id),cal=document.getElementById("calendarioContextual");if(cal)cal.hidden=!useCal;
-document.querySelectorAll(".boton-nav").forEach(x=>{const on=x.dataset.pantalla===id;x.classList.toggle("activo",on);if(on)x.setAttribute("aria-current","page");else x.removeAttribute("aria-current");});const title=document.getElementById("tituloCalendario");if(title)title.textContent=id==="seccionFechas"?"Fechas especiales":id==="seccionTareas"?"Tareas":id==="seccionFinanzas"?"Finanzas":"Calendario";
-if(id==="seccionFechas")mostrarFechas();if(id==="seccionEntrenamiento")mostrarListaEntrenamientos();if(id==="seccionFinanzas")mostrarListaFinanzas();if(id==="resultadoFinanzas")mostrarResumenFinanzas();if(id==="seccionAprendizajes")mostrarListaAprendizajes();if(id==="seccionPagos")mostrarListaPagos();if(id==="resultadoPagos")mostrarResumenPagos();if(typeof actualizarCalendarioContextual==="function")actualizarCalendarioContextual();window.scrollTo({top:0,behavior:"smooth"});}
+function mostrarPantalla(id){document.querySelectorAll(".pantalla").forEach(p=>p.classList.remove("activa"));const modal=document.getElementById("ventanaEdicion");if(modal)modal.style.display="none";const modalGasto=document.getElementById("modalGasto");if(modalGasto)modalGasto.style.display="none";const modalEntrenamiento=document.getElementById("modalEntrenamiento");if(modalEntrenamiento)modalEntrenamiento.style.display="none";const modalObjetivo=document.getElementById("modalObjetivo");if(modalObjetivo)modalObjetivo.style.display="none";const modalProyecto=document.getElementById("modalProyecto");if(modalProyecto)modalProyecto.style.display="none";const modalSalud=document.getElementById("modalSalud");if(modalSalud)modalSalud.style.display="none";const modalIzel=document.getElementById("modalIzel");if(modalIzel)modalIzel.style.display="none";const v=document.getElementById(id);if(!v)return;v.classList.add("activa");
+const useCal=["seccionFechas","seccionTareas","seccionPagos","seccionFinanzas","seccionEntrenamiento","seccionTiempo","seccionAprendizajes","seccionObjetivos","seccionSalud","seccionIzel"].includes(id),cal=document.getElementById("calendarioContextual");if(cal)cal.hidden=!useCal;
+document.querySelectorAll(".boton-nav").forEach(x=>{const on=x.dataset.pantalla===id;x.classList.toggle("activo",on);if(on)x.setAttribute("aria-current","page");else x.removeAttribute("aria-current");});const title=document.getElementById("tituloCalendario");if(title)title.textContent=id==="seccionFechas"?"Fechas especiales":id==="seccionTareas"?"Tareas":id==="seccionFinanzas"?"Finanzas":id==="seccionSalud"?"Salud":id==="seccionIzel"?"Mi peque Izel":"Calendario";
+if(id==="seccionFechas")mostrarFechas();if(id==="seccionTiempo")mostrarListaTiempo();if(id==="seccionProyectos")mostrarListaProyectos();if(id==="seccionObjetivos")mostrarListaObjetivos();if(id==="seccionEntrenamiento")mostrarListaEntrenamientos();if(id==="seccionFinanzas")mostrarListaFinanzas();if(id==="resultadoEntrenamiento")mostrarResumenEntrenamiento();if(id==="resultadoTiempo")mostrarResumenTiempo();if(id==="resultadoAprendizajes")mostrarResumenAprendizajes();if(id==="resultadoFinanzas")mostrarResumenFinanzas();if(id==="seccionAprendizajes")mostrarListaAprendizajes();if(id==="seccionPagos")mostrarListaPagos();if(id==="resultadoPagos")mostrarResumenPagos();if(id==="seccionSalud")mostrarListaSalud();if(id==="seccionIzel")mostrarListaIzel();if(id==="resultadoSalud")mostrarResumenSalud();if(id==="resultadoIzel")mostrarResumenIzel();if(typeof actualizarAvisosDelDia==="function")actualizarAvisosDelDia();if(typeof actualizarCalendarioContextual==="function")actualizarCalendarioContextual();window.scrollTo({top:0,behavior:"smooth"});}
 function mostrarInicio(){mostrarPantalla("inicio");}
 revisarRecordatoriosFechas();
 
+actualizarAvisosDelDia();
+revisarRecordatoriosTareas();
+
 setInterval(function() {
-
     revisarRecordatoriosFechas();
-
+    revisarRecordatoriosTareas();
+    actualizarAvisosDelDia();
 }, 60000);
 
 function abrirAgendaDesdeNotificacion() {
@@ -1316,7 +1329,7 @@ window.addEventListener("miapp:agenda-estado", function(event){if(!event.detail|
 
 
 function claveDiaCalendario(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}function fechaClaveCalendario(d){return claveDiaCalendario(d);}
-function moverMesCalendario(n){const seleccionado=new Date(diaSeleccionado+"T00:00:00"),mesNuevo=new Date(mesContextual.getFullYear(),mesContextual.getMonth()+n,1),ultimoDia=new Date(mesNuevo.getFullYear(),mesNuevo.getMonth()+1,0).getDate();mesContextual=mesNuevo;diaSeleccionado=claveDiaCalendario(new Date(mesNuevo.getFullYear(),mesNuevo.getMonth(),Math.min(seleccionado.getDate(),ultimoDia)));const pantalla=document.querySelector(".contenedor>.pantalla.activa")?.id;if(pantalla==="seccionFechas")mostrarFechas(true);else if(pantalla==="seccionTareas")mostrarListaTareas();else if(pantalla==="seccionEntrenamiento")mostrarListaEntrenamientos();else{if(pantalla==="seccionAprendizajes"){const input=document.getElementById("fechaAprendizaje");if(input)input.value=diaSeleccionado;}if(pantalla==="seccionPagos"){const input=document.getElementById("fechaPago");if(input)input.value=diaSeleccionado;}if(pantalla==="seccionFinanzas"){const input=document.getElementById("fechaFinanzas");if(input)input.value=diaSeleccionado;mostrarListaFinanzas();}actualizarCalendarioContextual();}}
+function moverMesCalendario(n){const seleccionado=new Date(diaSeleccionado+"T00:00:00"),mesNuevo=new Date(mesContextual.getFullYear(),mesContextual.getMonth()+n,1),ultimoDia=new Date(mesNuevo.getFullYear(),mesNuevo.getMonth()+1,0).getDate();mesContextual=mesNuevo;diaSeleccionado=claveDiaCalendario(new Date(mesNuevo.getFullYear(),mesNuevo.getMonth(),Math.min(seleccionado.getDate(),ultimoDia)));const pantalla=document.querySelector(".contenedor>.pantalla.activa")?.id;if(pantalla==="seccionFechas")mostrarFechas(true);else if(pantalla==="seccionTareas")mostrarListaTareas();else if(pantalla==="seccionEntrenamiento")mostrarListaEntrenamientos();else{if(pantalla==="seccionSalud"){const input=document.getElementById("fechaSalud");if(input)input.value=diaSeleccionado;mostrarListaSalud();}if(pantalla==="seccionIzel"){const input=document.getElementById("fechaIzel");if(input)input.value=diaSeleccionado;mostrarListaIzel();}if(pantalla==="seccionAprendizajes"){const input=document.getElementById("fechaAprendizaje");if(input)input.value=diaSeleccionado;}if(pantalla==="seccionPagos"){const input=document.getElementById("fechaPago");if(input)input.value=diaSeleccionado;}if(pantalla==="seccionFinanzas"){const input=document.getElementById("fechaFinanzas");if(input)input.value=diaSeleccionado;mostrarListaFinanzas();}actualizarCalendarioContextual();}}
 function actualizarCalendarioContextual() {
     const grid = document.getElementById("cuadriculaCalendario");
     const title = document.getElementById("mesCalendarioTitulo");
@@ -1331,6 +1344,10 @@ function actualizarCalendarioContextual() {
     const isPayments = id === "seccionPagos";
     const isFinance = id === "seccionFinanzas";
     const isTraining = id === "seccionEntrenamiento";
+    const isObjectives = id === "seccionObjetivos";
+    const isTime = id === "seccionTiempo";
+    const isHealth = id === "seccionSalud";
+    const isIzel = id === "seccionIzel";
     const items = [];
 
     if (isDates && Array.isArray(fechasImportantes)) {
@@ -1367,9 +1384,32 @@ function actualizarCalendarioContextual() {
             }
         });
     }
+    if (isHealth && Array.isArray(saludRegistros)) {
+        saludRegistros.forEach(item => {
+            if (item.fecha) items.push({ fecha: item.fecha, texto: "🩺 Chequeo de salud" + (item.doctor ? " · " + item.doctor : "") });
+            if (item.proximaFecha) items.push({ fecha: item.proximaFecha, texto: "📅 Próxima revisión médica indicada" });
+        });
+    }
+    if (isIzel && Array.isArray(izelRegistros)) {
+        const totalDiasIzel = new Date(mesContextual.getFullYear(), mesContextual.getMonth() + 1, 0).getDate();
+        izelRegistros.forEach(item => {
+            for (let dia = 1; dia <= totalDiasIzel; dia++) {
+                const clave = claveDiaCalendario(new Date(mesContextual.getFullYear(), mesContextual.getMonth(), dia));
+                if (!tareaOcurreEnFecha(item, clave)) continue;
+                const completado = izelRegistroCompletadoEnFecha(item, clave);
+                const icono = item.tipo === "vacuna" ? (completado ? "✅" : "💉") : item.tipo === "pendiente" ? (completado ? "☑️" : "✅") : "🌟";
+                items.push({ fecha: clave, texto: icono + " " + (item.titulo || "Registro de Izel"), tipoIzel: item.tipo, iconoIzel: icono });
+            }
+        });
+    }
     if (isLearning && Array.isArray(aprendizajes)) {
         aprendizajes.forEach(item => {
             if (item.fecha) items.push({ fecha: item.fecha, texto: "🧠 " + (item.texto || "Aprendizaje") });
+        });
+    }
+    if (isTime && Array.isArray(registrosTiempo)) {
+        registrosTiempo.forEach(item => {
+            if (item.fecha && item.texto) items.push({ fecha: item.fecha, texto: "⏱️ " + item.texto + (Number(item.minutos) > 0 ? " · " + item.minutos + " min" : "") });
         });
     }
     if (isPayments && Array.isArray(pagosPendientes)) {
@@ -1386,7 +1426,11 @@ function actualizarCalendarioContextual() {
         });
     }
 
-    if (isTraining && Array.isArray(entrenamientos)) {
+    if (isObjectives && Array.isArray(objetivos)) {
+        objetivos.forEach(item => {
+            if (item.fechaMeta && item.estado !== "completado") items.push({ fecha: item.fechaMeta, texto: "🎯 " + (item.titulo || "Objetivo"), esObjetivo: true });
+        });
+    }    if (isTraining && Array.isArray(entrenamientos)) {
         const totalDiasEntrenamiento = new Date(mesContextual.getFullYear(), mesContextual.getMonth() + 1, 0).getDate();
         entrenamientos.forEach(item => {
             const icono = item.tipo === "mental" ? "🧠" : "🏋️";
@@ -1441,6 +1485,28 @@ function actualizarCalendarioContextual() {
             });
             boton.appendChild(iconos);
             boton.setAttribute("aria-label", boton.getAttribute("aria-label") + ". " + elementosDia.map(item => item.texto).join(", "));
+        } else if (isTime && elementosDia.length) {
+            const icono = document.createElement("span");
+            icono.className = "iconos-registro-tiempo";
+            icono.setAttribute("aria-hidden", "true");
+            const mini = document.createElement("span");
+            mini.className = "mini-icono-registro-tiempo";
+            mini.textContent = "⏱️";
+            icono.appendChild(mini);
+            boton.appendChild(icono);
+            boton.classList.add("con-registros-tiempo");
+            boton.setAttribute("aria-label", boton.getAttribute("aria-label") + ". Registros de tiempo: " + elementosDia.map(item => item.texto).join(", "));
+        } else if (isObjectives && elementosDia.length) {
+            const icono = document.createElement("span");
+            icono.className = "iconos-objetivos";
+            icono.setAttribute("aria-hidden", "true");
+            const mini = document.createElement("span");
+            mini.className = "mini-icono-objetivo";
+            mini.textContent = "🎯";
+            icono.appendChild(mini);
+            boton.appendChild(icono);
+            boton.classList.add("con-objetivos");
+            boton.setAttribute("aria-label", boton.getAttribute("aria-label") + ". Objetivos: " + elementosDia.map(item => item.texto).join(", "));
         } else if (isTraining && elementosDia.length) {
             const tipos = ["fisico", "mental"].filter(tipo => elementosDia.some(item => item.tipoEntrenamiento === tipo && !item.completada));
             const iconos = document.createElement("span");
@@ -1472,6 +1538,39 @@ function actualizarCalendarioContextual() {
             boton.classList.add("con-gastos");
             const nombres = categorias.map(categoria => informacionCategoriaGasto(categoria).nombre);
             boton.setAttribute("aria-label", boton.getAttribute("aria-label") + ". Gastos: " + nombres.join(", "));
+        } else if (isLearning && elementosDia.length) {
+            const icono = document.createElement("span");
+            icono.className = "iconos-aprendizajes";
+            icono.setAttribute("aria-hidden", "true");
+            const mini = document.createElement("span");
+            mini.className = "mini-icono-aprendizaje";
+            mini.textContent = "🧠";
+            icono.appendChild(mini);
+            boton.appendChild(icono);
+            boton.classList.add("con-aprendizajes");
+            boton.setAttribute("aria-label", boton.getAttribute("aria-label") + ". Aprendizajes: " + elementosDia.map(item => item.texto).join(", "));
+        } else if (isHealth && elementosDia.length) {
+            const icono = document.createElement("span");
+            icono.className = "iconos-salud";
+            icono.setAttribute("aria-hidden", "true");
+            icono.textContent = "🩺";
+            boton.appendChild(icono);
+            boton.classList.add("con-registros-salud");
+            boton.setAttribute("aria-label", boton.getAttribute("aria-label") + ". Registro de salud: " + elementosDia.map(item => item.texto).join(", "));
+        } else if (isIzel && elementosDia.length) {
+            const iconos = document.createElement("span");
+            iconos.className = "iconos-izel";
+            iconos.setAttribute("aria-hidden", "true");
+            [...new Set(elementosDia.map(item => item.tipoIzel))].forEach(tipo => {
+                const item = elementosDia.find(elemento => elemento.tipoIzel === tipo);
+                const mini = document.createElement("span");
+                mini.className = "mini-icono-izel";
+                mini.textContent = item.iconoIzel;
+                iconos.appendChild(mini);
+            });
+            boton.appendChild(iconos);
+            boton.classList.add("con-registros-izel");
+            boton.setAttribute("aria-label", boton.getAttribute("aria-label") + ". Registros de Izel: " + elementosDia.map(item => item.texto).join(", "));
         } else if (isTasks) {
             const tareasPendientesDia = elementosDia.filter(item => item.esTarea && !item.completada);
             const prioridades = ["alta", "media", "baja"].filter(prioridad => tareasPendientesDia.some(item => item.prioridad === prioridad));
@@ -1501,9 +1600,28 @@ function actualizarCalendarioContextual() {
                 mostrarFechas(true);
                 return;
             }
+            if (isHealth) {
+                const input = document.getElementById("fechaSalud");
+                if (input) input.value = clave;
+                mostrarListaSalud();
+                return;
+            }
+            if (isIzel) {
+                const input = document.getElementById("fechaIzel");
+                if (input) input.value = clave;
+                mostrarListaIzel();
+                return;
+            }
             if (isLearning) {
                 const input = document.getElementById("fechaAprendizaje");
                 if (input) input.value = clave;
+            }
+            if (isTime) {
+                diaSeleccionado = clave;
+                const input = document.getElementById("fechaTiempo");
+                if (input) input.value = clave;
+                mostrarListaTiempo();
+                return;
             }
             if (isPayments) {
                 const input = document.getElementById("fechaPago");
@@ -1515,7 +1633,10 @@ function actualizarCalendarioContextual() {
                 mostrarListaFinanzas();
                 return;
             }
-            if (isTraining) {
+            if (isObjectives) {
+                actualizarCalendarioContextual();
+                return;
+            }            if (isTraining) {
                 const input = document.getElementById("fechaEntrenamiento");
                 if (input) input.value = clave;
                 mostrarListaEntrenamientos();
@@ -1533,7 +1654,7 @@ function actualizarCalendarioContextual() {
     const coincidencias = items.filter(item => item.fecha === diaSeleccionado);
     if (!coincidencias.length) {
         const mensaje = document.createElement("p");
-        mensaje.textContent = isDates || isTasks || isLearning || isPayments || isFinance || isTraining ? "No hay elementos registrados para este día." : "Los elementos aparecerán aquí cuando se construya el módulo.";
+        mensaje.textContent = isDates || isTasks || isLearning || isPayments || isFinance || isTraining || isObjectives || isTime || isHealth || isIzel ? "No hay elementos registrados para este día." : "Los elementos aparecerán aquí cuando se construya el módulo.";
         detail.appendChild(mensaje);
         return;
     }
@@ -1546,7 +1667,80 @@ function actualizarCalendarioContextual() {
     });
     detail.appendChild(lista);
 }
-function cerrarAvisos(){const a=document.getElementById("barraAvisos");if(a)a.hidden=true;}function mostrarAvisos(){const a=document.getElementById("barraAvisos");if(a)a.hidden=false;}
+function cerrarAvisos(){const a=document.getElementById("barraAvisos");if(a){avisosOcultosParaHoy=fechaClaveCalendario(new Date());a.hidden=true;}}
+function mostrarAvisos(){avisosOcultosParaHoy="";actualizarAvisosDelDia();}
+
+function obtenerAvisosDelDia(fechaHoy) {
+    const avisos = [];
+    fechasImportantes.forEach(fecha => {
+        if (fechaEspecialEnDia(fecha, fechaHoy)) avisos.push({ categoria:"Fechas especiales", texto:(fecha.nombre||"Fecha especial")+(fecha.tipo?" · "+fecha.tipo.replace("cumpleanos","cumpleaños"):"") });
+    });
+    tareas.forEach(tarea => {
+        if (tarea.prioridad === "alta" && tareaOcurreEnFecha(tarea, fechaHoy) && !tareaCompletadaEnFecha(tarea, fechaHoy)) avisos.push({ categoria:"Tarea de prioridad alta", texto:tarea.texto||"Tarea sin título" });
+    });
+    pagosPendientes.forEach(pago => {
+        if (!pago.pagado && pago.fecha === fechaHoy) avisos.push({ categoria:"Pago pendiente", texto:(pago.nombre||"Pago")+" · "+formatoMonedaPago(pago.monto) });
+    });
+    entrenamientos.forEach(item => {
+        if (entrenamientoOcurreEnFecha(item, fechaHoy) && !entrenamientoCompletadoEnFecha(item, fechaHoy)) avisos.push({ categoria:"Entrenamiento", texto:item.actividad||"Actividad programada" });
+    });
+    saludRegistros.forEach(item => {
+        if (item.fecha === fechaHoy) avisos.push({ categoria:"Salud", texto:"Chequeo"+(item.doctor?" · "+item.doctor:"") });
+        if (item.proximaFecha === fechaHoy) avisos.push({ categoria:"Salud", texto:"Revisión médica programada" });
+    });
+    izelRegistros.forEach(item => {
+        if (!izelOcurreEnFecha(item, fechaHoy)) return;
+        const estado = item.tipo !== "fecha" && izelRegistroCompletadoEnFecha(item, fechaHoy) ? " · realizada" : "";
+        avisos.push({ categoria:"Mi peque Izel", texto:(item.titulo||"Registro")+estado });
+    });
+    return avisos;
+}
+
+function crearAvisoSistema(titulo, cuerpo, etiqueta) {
+    if (typeof Notification === "undefined" || Notification.permission !== "granted" || !("serviceWorker" in navigator)) return Promise.resolve(false);
+    return navigator.serviceWorker.ready.then(registro => registro.showNotification(titulo, { body:cuerpo, icon:"Icono.png", badge:"Icono.png", tag:etiqueta, data:{ url:"./index.html" } })).then(() => true).catch(error => { console.error("No se pudo mostrar el aviso:", error); return false; });
+}
+
+function actualizarAvisosDelDia() {
+    const barra=document.getElementById("barraAvisos"), lista=document.getElementById("listaAvisosDelDia");
+    if(!barra||!lista)return;
+    const hoy=fechaClaveCalendario(new Date()), avisos=obtenerAvisosDelDia(hoy);
+    lista.replaceChildren();
+    const titulo=document.createElement("strong");titulo.className="titulo-avisos-del-dia";titulo.textContent="Avisos de hoy";lista.appendChild(titulo);
+    if(!avisos.length){const vacio=document.createElement("span");vacio.className="aviso-del-dia";vacio.textContent="No hay avisos para hoy.";lista.appendChild(vacio);}
+    avisos.forEach(aviso=>{const elemento=document.createElement("span");elemento.className="aviso-del-dia";const categoria=document.createElement("strong");categoria.textContent=aviso.categoria+": ";elemento.append(categoria,document.createTextNode(aviso.texto));lista.appendChild(elemento);});
+    barra.hidden=avisosOcultosParaHoy===hoy;
+    const avisosNotificables=avisos.filter(aviso=>aviso.categoria!=="Entrenamiento");
+    const llave="avisosDiariosNotificados:"+hoy;
+    if(avisosNotificables.length&&!localStorage.getItem(llave)&&!notificacionesEnProceso.has(llave)){
+        const resumen=avisosNotificables.slice(0,5).map(aviso=>aviso.categoria+": "+aviso.texto).join("\n");
+        notificacionesEnProceso.add(llave);
+        crearAvisoSistema("MiAppPersonal · avisos de hoy",resumen+(avisosNotificables.length>5?"\nY "+(avisosNotificables.length-5)+" aviso(s) más.":""),llave).then(mostrado=>{if(mostrado)localStorage.setItem(llave,"1");}).finally(()=>notificacionesEnProceso.delete(llave));
+    }
+}
+
+function revisarRecordatoriosTareas() {
+    if(typeof Notification==="undefined"||Notification.permission!=="granted"||!("serviceWorker" in navigator))return;
+    const ahora=new Date();
+    tareas.forEach((tarea,indice)=>{
+        if(!tarea.recordatorio||tarea.recordatorio==="ninguno"||!tarea.hora)return;
+        const [hora,minuto]=tarea.hora.split(":").map(Number);
+        if(!Number.isFinite(hora)||!Number.isFinite(minuto))return;
+        const identidad=tarea.id||[indice,tarea.fecha,tarea.texto].join(":");
+        for(let desplazamiento=0;desplazamiento<=1;desplazamiento++){
+            const fechaEvento=claveDiaCalendario(new Date(ahora.getFullYear(),ahora.getMonth(),ahora.getDate()+desplazamiento));
+            if(!tareaOcurreEnFecha(tarea,fechaEvento)||tareaCompletadaEnFecha(tarea,fechaEvento))continue;
+            const fechaPartes=fechaEvento.split("-").map(Number);
+            const momentoEvento=new Date(fechaPartes[0],fechaPartes[1]-1,fechaPartes[2],hora,minuto,0,0);
+            const momentoAviso=new Date(momentoEvento.getTime()-Number(tarea.recordatorio)*60000);
+            if(ahora<momentoAviso)continue;
+            const llave="recordatorioTarea:"+identidad+":"+fechaEvento;
+            if(localStorage.getItem(llave)||notificacionesEnProceso.has(llave))continue;
+            notificacionesEnProceso.add(llave);
+            crearAvisoSistema("🔔 Recordatorio de tarea",(tarea.texto||"Tarea")+" · "+tarea.hora,"tarea-"+identidad+"-"+fechaEvento).then(mostrado=>{if(mostrado)localStorage.setItem(llave,"1");}).finally(()=>notificacionesEnProceso.delete(llave));
+        }
+    });
+}
 
 
 function guardarAprendizajesEnDispositivo(){localStorage.setItem("aprendizajes",JSON.stringify(aprendizajes));}
@@ -1559,8 +1753,787 @@ function eliminarAprendizaje(indice){if(!aprendizajes[indice])return;if(!confirm
 if(document.getElementById("fechaAprendizaje"))document.getElementById("fechaAprendizaje").value=fechaClaveCalendario(new Date());mostrarListaAprendizajes();
 
 
-function guardarEntrenamientosEnDispositivo() {
+function guardarObjetivosEnDispositivo() {
+    localStorage.setItem("objetivos", JSON.stringify(objetivos));
+}
+
+function abrirNuevoObjetivo() {
+    objetivoEditando = null;
+    document.getElementById("tituloObjetivo").value = "";
+    document.getElementById("descripcionObjetivo").value = "";
+    document.getElementById("fechaMetaObjetivo").value = "";
+    document.getElementById("progresoObjetivo").value = "0";
+    document.getElementById("estadoObjetivo").value = "activo";
+    document.getElementById("tituloModalObjetivo").textContent = "＋ Nuevo objetivo";
+    document.getElementById("botonGuardarObjetivo").textContent = "Guardar objetivo";
+    document.getElementById("modalObjetivo").style.display = "flex";
+    document.getElementById("tituloObjetivo").focus();
+}
+
+function editarObjetivo(indice) {
+    const objetivo = objetivos[indice];
+    if (!objetivo) return;
+    objetivoEditando = indice;
+    document.getElementById("tituloObjetivo").value = objetivo.titulo || "";
+    document.getElementById("descripcionObjetivo").value = objetivo.descripcion || "";
+    document.getElementById("fechaMetaObjetivo").value = objetivo.fechaMeta || "";
+    document.getElementById("progresoObjetivo").value = Number(objetivo.progreso) || 0;
+    document.getElementById("estadoObjetivo").value = objetivo.estado || "activo";
+    document.getElementById("tituloModalObjetivo").textContent = "✏️ Editar objetivo";
+    document.getElementById("botonGuardarObjetivo").textContent = "Guardar cambios";
+    document.getElementById("modalObjetivo").style.display = "flex";
+    document.getElementById("tituloObjetivo").focus();
+}
+
+function cerrarModalObjetivo() {
+    const modal = document.getElementById("modalObjetivo");
+    if (modal) modal.style.display = "none";
+    objetivoEditando = null;
+}
+
+function guardarObjetivo() {
+    const tituloCampo = document.getElementById("tituloObjetivo");
+    const titulo = tituloCampo.value.trim();
+    const progresoCampo = document.getElementById("progresoObjetivo");
+    const progreso = Number(progresoCampo.value);
+    if (!titulo) { alert("Escribe el objetivo que quieres alcanzar."); tituloCampo.focus(); return; }
+    if (!Number.isFinite(progreso) || progreso < 0 || progreso > 100) { alert("El progreso debe ser un número entre 0 y 100."); progresoCampo.focus(); return; }
+    const anterior = objetivoEditando === null ? null : objetivos[objetivoEditando];
+    const estadoSeleccionado = document.getElementById("estadoObjetivo").value;
+    const objetivo = {
+        id: anterior?.id || "objetivo-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
+        titulo,
+        descripcion: document.getElementById("descripcionObjetivo").value.trim(),
+        fechaMeta: document.getElementById("fechaMetaObjetivo").value,
+        progreso: estadoSeleccionado === "completado" ? 100 : Math.round(progreso),
+        progresoAntesDeCompletar: estadoSeleccionado === "completado"
+            ? (anterior?.progresoAntesDeCompletar ?? (anterior?.estado === "completado" ? 0 : Math.round(progreso)))
+            : undefined,
+        estado: estadoSeleccionado
+    };
+    if (objetivoEditando === null) objetivos.push(objetivo);
+    else objetivos[objetivoEditando] = objetivo;
+    guardarObjetivosEnDispositivo();
+    cerrarModalObjetivo();
+    mostrarListaObjetivos();
+}
+
+function eliminarObjetivo(indice) {
+    if (!objetivos[indice] || !confirm("¿Quieres eliminar este objetivo?")) return;
+    objetivos.splice(indice, 1);
+    guardarObjetivosEnDispositivo();
+    mostrarListaObjetivos();
+}
+
+function cambiarEstadoObjetivo(indice, completado) {
+    const objetivo = objetivos[indice];
+    if (!objetivo) return;
+    if (completado) {
+        objetivo.progresoAntesDeCompletar = Math.max(0, Math.min(99, Math.round(Number(objetivo.progreso) || 0)));
+        objetivo.progreso = 100;
+        objetivo.estado = "completado";
+    } else {
+        objetivo.progreso = Math.max(0, Math.min(99, Math.round(Number(objetivo.progresoAntesDeCompletar) || 0)));
+        objetivo.estado = "activo";
+        delete objetivo.progresoAntesDeCompletar;
+    }
+    guardarObjetivosEnDispositivo();
+    mostrarListaObjetivos();
+}
+
+function guardarRegistrosTiempoEnDispositivo() {
+    localStorage.setItem("registrosTiempo", JSON.stringify(registrosTiempo));
+}
+
+function seleccionarFechaTiempo(fecha) {
+    if (!fecha) return;
+    const seleccionada = new Date(fecha + "T00:00:00");
+    if (Number.isNaN(seleccionada.getTime())) return;
+    diaSeleccionado = fecha;
+    mesContextual = new Date(seleccionada.getFullYear(), seleccionada.getMonth(), 1);
+    mostrarListaTiempo();
+}
+
+function mostrarListaTiempo() {
+    const fechaCampo = document.getElementById("fechaTiempo");
+    const textoCampo = document.getElementById("textoRegistroTiempo");
+    const lista = document.getElementById("listaRegistrosTiempo");
+    const resumen = document.getElementById("resumenDiaTiempo");
+    if (!fechaCampo || !textoCampo || !lista || !resumen) return;
+    fechaCampo.value = diaSeleccionado;
+    const registrosDelDia = registrosTiempo.map((registro, indice) => ({ registro, indice }))
+        .filter(({ registro }) => registro.fecha === diaSeleccionado)
+        .sort((a, b) => (a.registro.creadoEn || "").localeCompare(b.registro.creadoEn || ""));
+    resumen.textContent = registrosDelDia.length
+        ? registrosDelDia.length + (registrosDelDia.length === 1 ? " actividad registrada para este día." : " actividades registradas para este día.")
+        : "Aún no hay actividades registradas para este día.";
+    lista.replaceChildren();
+    if (!registrosDelDia.length) {
+        const vacio = document.createElement("p");
+        vacio.className = "estado-vacio-tiempo";
+        vacio.textContent = "Registra una actividad en la que sientes que perdiste tiempo, por ejemplo, scrollear redes sociales.";
+        lista.appendChild(vacio);
+    } else {
+        registrosDelDia.forEach(({ registro, indice }) => {
+            const tarjeta = document.createElement("article");
+            tarjeta.className = "tarjeta-registro-tiempo";
+            const texto = document.createElement("p");
+            texto.textContent = registro.texto;
+            tarjeta.appendChild(texto);
+            if (Number(registro.minutos) > 0) {
+                const duracion = document.createElement("small");
+                duracion.className = "duracion-registro-tiempo";
+                duracion.textContent = "Tiempo aproximado: " + registro.minutos + " min";
+                tarjeta.appendChild(duracion);
+            }
+            const acciones = document.createElement("div");
+            acciones.className = "acciones-registro-tiempo";
+            const editar = document.createElement("button");
+            editar.type = "button";
+            editar.textContent = "Editar";
+            editar.onclick = function () { editarRegistroTiempo(indice); };
+            const eliminar = document.createElement("button");
+            eliminar.type = "button";
+            eliminar.textContent = "Eliminar";
+            eliminar.onclick = function () { eliminarRegistroTiempo(indice); };
+            acciones.append(editar, eliminar);
+            tarjeta.appendChild(acciones);
+            lista.appendChild(tarjeta);
+        });
+    }
+    actualizarCalendarioContextual();
+}
+
+function guardarRegistroTiempo() {
+    const fecha = document.getElementById("fechaTiempo").value;
+    const campoTexto = document.getElementById("textoRegistroTiempo");
+    const texto = campoTexto.value.trim();
+    if (!fecha) { alert("Selecciona el día que quieres registrar."); return; }
+    if (!texto) { alert("Escribe la actividad en la que sientes que perdiste tiempo."); campoTexto.focus(); return; }
+    const duracionCampo = document.getElementById("duracionRegistroTiempo");
+    const minutos = duracionCampo.value.trim() === "" ? null : Number(duracionCampo.value);
+    if (minutos !== null && (!Number.isInteger(minutos) || minutos < 1 || minutos > 1440)) {
+        alert("El tiempo debe ser un número entero entre 1 y 1440 minutos, o puedes dejarlo vacío.");
+        duracionCampo.focus();
+        return;
+    }
+    const anterior = registroTiempoEditando === null ? null : registrosTiempo[registroTiempoEditando];
+    const registro = {
+        id: anterior?.id || "tiempo-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
+        fecha,
+        texto,
+        minutos,
+        creadoEn: anterior?.creadoEn || new Date().toISOString()
+    };
+    if (registroTiempoEditando === null) registrosTiempo.push(registro);
+    else registrosTiempo[registroTiempoEditando] = registro;
+    diaSeleccionado = fecha;
+    const seleccionada = new Date(fecha + "T00:00:00");
+    mesContextual = new Date(seleccionada.getFullYear(), seleccionada.getMonth(), 1);
+    registroTiempoEditando = null;
+    campoTexto.value = "";
+    document.getElementById("duracionRegistroTiempo").value = "";
+    document.getElementById("botonGuardarRegistroTiempo").textContent = "Guardar actividad";
+    document.getElementById("botonCancelarRegistroTiempo").hidden = true;
+    guardarRegistrosTiempoEnDispositivo();
+    mostrarListaTiempo();
+}
+
+function editarRegistroTiempo(indice) {
+    const registro = registrosTiempo[indice];
+    if (!registro) return;
+    registroTiempoEditando = indice;
+    diaSeleccionado = registro.fecha;
+    const seleccionada = new Date(registro.fecha + "T00:00:00");
+    mesContextual = new Date(seleccionada.getFullYear(), seleccionada.getMonth(), 1);
+    document.getElementById("fechaTiempo").value = registro.fecha;
+    document.getElementById("textoRegistroTiempo").value = registro.texto;
+    document.getElementById("duracionRegistroTiempo").value = registro.minutos || "";
+    document.getElementById("botonGuardarRegistroTiempo").textContent = "Guardar cambios";
+    document.getElementById("botonCancelarRegistroTiempo").hidden = false;
+    document.getElementById("textoRegistroTiempo").focus();
+    actualizarCalendarioContextual();
+}
+
+function cancelarEdicionRegistroTiempo() {
+    registroTiempoEditando = null;
+    document.getElementById("fechaTiempo").value = diaSeleccionado;
+    document.getElementById("textoRegistroTiempo").value = "";
+    document.getElementById("duracionRegistroTiempo").value = "";
+    document.getElementById("botonGuardarRegistroTiempo").textContent = "Guardar actividad";
+    document.getElementById("botonCancelarRegistroTiempo").hidden = true;
+}
+
+function eliminarRegistroTiempo(indice) {
+    if (!registrosTiempo[indice] || !confirm("¿Quieres eliminar esta actividad de tiempo?")) return;
+    registrosTiempo.splice(indice, 1);
+    guardarRegistrosTiempoEnDispositivo();
+    mostrarListaTiempo();
+}
+function guardarProyectosEnDispositivo() {
+    localStorage.setItem("proyectos", JSON.stringify(proyectos));
+}
+
+function asegurarRamasProyecto(proyecto) {
+    const migrarComoCompletado = proyecto.estado === "completado" && proyecto.completada !== true;
+    if (proyecto.estado === "completado") proyecto.completada = true;
+    else if (typeof proyecto.completada !== "boolean") proyecto.completada = false;
+    if (!Array.isArray(proyecto.ramas)) {
+        proyecto.ramas = (Array.isArray(proyecto.subtareas) ? proyecto.subtareas : []).map(subtarea => ({
+            id: subtarea.id || "rama-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7),
+            titulo: subtarea.titulo || "Sin título",
+            estado: ["pendiente", "en_curso", "completada"].includes(subtarea.estado) ? subtarea.estado : "pendiente",
+            completada: subtarea.estado === "completada",
+            ramas: []
+        }));
+    }
+    asegurarPesosRamas(proyecto.ramas);
+    if (migrarComoCompletado) actualizarMarcadoDescendientes(proyecto.ramas, true);
+    return proyecto.ramas;
+}
+
+function asegurarPesosRamas(ramas) {
+    if (!Array.isArray(ramas) || !ramas.length) return;
+    const repartirIgual = function () {
+        let asignado = 0;
+        ramas.forEach((rama, indice) => {
+            rama.porcentaje = indice === ramas.length - 1 ? Math.round((100 - asignado) * 10) / 10 : Math.round(100 / ramas.length * 10) / 10;
+            asignado += rama.porcentaje;
+        });
+    };
+    const tienenPesos = ramas.every(rama => Number.isFinite(Number(rama.porcentaje)) && rama.porcentaje !== null && rama.porcentaje !== "");
+    if (!tienenPesos) repartirIgual();
+    else {
+        const total = ramas.reduce((suma, rama) => suma + Math.max(0, Number(rama.porcentaje)), 0);
+        if (total <= 0) repartirIgual();
+        else if (Math.abs(total - 100) > 0.01) {
+            let asignado = 0;
+            ramas.forEach((rama, indice) => {
+                rama.porcentaje = indice === ramas.length - 1 ? Math.round((100 - asignado) * 10) / 10 : Math.round(Math.max(0, Number(rama.porcentaje)) / total * 100 * 10) / 10;
+                asignado += rama.porcentaje;
+            });
+        }
+    }
+    ramas.forEach(rama => {
+        rama.porcentaje = Number(rama.porcentaje);
+        rama.completada = Boolean(rama.completada || rama.estado === "completada");
+        if (!Array.isArray(rama.ramas)) rama.ramas = [];
+        asegurarPesosRamas(rama.ramas);
+    });
+}
+
+function redistribuirPorcentajesRamas(ramas, indiceFoco, porcentajeFoco) {
+    if (!ramas.length) return;
+    if (ramas.length === 1) { ramas[0].porcentaje = 100; return; }
+    const valor = Number(porcentajeFoco);
+    const foco = Number.isFinite(valor) ? Math.min(100, Math.max(0, Math.round(valor * 10) / 10)) : Number(ramas[indiceFoco].porcentaje || 0);
+    ramas[indiceFoco].porcentaje = foco;
+    const otros = ramas.map((rama, indice) => indice).filter(indice => indice !== indiceFoco);
+    const totalPrevio = otros.reduce((suma, indice) => suma + Math.max(0, Number(ramas[indice].porcentaje) || 0), 0);
+    const disponible = Math.round((100 - foco) * 10) / 10;
+    let asignado = 0;
+    otros.forEach((indice, posicion) => {
+        const parte = posicion === otros.length - 1 ? Math.round((disponible - asignado) * 10) / 10 : Math.round((totalPrevio > 0 ? Number(ramas[indice].porcentaje) / totalPrevio : 1 / otros.length) * disponible * 10) / 10;
+        ramas[indice].porcentaje = parte;
+        asignado += parte;
+    });
+}
+
+function actualizarMarcadoDescendientes(ramas, completada) {
+    ramas.forEach(rama => {
+        rama.completada = completada;
+        rama.estado = completada ? "completada" : (rama.estado === "completada" ? "pendiente" : rama.estado);
+        actualizarMarcadoDescendientes(Array.isArray(rama.ramas) ? rama.ramas : [], completada);
+    });
+}
+
+function calcularAvanceRama(rama) {
+    if (rama.completada || rama.estado === "completada") return 100;
+    const ramas = Array.isArray(rama.ramas) ? rama.ramas : [];
+    if (!ramas.length) return 0;
+    asegurarPesosRamas(ramas);
+    return ramas.reduce((avance, hija) => avance + Number(hija.porcentaje) / 100 * calcularAvanceRama(hija), 0);
+}
+
+function calcularAvanceProyecto(proyecto) {
+    if (proyecto.completada) return 100;
+    const ramas = asegurarRamasProyecto(proyecto);
+    return ramas.reduce((avance, rama) => avance + Number(rama.porcentaje) / 100 * calcularAvanceRama(rama), 0);
+}
+
+function calcularAporteProyecto(proyecto, ruta) {
+    let aporte = 100;
+    let ramas = asegurarRamasProyecto(proyecto);
+    ruta.split(".").map(Number).forEach(indice => {
+        const rama = ramas[indice];
+        if (!rama) return;
+        aporte *= Number(rama.porcentaje) / 100;
+        ramas = rama.ramas;
+    });
+    return aporte;
+}
+
+function obtenerRamaProyecto(proyecto, ruta) {
+    const indices = ruta.split(".").map(Number);
+    let ramas = asegurarRamasProyecto(proyecto);
+    let rama = null;
+    for (const indice of indices) {
+        rama = ramas[indice];
+        if (!rama) return null;
+        if (!Array.isArray(rama.ramas)) rama.ramas = [];
+        ramas = rama.ramas;
+    }
+    return rama;
+}
+
+function abrirNuevoProyecto() {
+    proyectoEditando = null;
+    document.getElementById("tituloProyecto").value = "";
+    document.getElementById("descripcionProyecto").value = "";
+    document.getElementById("estadoProyecto").value = "activo";
+    document.getElementById("tituloModalProyecto").textContent = "＋ Nuevo proyecto";
+    document.getElementById("botonGuardarProyecto").textContent = "Guardar proyecto";
+    document.getElementById("modalProyecto").style.display = "flex";
+    document.getElementById("tituloProyecto").focus();
+}
+
+function editarProyecto(indice) {
+    const proyecto = proyectos[indice];
+    if (!proyecto) return;
+    proyectoEditando = indice;
+    document.getElementById("tituloProyecto").value = proyecto.titulo || "";
+    document.getElementById("descripcionProyecto").value = proyecto.descripcion || "";
+    document.getElementById("estadoProyecto").value = proyecto.estado || "activo";
+    document.getElementById("tituloModalProyecto").textContent = "✏️ Editar proyecto";
+    document.getElementById("botonGuardarProyecto").textContent = "Guardar cambios";
+    document.getElementById("modalProyecto").style.display = "flex";
+    document.getElementById("tituloProyecto").focus();
+}
+
+function cerrarModalProyecto() {
+    const modal = document.getElementById("modalProyecto");
+    if (modal) modal.style.display = "none";
+    proyectoEditando = null;
+}
+
+function guardarProyecto() {
+    const tituloCampo = document.getElementById("tituloProyecto");
+    const titulo = tituloCampo.value.trim();
+    if (!titulo) { alert("Escribe el nombre del proyecto."); tituloCampo.focus(); return; }
+    const anterior = proyectoEditando === null ? null : proyectos[proyectoEditando];
+    const proyecto = {
+        id: anterior?.id || "proyecto-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
+        titulo,
+        descripcion: document.getElementById("descripcionProyecto").value.trim(),
+        estado: document.getElementById("estadoProyecto").value,
+        completada: document.getElementById("estadoProyecto").value === "completado",
+        subtareas: Array.isArray(anterior?.subtareas) ? anterior.subtareas : [],
+        ramas: anterior ? asegurarRamasProyecto(anterior) : [],
+        creadoEn: anterior?.creadoEn || new Date().toISOString()
+    };
+    actualizarMarcadoDescendientes(asegurarRamasProyecto(proyecto), proyecto.completada);
+    if (proyectoEditando === null) proyectos.push(proyecto);
+    else proyectos[proyectoEditando] = proyecto;
+    guardarProyectosEnDispositivo();
+    cerrarModalProyecto();
+    mostrarListaProyectos();
+}
+
+function cambiarEstadoProyecto(indice, estado) {
+    const proyecto = proyectos[indice];
+    if (!proyecto) return;
+    proyecto.estado = estado;
+    proyecto.completada = estado === "completado";
+    actualizarMarcadoDescendientes(asegurarRamasProyecto(proyecto), proyecto.completada);
+    guardarProyectosEnDispositivo();
+    mostrarListaProyectos();
+}
+
+function eliminarProyecto(indice) {
+    if (!proyectos[indice] || !confirm("¿Quieres eliminar este proyecto y sus subtareas?")) return;
+    proyectos.splice(indice, 1);
+    guardarProyectosEnDispositivo();
+    mostrarListaProyectos();
+}
+
+function agregarRamaProyecto(indice, ruta, titulo) {
+    const proyecto = proyectos[indice];
+    const texto = titulo.trim();
+    if (!proyecto || !texto) return;
+    const rama = ruta ? obtenerRamaProyecto(proyecto, ruta) : null;
+    const destino = rama ? rama.ramas : asegurarRamasProyecto(proyecto);
+    destino.push({ id: "rama-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7), titulo: texto, estado: "pendiente", completada: false, porcentaje: 0, ramas: [] });
+    redistribuirPorcentajesRamas(destino, destino.length - 1, 100 / destino.length);
+    guardarProyectosEnDispositivo();
+    mostrarListaProyectos();
+}
+
+function cambiarEstadoRamaProyecto(indiceProyecto, ruta, estado) {
+    const proyecto = proyectos[indiceProyecto];
+    const rama = proyecto && obtenerRamaProyecto(proyecto, ruta);
+    if (!rama) return;
+    rama.estado = estado;
+    rama.completada = estado === "completada";
+    actualizarMarcadoDescendientes(rama.ramas, rama.completada);
+    guardarProyectosEnDispositivo();
+    mostrarListaProyectos();
+}
+
+function cambiarMarcadoProyecto(indiceProyecto, completada) {
+    const proyecto = proyectos[indiceProyecto];
+    if (!proyecto) return;
+    proyecto.completada = completada;
+    proyecto.estado = completada ? "completado" : (proyecto.estado === "completado" ? "activo" : proyecto.estado);
+    actualizarMarcadoDescendientes(asegurarRamasProyecto(proyecto), completada);
+    guardarProyectosEnDispositivo();
+    mostrarListaProyectos();
+}
+
+function cambiarMarcadoRamaProyecto(indiceProyecto, ruta, completada) {
+    const proyecto = proyectos[indiceProyecto];
+    const rama = proyecto && obtenerRamaProyecto(proyecto, ruta);
+    if (!rama) return;
+    rama.completada = completada;
+    rama.estado = completada ? "completada" : (rama.estado === "completada" ? "pendiente" : rama.estado);
+    actualizarMarcadoDescendientes(rama.ramas, completada);
+    guardarProyectosEnDispositivo();
+    mostrarListaProyectos();
+}
+
+function cambiarPorcentajeRamaProyecto(indiceProyecto, ruta, porcentaje) {
+    const proyecto = proyectos[indiceProyecto];
+    if (!proyecto) return;
+    const indices = ruta.split(".").map(Number);
+    const indice = indices.pop();
+    const hermanas = indices.length ? obtenerRamaProyecto(proyecto, indices.join("."))?.ramas : asegurarRamasProyecto(proyecto);
+    if (!hermanas?.[indice]) return;
+    redistribuirPorcentajesRamas(hermanas, indice, porcentaje);
+    guardarProyectosEnDispositivo();
+    mostrarListaProyectos();
+}
+
+function eliminarRamaProyecto(indiceProyecto, ruta) {
+    const proyecto = proyectos[indiceProyecto];
+    if (!proyecto || !confirm("¿Quieres quitar esta rama y todas las subramas que contiene?")) return;
+    const indices = ruta.split(".").map(Number);
+    const indice = indices.pop();
+    const contenedor = indices.length ? obtenerRamaProyecto(proyecto, indices.join("."))?.ramas : asegurarRamasProyecto(proyecto);
+    if (!contenedor?.[indice]) return;
+    contenedor.splice(indice, 1);
+    if (contenedor.length) {
+        const total = contenedor.reduce((suma, rama) => suma + Number(rama.porcentaje || 0), 0);
+        const pesoFinal = total > 0 ? Number(contenedor[contenedor.length - 1].porcentaje) * 100 / total : 100 / contenedor.length;
+        redistribuirPorcentajesRamas(contenedor, contenedor.length - 1, pesoFinal);
+    }
+    guardarProyectosEnDispositivo();
+    mostrarListaProyectos();
+}
+
+function crearTarjetaProyecto(proyecto, indice) {
+    const tarjeta = document.createElement("article");
+    tarjeta.className = "tarjeta-proyecto estado-proyecto-" + (proyecto.estado || "activo");
+    const encabezado = document.createElement("div");
+    encabezado.className = "encabezado-proyecto";
+    const titulo = document.createElement("h3");
+    titulo.textContent = proyecto.titulo;
+    const estado = document.createElement("select");
+    estado.setAttribute("aria-label", "Estado del proyecto " + proyecto.titulo);
+    [["activo", "En progreso"], ["planeado", "Por iniciar"], ["pausado", "En pausa"], ["completado", "Completado"]].forEach(([valor, texto]) => {
+        const opcion = document.createElement("option");
+        opcion.value = valor;
+        opcion.textContent = texto;
+        estado.appendChild(opcion);
+    });
+    estado.value = proyecto.estado || "activo";
+    estado.onchange = function () { cambiarEstadoProyecto(indice, estado.value); };
+    const controles = document.createElement("div");
+    controles.className = "controles-avance-proyecto";
+    const etiquetaCheck = document.createElement("label");
+    etiquetaCheck.className = "check-proyecto";
+    const checkProyecto = document.createElement("input");
+    checkProyecto.type = "checkbox";
+    checkProyecto.checked = Boolean(proyecto.completada || proyecto.estado === "completado");
+    checkProyecto.setAttribute("aria-label", "Marcar proyecto como completado: " + proyecto.titulo);
+    checkProyecto.onchange = function () { cambiarMarcadoProyecto(indice, checkProyecto.checked); };
+    etiquetaCheck.append(checkProyecto, document.createTextNode(" Completado"));
+    const indicador = document.createElement("div");
+    indicador.className = "indicador-avance-proyecto";
+    const avance = calcularAvanceProyecto(proyecto);
+    const textoAvance = document.createElement("span");
+    textoAvance.textContent = "Avance de ramas: " + Math.round(avance) + "%";
+    const barraAvance = document.createElement("progress");
+    barraAvance.max = 100;
+    barraAvance.value = avance;
+    barraAvance.setAttribute("aria-label", "Avance del proyecto " + proyecto.titulo);
+    indicador.append(textoAvance, barraAvance);
+    controles.append(etiquetaCheck, estado, indicador);
+    encabezado.append(titulo, controles);
+    tarjeta.appendChild(encabezado);
+    if (proyecto.descripcion) {
+        const descripcion = document.createElement("p");
+        descripcion.className = "descripcion-proyecto";
+        descripcion.textContent = proyecto.descripcion;
+        tarjeta.appendChild(descripcion);
+    }
+
+    tarjeta.appendChild(crearRamasProyecto(proyecto, indice, ""));
+
+    const acciones = document.createElement("div");
+    acciones.className = "acciones-proyecto";
+    const editar = document.createElement("button");
+    editar.type = "button";
+    editar.textContent = "Editar proyecto";
+    editar.onclick = function () { editarProyecto(indice); };
+    const eliminar = document.createElement("button");
+    eliminar.type = "button";
+    eliminar.textContent = "Eliminar proyecto";
+    eliminar.onclick = function () { eliminarProyecto(indice); };
+    acciones.append(editar, eliminar);
+    tarjeta.appendChild(acciones);
+    return tarjeta;
+}
+
+function crearRamasProyecto(proyecto, indiceProyecto, rutaPadre) {
+    const ramas = rutaPadre ? (obtenerRamaProyecto(proyecto, rutaPadre)?.ramas || []) : asegurarRamasProyecto(proyecto);
+    const contenedor = document.createElement("div");
+    contenedor.className = "diagrama-ramas-proyecto";
+    if (!rutaPadre && !ramas.length) {
+        const vacio = document.createElement("p");
+        vacio.className = "estado-vacio-subtareas";
+        vacio.textContent = "Agrega la primera rama a la derecha del proyecto.";
+        contenedor.appendChild(vacio);
+    }
+    const lista = document.createElement("div");
+    lista.className = "lista-ramas-proyecto";
+    ramas.forEach((rama, indiceRama) => {
+        const ruta = rutaPadre ? rutaPadre + "." + indiceRama : String(indiceRama);
+        lista.appendChild(crearNodoRamaProyecto(proyecto, indiceProyecto, rama, ruta));
+    });
+    contenedor.appendChild(lista);
+    const formulario = document.createElement("form");
+    formulario.className = "formulario-subtarea-proyecto";
+    const entrada = document.createElement("input");
+    entrada.type = "text";
+    entrada.maxLength = 180;
+    entrada.placeholder = rutaPadre ? "Nueva subrama" : "Nueva rama del proyecto";
+    entrada.setAttribute("aria-label", entrada.placeholder + " " + proyecto.titulo);
+    const agregar = document.createElement("button");
+    agregar.type = "submit";
+    agregar.textContent = "＋ Agregar rama";
+    formulario.onsubmit = function (evento) {
+        evento.preventDefault();
+        if (!entrada.value.trim()) { entrada.focus(); return; }
+        agregarRamaProyecto(indiceProyecto, rutaPadre, entrada.value);
+    };
+    formulario.append(entrada, agregar);
+    contenedor.appendChild(formulario);
+    return contenedor;
+}
+
+function crearNodoRamaProyecto(proyecto, indiceProyecto, rama, ruta) {
+    const envoltura = document.createElement("div");
+    envoltura.className = "nodo-rama-proyecto estado-rama-" + (rama.estado || "pendiente");
+    const tarjeta = document.createElement("article");
+    tarjeta.className = "tarjeta-rama-proyecto";
+    const checkLabel = document.createElement("label");
+    checkLabel.className = "check-rama-proyecto";
+    const checkRama = document.createElement("input");
+    checkRama.type = "checkbox";
+    checkRama.checked = Boolean(rama.completada || rama.estado === "completada");
+    checkRama.setAttribute("aria-label", "Marcar como completada: " + rama.titulo);
+    checkRama.onchange = function () { cambiarMarcadoRamaProyecto(indiceProyecto, ruta, checkRama.checked); };
+    const titulo = document.createElement("h4");
+    titulo.textContent = rama.titulo;
+    checkLabel.append(checkRama, titulo);
+    const estado = document.createElement("select");
+    estado.setAttribute("aria-label", "Estado de " + rama.titulo);
+    [["pendiente", "Pendiente"], ["en_curso", "En curso"], ["completada", "Completada"]].forEach(([valor, texto]) => {
+        const opcion = document.createElement("option");
+        opcion.value = valor;
+        opcion.textContent = texto;
+        estado.appendChild(opcion);
+    });
+    estado.value = rama.estado || "pendiente";
+    estado.onchange = function () { cambiarEstadoRamaProyecto(indiceProyecto, ruta, estado.value); };
+    const porcentajeLabel = document.createElement("label");
+    porcentajeLabel.className = "porcentaje-rama-proyecto";
+    porcentajeLabel.appendChild(document.createTextNode("Peso en su nivel "));
+    const porcentaje = document.createElement("input");
+    porcentaje.type = "number";
+    porcentaje.min = "0";
+    porcentaje.max = "100";
+    porcentaje.step = "0.1";
+    porcentaje.value = Number(rama.porcentaje || 0).toFixed(1);
+    porcentaje.setAttribute("aria-label", "Porcentaje de aportación de " + rama.titulo);
+    porcentaje.onchange = function () { cambiarPorcentajeRamaProyecto(indiceProyecto, ruta, porcentaje.value); };
+    porcentajeLabel.appendChild(porcentaje);
+    const aporte = document.createElement("small");
+    aporte.className = "aporte-rama-proyecto";
+    aporte.textContent = "Aporta al proyecto: " + (Math.round(calcularAporteProyecto(proyecto, ruta) * 10) / 10).toFixed(1) + "%";
+    const indicadorAvanceRama = document.createElement("div");
+    indicadorAvanceRama.className = "indicador-avance-rama";
+    const avanceRama = calcularAvanceRama(rama);
+    const textoAvanceRama = document.createElement("span");
+    textoAvanceRama.textContent = "Avance de esta rama: " + Math.round(avanceRama) + "%";
+    const barraAvanceRama = document.createElement("progress");
+    barraAvanceRama.max = 100;
+    barraAvanceRama.value = avanceRama;
+    barraAvanceRama.setAttribute("aria-label", "Avance de la rama " + rama.titulo);
+    indicadorAvanceRama.append(textoAvanceRama, barraAvanceRama);
+    const eliminar = document.createElement("button");
+    eliminar.type = "button";
+    eliminar.className = "boton-eliminar-subtarea";
+    eliminar.textContent = "Quitar";
+    eliminar.setAttribute("aria-label", "Quitar " + rama.titulo + " y sus subramas");
+    eliminar.onclick = function () { eliminarRamaProyecto(indiceProyecto, ruta); };
+    tarjeta.append(checkLabel, estado, porcentajeLabel, aporte, indicadorAvanceRama, eliminar);
+    envoltura.append(tarjeta, crearRamasProyecto(proyecto, indiceProyecto, ruta));
+    return envoltura;
+}
+
+function mostrarListaProyectos() {
+    const lista = document.getElementById("listaProyectos");
+    if (!lista) return;
+    lista.replaceChildren();
+    if (!proyectos.length) {
+        const vacio = document.createElement("p");
+        vacio.className = "estado-vacio-proyectos";
+        vacio.textContent = "Aún no tienes proyectos registrados. Agrega uno para crear ramas y subramas en un diagrama horizontal.";
+        lista.appendChild(vacio);
+        return;
+    }
+    proyectos.forEach(asegurarRamasProyecto);
+    const pendientes = proyectos.map((proyecto, indice) => ({ proyecto, indice })).filter(({ proyecto }) => !proyecto.completada);
+    const completados = proyectos.map((proyecto, indice) => ({ proyecto, indice })).filter(({ proyecto }) => proyecto.completada);
+    if (pendientes.length) {
+        pendientes.forEach(({ proyecto, indice }) => lista.appendChild(crearTarjetaProyecto(proyecto, indice)));
+    } else {
+        const vacio = document.createElement("p");
+        vacio.className = "estado-vacio-proyectos";
+        vacio.textContent = "No tienes proyectos pendientes. Los proyectos completados están en la lista de abajo.";
+        lista.appendChild(vacio);
+    }
+    if (completados.length) {
+        const realizados = document.createElement("details");
+        realizados.className = "proyectos-realizados";
+        const resumen = document.createElement("summary");
+        resumen.textContent = "Proyectos realizados (" + completados.length + ")";
+        const listaCompletados = document.createElement("div");
+        listaCompletados.className = "lista-proyectos-completados";
+        completados.forEach(({ proyecto, indice }) => listaCompletados.appendChild(crearTarjetaProyecto(proyecto, indice)));
+        realizados.append(resumen, listaCompletados);
+        lista.appendChild(realizados);
+    }
+}
+function crearTarjetaObjetivo(objetivo, indice) {
+    const tarjeta = document.createElement("article");
+    tarjeta.className = "tarjeta-objetivo" + (objetivo.estado === "completado" ? " objetivo-completado" : "");
+    const encabezado = document.createElement("div");
+    encabezado.className = "encabezado-objetivo";
+    const titulo = document.createElement("h3");
+    titulo.textContent = objetivo.titulo;
+    if (objetivo.estado === "completado") {
+        const flecha = document.createElement("span");
+        flecha.className = "icono-objetivo-alcanzado";
+        flecha.setAttribute("aria-label", "Objetivo alcanzado");
+        flecha.textContent = "➜";
+        titulo.append(" ", flecha);
+    }
+    const estado = document.createElement("span");
+    const estados = { activo: "En progreso", pausado: "En pausa", completado: "Alcanzado" };
+    estado.textContent = estados[objetivo.estado] || estados.activo;
+    encabezado.append(titulo, estado);
+    tarjeta.appendChild(encabezado);
+    if (objetivo.descripcion) {
+        const descripcion = document.createElement("p");
+        descripcion.className = "descripcion-objetivo";
+        descripcion.textContent = objetivo.descripcion;
+        tarjeta.appendChild(descripcion);
+    }
+    const progreso = objetivo.estado === "completado" ? 100 : Math.max(0, Math.min(100, Number(objetivo.progreso) || 0));
+    const filaProgreso = document.createElement("div");
+    filaProgreso.className = "fila-progreso-objetivo";
+    const textoProgreso = document.createElement("span");
+    textoProgreso.textContent = progreso + "% completado";
+    const barraFondo = document.createElement("div");
+    barraFondo.className = "barra-progreso-objetivo";
+    barraFondo.setAttribute("role", "progressbar");
+    barraFondo.setAttribute("aria-valuemin", "0");
+    barraFondo.setAttribute("aria-valuemax", "100");
+    barraFondo.setAttribute("aria-valuenow", String(progreso));
+    const barra = document.createElement("span");
+    barra.style.width = progreso + "%";
+    barraFondo.appendChild(barra);
+    filaProgreso.append(textoProgreso, barraFondo);
+    tarjeta.appendChild(filaProgreso);
+    if (objetivo.fechaMeta) {
+        const fecha = document.createElement("p");
+        fecha.className = "meta-objetivo";
+        fecha.textContent = "🎯 Fecha meta: " + formatoFechaCorta(objetivo.fechaMeta);
+        tarjeta.appendChild(fecha);
+    }
+    const acciones = document.createElement("div");
+    acciones.className = "acciones-tarjeta-objetivo";
+    const etiquetaCheck = document.createElement("label");
+    etiquetaCheck.className = "check-objetivo";
+    const check = document.createElement("input");
+    check.type = "checkbox";
+    check.checked = objetivo.estado === "completado";
+    check.setAttribute("aria-label", (check.checked ? "Reabrir objetivo " : "Marcar objetivo alcanzado: ") + objetivo.titulo);
+    check.onchange = function () { cambiarEstadoObjetivo(indice, check.checked); };
+    etiquetaCheck.append(check, document.createTextNode("Alcanzado"));
+    acciones.appendChild(etiquetaCheck);
+    const editar = document.createElement("button");
+    editar.type = "button";
+    editar.textContent = "Editar";
+    editar.onclick = function () { editarObjetivo(indice); };
+    const eliminar = document.createElement("button");
+    eliminar.type = "button";
+    eliminar.textContent = "Eliminar";
+    eliminar.onclick = function () { eliminarObjetivo(indice); };
+    acciones.append(editar, eliminar);
+    tarjeta.appendChild(acciones);
+    return tarjeta;
+}
+
+function mostrarListaObjetivos() {
+    const lista = document.getElementById("listaObjetivos");
+    if (!lista) return;
+    lista.replaceChildren();
+    const ordenados = objetivos.map((objetivo, indice) => ({ objetivo, indice }))
+        .sort((a, b) => (a.objetivo.fechaMeta || "9999-12-31").localeCompare(b.objetivo.fechaMeta || "9999-12-31"));
+    const pendientes = ordenados.filter(({ objetivo }) => objetivo.estado !== "completado");
+    const completados = ordenados.filter(({ objetivo }) => objetivo.estado === "completado");
+
+    const tituloPendientes = document.createElement("h3");
+    tituloPendientes.className = "subtitulo-lista-objetivos";
+    tituloPendientes.textContent = "Objetivos pendientes";
+    lista.appendChild(tituloPendientes);
+    if (!pendientes.length) {
+        const vacio = document.createElement("p");
+        vacio.className = "estado-vacio-objetivos";
+        vacio.textContent = "No hay objetivos pendientes. Puedes agregar uno nuevo o revisar los objetivos alcanzados de abajo.";
+        lista.appendChild(vacio);
+    } else {
+        pendientes.forEach(({ objetivo, indice }) => lista.appendChild(crearTarjetaObjetivo(objetivo, indice)));
+    }
+
+    if (completados.length) {
+        const desplegable = document.createElement("details");
+        desplegable.className = "desplegable-objetivos-completados";
+        const resumen = document.createElement("summary");
+        resumen.textContent = "Objetivos alcanzados (" + completados.length + ")";
+        desplegable.appendChild(resumen);
+        const listaCompletados = document.createElement("div");
+        listaCompletados.className = "lista-objetivos-completados";
+        completados.forEach(({ objetivo, indice }) => listaCompletados.appendChild(crearTarjetaObjetivo(objetivo, indice)));
+        desplegable.appendChild(listaCompletados);
+        lista.appendChild(desplegable);
+    }
+    actualizarCalendarioContextual();
+}function guardarEntrenamientosEnDispositivo() {
     localStorage.setItem("entrenamientos", JSON.stringify(entrenamientos));
+    if (typeof actualizarAvisosDelDia === "function") actualizarAvisosDelDia();
 }
 
 function abrirNuevoEntrenamiento() {
@@ -1762,6 +2735,260 @@ function mostrarListaFinanzas(){const lista=document.getElementById("listaGastos
 if(document.getElementById("fechaFinanzas"))document.getElementById("fechaFinanzas").value=diaSeleccionado;
 mostrarListaFinanzas();
 
+function mostrarResumenEntrenamiento() {
+    const panel = document.getElementById("panelResumenEntrenamiento");
+    const selectorPeriodo = document.getElementById("periodoResumenEntrenamiento");
+    const selectorFecha = document.getElementById("fechaReferenciaEntrenamiento");
+    if (!panel || !selectorPeriodo || !selectorFecha) return;
+    if (!selectorFecha.value) selectorFecha.value = diaSeleccionado || fechaClaveCalendario(new Date());
+    panel.replaceChildren();
+
+    const periodo = selectorPeriodo.value;
+    const rango = obtenerRangoResumenFinanzas(periodo, selectorFecha.value);
+    const ocurrencias = [];
+    entrenamientos.forEach(item => {
+        for (let dia = 0; dia < rango.cantidadDias; dia++) {
+            const fecha = claveDiaCalendario(new Date(rango.inicio.getFullYear(), rango.inicio.getMonth(), rango.inicio.getDate() + dia));
+            if (entrenamientoOcurreEnFecha(item, fecha)) {
+                ocurrencias.push({ item, fecha, completada: entrenamientoCompletadoEnFecha(item, fecha) });
+            }
+        }
+    });
+    const realizadas = ocurrencias.filter(item => item.completada).length;
+    const minutosProgramados = ocurrencias.reduce((suma, item) => suma + (Number(item.item.duracion) || 0), 0);
+    const minutosRealizados = ocurrencias.filter(item => item.completada).reduce((suma, item) => suma + (Number(item.item.duracion) || 0), 0);
+    const porcentaje = ocurrencias.length ? Math.round(realizadas / ocurrencias.length * 100) : 0;
+    const nombrePeriodo = { dia: "del día", semana: "de la semana", mes: "del mes", anio: "del año" }[periodo];
+
+    const metricas = document.createElement("div");
+    metricas.className = "tarjetas-resumen-finanzas";
+    [
+        [String(ocurrencias.length), "Actividades " + nombrePeriodo],
+        [String(realizadas), "Actividades realizadas"],
+        [minutosProgramados + " min", "Minutos programados"],
+        [minutosRealizados + " min", "Minutos realizados"],
+        [porcentaje + "%", "Cumplimiento"]
+    ].forEach(([valor, etiqueta]) => {
+        const tarjeta = document.createElement("article");
+        tarjeta.className = "tarjeta-metrica-pago";
+        const numero = document.createElement("strong");
+        numero.textContent = valor;
+        const texto = document.createElement("span");
+        texto.textContent = etiqueta;
+        tarjeta.append(numero, texto);
+        metricas.appendChild(tarjeta);
+    });
+    panel.appendChild(metricas);
+
+    const desglose = document.createElement("section");
+    desglose.className = "desglose-entrenamiento";
+    const tituloDesglose = document.createElement("h3");
+    tituloDesglose.textContent = "Actividad física y mental";
+    desglose.appendChild(tituloDesglose);
+    [["fisico", "🏋️ Ejercicio físico"], ["mental", "🧠 Ejercicio mental"]].forEach(([tipo, etiqueta]) => {
+        const grupo = ocurrencias.filter(ocurrencia => (ocurrencia.item.tipo === "mental" ? "mental" : "fisico") === tipo);
+        const completadas = grupo.filter(ocurrencia => ocurrencia.completada).length;
+        const minutos = grupo.reduce((suma, ocurrencia) => suma + (Number(ocurrencia.item.duracion) || 0), 0);
+        const fila = document.createElement("article");
+        fila.className = "fila-desglose-entrenamiento";
+        const nombre = document.createElement("strong");
+        nombre.textContent = etiqueta;
+        const detalle = document.createElement("span");
+        detalle.textContent = grupo.length + (grupo.length === 1 ? " actividad" : " actividades") + " · " + completadas + " realizadas · " + minutos + " min";
+        fila.append(nombre, detalle);
+        desglose.appendChild(fila);
+    });
+    panel.appendChild(desglose);
+
+    const tendencia = document.createElement("section");
+    tendencia.className = "grafica-tendencia-finanzas";
+    const tituloGrafica = document.createElement("h3");
+    tituloGrafica.textContent = periodo === "anio" ? "Actividades por mes" : periodo === "dia" ? "Actividades del día" : "Actividades por día";
+    tendencia.appendChild(tituloGrafica);
+    if (!ocurrencias.length) {
+        const vacio = document.createElement("p");
+        vacio.textContent = "Aún no hay actividades de entrenamiento en este periodo.";
+        tendencia.appendChild(vacio);
+    } else {
+        const serie = [];
+        if (periodo === "anio") {
+            for (let mes = 0; mes < 12; mes++) {
+                const inicioMes = claveDiaCalendario(new Date(rango.inicio.getFullYear(), mes, 1));
+                const finMes = claveDiaCalendario(new Date(rango.inicio.getFullYear(), mes + 1, 0));
+                const grupo = ocurrencias.filter(item => item.fecha >= inicioMes && item.fecha <= finMes);
+                serie.push({ etiqueta: new Date(rango.inicio.getFullYear(), mes, 1).toLocaleDateString("es-MX", { month: "short" }), cantidad: grupo.length, realizadas: grupo.filter(item => item.completada).length });
+            }
+        } else if (periodo === "dia") {
+            ocurrencias.forEach(ocurrencia => serie.push({ etiqueta: ocurrencia.item.actividad, cantidad: 1, realizadas: ocurrencia.completada ? 1 : 0 }));
+        } else {
+            for (let dia = 0; dia < rango.cantidadDias; dia++) {
+                const fecha = claveDiaCalendario(new Date(rango.inicio.getFullYear(), rango.inicio.getMonth(), rango.inicio.getDate() + dia));
+                const grupo = ocurrencias.filter(item => item.fecha === fecha);
+                serie.push({ etiqueta: periodo === "semana" ? new Date(fecha + "T00:00:00").toLocaleDateString("es-MX", { weekday: "short" }) : String(Number(fecha.slice(-2))), cantidad: grupo.length, realizadas: grupo.filter(item => item.completada).length });
+            }
+        }
+        const barras = document.createElement("div");
+        barras.className = "grafica-barras-finanzas";
+        const maximo = Math.max(...serie.map(item => item.cantidad), 1);
+        serie.forEach(item => {
+            const columna = document.createElement("div");
+            columna.className = "columna-grafica-finanzas";
+            columna.title = item.etiqueta + ": " + item.cantidad + " actividades, " + item.realizadas + " realizadas";
+            const barra = document.createElement("span");
+            barra.className = "barra-periodo-entrenamiento";
+            barra.style.height = Math.max(3, item.cantidad / maximo * 100) + "%";
+            const valor = document.createElement("small");
+            valor.textContent = String(item.cantidad);
+            const etiqueta = document.createElement("small");
+            etiqueta.textContent = item.etiqueta;
+            columna.append(barra, valor, etiqueta);
+            barras.appendChild(columna);
+        });
+        tendencia.appendChild(barras);
+    }
+    panel.appendChild(tendencia);
+}
+function mostrarResumenTiempo() {
+    const panel = document.getElementById("panelResumenTiempo");
+    const selectorPeriodo = document.getElementById("periodoResumenTiempo");
+    const selectorFecha = document.getElementById("fechaReferenciaTiempo");
+    if (!panel || !selectorPeriodo || !selectorFecha) return;
+    if (!selectorFecha.value) selectorFecha.value = diaSeleccionado || fechaClaveCalendario(new Date());
+    panel.replaceChildren();
+
+    const periodo = selectorPeriodo.value;
+    const rango = obtenerRangoResumenFinanzas(periodo, selectorFecha.value);
+    const registros = registrosTiempo.filter(registro => registro.fecha >= rango.desde && registro.fecha <= rango.hasta);
+    const minutosTotales = registros.reduce((suma, registro) => suma + (Number(registro.minutos) || 0), 0);
+    const registrosConDuracion = registros.filter(registro => Number(registro.minutos) > 0).length;
+    const grupos = new Map();
+    registros.forEach(registro => {
+        const actividad = (registro.texto || "Actividad sin nombre").trim() || "Actividad sin nombre";
+        const clave = actividad.toLocaleLowerCase("es-MX");
+        if (!grupos.has(clave)) grupos.set(clave, { nombre: actividad, cantidad: 0, minutos: 0 });
+        const grupo = grupos.get(clave);
+        grupo.cantidad++;
+        grupo.minutos += Number(registro.minutos) || 0;
+    });
+    const actividades = [...grupos.values()].sort((a, b) => b.cantidad - a.cantidad || b.minutos - a.minutos);
+    const nombrePeriodo = { dia: "del día", semana: "de la semana", mes: "del mes", anio: "del año" }[periodo];
+    const masFrecuente = actividades[0];
+
+    const tarjetas = document.createElement("div");
+    tarjetas.className = "tarjetas-resumen-finanzas";
+    [
+        [String(registros.length), registros.length === 1 ? "Actividad registrada " + nombrePeriodo : "Actividades registradas " + nombrePeriodo],
+        [minutosTotales + " min", "Tiempo aproximado anotado"],
+        [String(registrosConDuracion), "Actividades con duración anotada"],
+        [masFrecuente ? masFrecuente.nombre : "Sin datos", "Actividad más repetida"]
+    ].forEach(([valor, etiqueta]) => {
+        const tarjeta = document.createElement("article");
+        tarjeta.className = "tarjeta-metrica-finanzas";
+        const numero = document.createElement("strong");
+        numero.textContent = valor;
+        const texto = document.createElement("span");
+        texto.textContent = etiqueta;
+        tarjeta.append(numero, texto);
+        tarjetas.appendChild(tarjeta);
+    });
+    panel.appendChild(tarjetas);
+
+    const grafica = document.createElement("section");
+    grafica.className = "grafica-actividades-tiempo";
+    const titulo = document.createElement("h3");
+    titulo.textContent = "Actividades que más se repiten";
+    grafica.appendChild(titulo);
+    if (!actividades.length) {
+        const vacio = document.createElement("p");
+        vacio.textContent = "Aún no hay actividades registradas en este periodo.";
+        grafica.appendChild(vacio);
+    } else {
+        const maximo = Math.max(...actividades.map(item => item.cantidad), 1);
+        actividades.slice(0, 10).forEach(actividad => {
+            const fila = document.createElement("div");
+            fila.className = "fila-actividad-tiempo";
+            const nombre = document.createElement("strong");
+            nombre.textContent = actividad.nombre;
+            const fondo = document.createElement("div");
+            fondo.className = "barra-fondo-actividad-tiempo";
+            const barra = document.createElement("span");
+            barra.style.width = (actividad.cantidad / maximo * 100) + "%";
+            barra.setAttribute("aria-label", actividad.cantidad + (actividad.cantidad === 1 ? " registro" : " registros"));
+            fondo.appendChild(barra);
+            const detalle = document.createElement("span");
+            detalle.className = "detalle-actividad-tiempo";
+            detalle.textContent = actividad.cantidad + (actividad.cantidad === 1 ? " registro" : " registros") + (actividad.minutos > 0 ? " · " + actividad.minutos + " min aprox." : " · sin duración anotada");
+            fila.append(nombre, fondo, detalle);
+            grafica.appendChild(fila);
+        });
+        if (actividades.length > 10) {
+            const nota = document.createElement("p");
+            nota.className = "nota-grafica-tiempo";
+            nota.textContent = "Se muestran las 10 actividades más repetidas de " + actividades.length + ".";
+            grafica.appendChild(nota);
+        }
+    }
+    panel.appendChild(grafica);
+}
+function mostrarResumenAprendizajes() {
+    const panel = document.getElementById("panelResumenAprendizajes");
+    const selectorPeriodo = document.getElementById("periodoResumenAprendizajes");
+    const selectorFecha = document.getElementById("fechaReferenciaAprendizajes");
+    if (!panel || !selectorPeriodo || !selectorFecha) return;
+    if (!selectorFecha.value) selectorFecha.value = diaSeleccionado || fechaClaveCalendario(new Date());
+    panel.replaceChildren();
+
+    const periodo = selectorPeriodo.value;
+    const rango = obtenerRangoResumenFinanzas(periodo, selectorFecha.value);
+    const registros = aprendizajes
+        .map((item, indice) => ({ item, indice }))
+        .filter(({ item }) => item.fecha >= rango.desde && item.fecha <= rango.hasta)
+        .sort((a, b) => b.item.fecha.localeCompare(a.item.fecha) || b.indice - a.indice);
+    const diasConAprendizaje = new Set(registros.map(({ item }) => item.fecha)).size;
+    const nombrePeriodo = { dia: "del día", semana: "de la semana", mes: "del mes", anio: "del año" }[periodo];
+
+    const tarjetas = document.createElement("div");
+    tarjetas.className = "tarjetas-resumen-finanzas";
+    [
+        [String(registros.length), registros.length === 1 ? "Aprendizaje registrado " + nombrePeriodo : "Aprendizajes registrados " + nombrePeriodo],
+        [String(diasConAprendizaje), diasConAprendizaje === 1 ? "Día con aprendizaje" : "Días con aprendizajes"]
+    ].forEach(([valor, etiqueta]) => {
+        const tarjeta = document.createElement("article");
+        tarjeta.className = "tarjeta-metrica-finanzas";
+        const numero = document.createElement("strong");
+        numero.textContent = valor;
+        const texto = document.createElement("span");
+        texto.textContent = etiqueta;
+        tarjeta.append(numero, texto);
+        tarjetas.appendChild(tarjeta);
+    });
+    panel.appendChild(tarjetas);
+
+    const titulo = document.createElement("h3");
+    titulo.className = "titulo-lista-aprendizajes-resumen";
+    titulo.textContent = "Tus anotaciones del periodo";
+    panel.appendChild(titulo);
+    const lista = document.createElement("div");
+    lista.className = "lista-aprendizajes-resumen";
+    if (!registros.length) {
+        const vacio = document.createElement("p");
+        vacio.className = "estado-vacio-aprendizajes";
+        vacio.textContent = "Aún no hay aprendizajes registrados en este periodo.";
+        lista.appendChild(vacio);
+    } else {
+        registros.forEach(({ item }) => {
+            const tarjeta = document.createElement("article");
+            tarjeta.className = "tarjeta-aprendizaje";
+            const fecha = document.createElement("h3");
+            fecha.textContent = new Date(item.fecha + "T00:00:00").toLocaleDateString("es-MX", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+            const texto = document.createElement("p");
+            texto.textContent = item.texto;
+            tarjeta.append(fecha, texto);
+            lista.appendChild(tarjeta);
+        });
+    }
+    panel.appendChild(lista);
+}
 function obtenerRangoResumenFinanzas(periodo, fechaClave) {
     const referencia = new Date(fechaClave + "T00:00:00");
     let inicio;
@@ -1898,7 +3125,7 @@ function mostrarResumenFinanzas() {
     panel.appendChild(bloqueTendencia);
 }
 
-function guardarPagosEnDispositivo(){localStorage.setItem("pagosPendientes",JSON.stringify(pagosPendientes));}
+function guardarPagosEnDispositivo(){localStorage.setItem("pagosPendientes",JSON.stringify(pagosPendientes));if(typeof actualizarAvisosDelDia==="function")actualizarAvisosDelDia();}
 function formatoMonedaPago(monto){return new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(Number(monto)||0);}
 function mostrarListaPagos(){const lista=document.getElementById("listaPagos");if(!lista)return;lista.replaceChildren();if(!pagosPendientes.length){const p=document.createElement("p");p.textContent="Aún no has registrado pagos.";lista.appendChild(p);actualizarCalendarioContextual();return;}pagosPendientes.map((pago,indice)=>({pago,indice})).sort((a,b)=>(a.pago.fecha||"").localeCompare(b.pago.fecha||"")).forEach(({pago,indice})=>{const tarjeta=document.createElement("article");tarjeta.className="tarjeta-pago";const titulo=document.createElement("h3");titulo.textContent=pago.nombre;const detalle=document.createElement("p");detalle.textContent=(pago.pagado?"✅ Pagado":"⏳ Pendiente")+" · Vence: "+(pago.fecha||"Sin fecha")+" · "+formatoMonedaPago(pago.monto);const acciones=document.createElement("div");acciones.className="acciones-pago-tarjeta";const estado=document.createElement("button");estado.type="button";estado.textContent=pago.pagado?"Marcar pendiente":"Marcar pagado";estado.onclick=function(){cambiarEstadoPago(indice);};const editar=document.createElement("button");editar.type="button";editar.textContent="Editar";editar.onclick=function(){editarPago(indice);};const borrar=document.createElement("button");borrar.type="button";borrar.textContent="Eliminar";borrar.onclick=function(){eliminarPago(indice);};acciones.append(estado,editar,borrar);tarjeta.append(titulo,detalle,acciones);lista.appendChild(tarjeta);});actualizarCalendarioContextual();}
 function guardarPago(){const nombre=document.getElementById("nombrePago"),fecha=document.getElementById("fechaPago"),monto=document.getElementById("montoPago"),pagado=document.getElementById("pagoRealizado"),concepto=nombre.value.trim(),importe=Number(monto.value);if(!concepto){alert("Escribe el concepto del pago.");nombre.focus();return;}if(!fecha.value){alert("Selecciona la fecha de vencimiento.");fecha.focus();return;}if(!Number.isFinite(importe)||importe<=0){alert("Escribe un monto mayor que cero.");monto.focus();return;}if(pagoEditando===null){pagosPendientes.push({id:"pago-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),nombre:concepto,fecha:fecha.value,monto:importe,pagado:pagado.checked});}else{pagosPendientes[pagoEditando]={...pagosPendientes[pagoEditando],nombre:concepto,fecha:fecha.value,monto:importe,pagado:pagado.checked};}pagoEditando=null;guardarPagosEnDispositivo();cancelarEdicionPago();mostrarListaPagos();mostrarResumenPagos();}
@@ -1909,3 +3136,84 @@ function eliminarPago(indice){if(!pagosPendientes[indice])return;if(!confirm("¿
 function mostrarResumenPagos(){const area=document.getElementById("resumenPagos");if(!area)return;area.replaceChildren();const pendientes=pagosPendientes.filter(p=>!p.pagado),pagados=pagosPendientes.filter(p=>p.pagado),totalPendiente=pendientes.reduce((s,p)=>s+(Number(p.monto)||0),0),totalPagado=pagados.reduce((s,p)=>s+(Number(p.monto)||0),0),totalRegistrado=totalPendiente+totalPagado;const tarjetas=document.createElement("div");tarjetas.className="tarjetas-resumen-pagos";[[String(pendientes.length),"Pagos pendientes"],[formatoMonedaPago(totalPendiente),"Monto pendiente"],[String(pagados.length),"Pagos realizados"],[formatoMonedaPago(totalPagado),"Monto pagado"],[formatoMonedaPago(totalRegistrado),"Total registrado"]].forEach(([valor,etiqueta])=>{const tarjeta=document.createElement("article");tarjeta.className="tarjeta-metrica-pago";const fuerte=document.createElement("strong");fuerte.textContent=valor;const texto=document.createElement("span");texto.textContent=etiqueta;tarjeta.append(fuerte,texto);tarjetas.appendChild(tarjeta);});area.appendChild(tarjetas);[[pendientes,"Pendientes","No hay pagos pendientes."],[pagados,"Realizados","Aún no has marcado pagos como realizados."]].forEach(([items,titulo,vacio])=>{const grupo=document.createElement("section");grupo.className="grupo-resumen-pagos";const h=document.createElement("h3");h.textContent=titulo+" ("+items.length+")";grupo.appendChild(h);if(!items.length){const p=document.createElement("p");p.textContent=vacio;grupo.appendChild(p);}else{const lista=document.createElement("ul");items.slice().sort((a,b)=>(a.fecha||"").localeCompare(b.fecha||"")).forEach(pago=>{const li=document.createElement("li");li.textContent=(pago.nombre||"Pago")+" · "+(pago.fecha||"Sin fecha")+" · "+formatoMonedaPago(pago.monto);lista.appendChild(li);});grupo.appendChild(lista);}area.appendChild(grupo);});}
 if(document.getElementById("fechaPago"))document.getElementById("fechaPago").value=fechaClaveCalendario(new Date());
 mostrarListaPagos();mostrarResumenPagos();
+
+
+
+// 12H.23.5.9.22 — Salud e Izel: registros locales con calendario y resúmenes.
+function seleccionarFechaSalud(fecha) { if (!fecha) return; diaSeleccionado = fecha; mesContextual = new Date(fecha + "T00:00:00"); mesContextual = new Date(mesContextual.getFullYear(), mesContextual.getMonth(), 1); mostrarListaSalud(); }
+function abrirNuevoRegistroSalud() {
+    saludEditando = null;
+    ["pesoSalud", "presionSistolicaSalud", "presionDiastolicaSalud", "glucosaSalud", "doctorSalud", "notaSalud", "proximaFechaSalud"].forEach(id => { document.getElementById(id).value = ""; });
+    document.getElementById("fechaRegistroSalud").value = diaSeleccionado;
+    document.getElementById("tituloModalSalud").textContent = "＋ Nuevo chequeo";
+    document.getElementById("botonGuardarSalud").textContent = "Guardar chequeo";
+    document.getElementById("modalSalud").style.display = "flex";
+}
+function editarRegistroSalud(indice) {
+    const item = saludRegistros[indice]; if (!item) return; saludEditando = indice;
+    document.getElementById("fechaRegistroSalud").value = item.fecha || "";
+    document.getElementById("pesoSalud").value = item.peso ?? "";
+    document.getElementById("presionSistolicaSalud").value = item.sistolica ?? "";
+    document.getElementById("presionDiastolicaSalud").value = item.diastolica ?? "";
+    document.getElementById("glucosaSalud").value = item.glucosa ?? "";
+    document.getElementById("doctorSalud").value = item.doctor || "";
+    document.getElementById("notaSalud").value = item.nota || "";
+    document.getElementById("proximaFechaSalud").value = item.proximaFecha || "";
+    document.getElementById("tituloModalSalud").textContent = "✏️ Editar chequeo";
+    document.getElementById("botonGuardarSalud").textContent = "Guardar cambios";
+    document.getElementById("modalSalud").style.display = "flex";
+}
+function cerrarModalSalud() { document.getElementById("modalSalud").style.display = "none"; saludEditando = null; }
+function guardarRegistroSalud() {
+    const fecha = document.getElementById("fechaRegistroSalud").value;
+    const pesoRaw = document.getElementById("pesoSalud").value.trim();
+    const sistRaw = document.getElementById("presionSistolicaSalud").value.trim();
+    const diasRaw = document.getElementById("presionDiastolicaSalud").value.trim();
+    const glucosaRaw = document.getElementById("glucosaSalud").value.trim();
+    const doctor = document.getElementById("doctorSalud").value.trim();
+    const nota = document.getElementById("notaSalud").value.trim();
+    const proximaFecha = document.getElementById("proximaFechaSalud").value;
+    if (!fecha) { alert("Selecciona la fecha del chequeo."); return; }
+    if (Boolean(sistRaw) !== Boolean(diasRaw)) { alert("Para presión arterial, captura ambos valores: sistólica y diastólica."); return; }
+    if (proximaFecha && proximaFecha < fecha) { alert("La próxima revisión debe ser en la fecha del chequeo o después."); return; }
+    if (![pesoRaw, sistRaw, glucosaRaw, doctor, nota, proximaFecha].some(Boolean)) { alert("Agrega al menos una medición, una nota o la fecha de próxima revisión."); return; }
+    const item = { id: saludEditando === null ? "salud-" + Date.now() : saludRegistros[saludEditando].id || "salud-" + Date.now(), fecha, peso: pesoRaw ? Number(pesoRaw) : null, sistolica: sistRaw ? Number(sistRaw) : null, diastolica: diasRaw ? Number(diasRaw) : null, glucosa: glucosaRaw ? Number(glucosaRaw) : null, doctor, nota, proximaFecha };
+    if (saludEditando === null) saludRegistros.push(item); else saludRegistros[saludEditando] = item;
+    localStorage.setItem("saludRegistros", JSON.stringify(saludRegistros)); diaSeleccionado = fecha; mesContextual = new Date(new Date(fecha + "T00:00:00").getFullYear(), new Date(fecha + "T00:00:00").getMonth(), 1);
+    cerrarModalSalud(); mostrarListaSalud(); mostrarResumenSalud();
+}
+function eliminarRegistroSalud(indice) { if (!saludRegistros[indice] || !confirm("¿Quieres eliminar este registro de Salud?")) return; saludRegistros.splice(indice, 1); localStorage.setItem("saludRegistros", JSON.stringify(saludRegistros)); mostrarListaSalud(); mostrarResumenSalud(); }
+function mostrarListaSalud() {
+    const lista = document.getElementById("listaSalud"); if (!lista) return; const campoFecha = document.getElementById("fechaSalud"); if (campoFecha) campoFecha.value = diaSeleccionado; lista.replaceChildren();
+    const registros = saludRegistros.map((item, indice) => ({ item, indice })).filter(({ item }) => item.fecha === diaSeleccionado);
+    const revisiones = saludRegistros.map((item, indice) => ({ item, indice })).filter(({ item }) => item.proximaFecha === diaSeleccionado);
+    if (!registros.length && !revisiones.length) { const p = document.createElement("p"); p.className = "estado-vacio-modulo"; p.textContent = "No hay chequeos ni revisiones programadas para este día."; lista.appendChild(p); }
+    registros.forEach(({item, indice}) => {
+        const card = document.createElement("article"); card.className = "tarjeta-registro-modulo"; const h = document.createElement("h3"); h.textContent = "🩺 Chequeo de salud"; card.appendChild(h); const valores = [];
+        if (item.peso != null) valores.push("Peso: " + item.peso + " kg"); if (item.sistolica != null && item.diastolica != null) valores.push("Presión: " + item.sistolica + "/" + item.diastolica + " mmHg"); if (item.glucosa != null) valores.push("Glucosa: " + item.glucosa + " mg/dL");
+        if (valores.length) { const p = document.createElement("p"); p.textContent = valores.join(" · "); card.appendChild(p); } if (item.doctor) { const p = document.createElement("p"); p.textContent = "Doctor o lugar: " + item.doctor; card.appendChild(p); } if (item.nota) { const p = document.createElement("p"); p.textContent = item.nota; card.appendChild(p); }
+        if (item.proximaFecha) { const p = document.createElement("p"); p.className = "detalle-proxima-revision"; p.textContent = "Próxima revisión indicada: " + new Date(item.proximaFecha + "T00:00:00").toLocaleDateString("es-MX", {dateStyle:"long"}); card.appendChild(p); }
+        const acciones = document.createElement("div"); acciones.className = "acciones-registro-modulo"; const ed = document.createElement("button"); ed.type = "button"; ed.textContent = "Editar"; ed.onclick = () => editarRegistroSalud(indice); const del = document.createElement("button"); del.type = "button"; del.textContent = "Eliminar"; del.onclick = () => eliminarRegistroSalud(indice); acciones.append(ed,del); card.appendChild(acciones); lista.appendChild(card);
+    });
+    revisiones.forEach(({indice}) => { const card=document.createElement("article"); card.className="tarjeta-registro-modulo"; const h=document.createElement("h3"); h.textContent="📅 Próxima revisión médica indicada"; card.appendChild(h); const p=document.createElement("p"); p.textContent="Agendada para hoy, de acuerdo con la fecha anotada."; card.appendChild(p); const actions=document.createElement("div"); actions.className="acciones-registro-modulo"; const edit=document.createElement("button"); edit.type="button"; edit.textContent="Editar chequeo"; edit.onclick=()=>editarRegistroSalud(indice); actions.appendChild(edit); card.appendChild(actions); lista.appendChild(card); });
+    actualizarCalendarioContextual();
+    if (typeof actualizarAvisosDelDia === "function") actualizarAvisosDelDia();
+}function mostrarResumenSalud() {
+    const panel = document.getElementById("panelResumenSalud"), periodoEl = document.getElementById("periodoResumenSalud"), fechaEl = document.getElementById("fechaReferenciaSalud"); if (!panel || !periodoEl || !fechaEl) return; if (!fechaEl.value) fechaEl.value = fechaClaveCalendario(new Date()); panel.replaceChildren();
+    const rango = obtenerRangoResumenFinanzas(periodoEl.value, fechaEl.value); const items = saludRegistros.filter(x => x.fecha >= rango.desde && x.fecha <= rango.hasta).sort((a,b) => b.fecha.localeCompare(a.fecha));
+    const ultima = key => items.find(x => x[key] != null); const peso = ultima("peso"), sist = items.find(x => x.sistolica != null && x.diastolica != null), glucosa = ultima("glucosa"); const cards = document.createElement("div"); cards.className = "tarjetas-resumen-finanzas";
+    [[String(items.length),"Chequeos registrados"],[peso ? peso.peso + " kg" : "Sin dato","Último peso del periodo"],[sist ? sist.sistolica + "/" + sist.diastolica + " mmHg" : "Sin dato","Última presión del periodo"],[glucosa ? glucosa.glucosa + " mg/dL" : "Sin dato","Última glucosa del periodo"]].forEach(([v,l])=>{const c=document.createElement("article");c.className="tarjeta-metrica-finanzas";const strong=document.createElement("strong");strong.textContent=v;const span=document.createElement("span");span.textContent=l;c.append(strong,span);cards.appendChild(c);}); panel.appendChild(cards);
+    const h=document.createElement("h3");h.className="titulo-lista-aprendizajes-resumen";h.textContent="Registros del periodo";panel.appendChild(h);const list=document.createElement("div");list.className="lista-registros-resumen";
+    if(!items.length){const p=document.createElement("p");p.className="estado-vacio-modulo";p.textContent="Aún no hay registros de Salud en este periodo.";list.appendChild(p);} else items.forEach(item=>{const c=document.createElement("article");c.className="tarjeta-registro-modulo";const h=document.createElement("h4");h.textContent=new Date(item.fecha+"T00:00:00").toLocaleDateString("es-MX",{dateStyle:"long"});c.appendChild(h);const d=[];if(item.peso!=null)d.push("Peso: "+item.peso+" kg");if(item.sistolica!=null&&item.diastolica!=null)d.push("Presión: "+item.sistolica+"/"+item.diastolica+" mmHg");if(item.glucosa!=null)d.push("Glucosa: "+item.glucosa+" mg/dL");if(d.length){const p=document.createElement("p");p.textContent=d.join(" · ");c.appendChild(p);}if(item.nota){const p=document.createElement("p");p.textContent=item.nota;c.appendChild(p);}list.appendChild(c);});panel.appendChild(list);
+}
+
+function seleccionarFechaIzel(fecha) { if (!fecha) return; diaSeleccionado=fecha; const d=new Date(fecha+"T00:00:00"); mesContextual=new Date(d.getFullYear(),d.getMonth(),1); mostrarListaIzel(); }
+function abrirNuevoRegistroIzel() { izelEditando=null; document.getElementById("tipoRegistroIzel").value="vacuna"; document.getElementById("tituloRegistroIzel").value=""; document.getElementById("fechaRegistroIzel").value=diaSeleccionado; document.getElementById("repeticionIzel").value="ninguna"; document.getElementById("repeticionHastaIzel").value=""; actualizarCampoFinRepeticionIzel(); document.getElementById("notaRegistroIzel").value=""; document.getElementById("tituloModalIzel").textContent="＋ Nuevo registro de Izel"; document.getElementById("botonGuardarIzel").textContent="Guardar registro"; document.getElementById("modalIzel").style.display="flex"; }
+function editarRegistroIzel(indice) { const item=izelRegistros[indice]; if(!item)return; izelEditando=indice; document.getElementById("tipoRegistroIzel").value=item.tipo; document.getElementById("tituloRegistroIzel").value=item.titulo||""; document.getElementById("fechaRegistroIzel").value=item.fecha||""; document.getElementById("repeticionIzel").value=item.repeticion||"ninguna"; document.getElementById("repeticionHastaIzel").value=item.repeticionHasta||""; actualizarCampoFinRepeticionIzel(); document.getElementById("notaRegistroIzel").value=item.nota||""; document.getElementById("tituloModalIzel").textContent="✏️ Editar registro de Izel"; document.getElementById("botonGuardarIzel").textContent="Guardar cambios"; document.getElementById("modalIzel").style.display="flex"; }
+function actualizarCampoFinRepeticionIzel() { const repeticion=document.getElementById("repeticionIzel").value, grupo=document.getElementById("grupoFinRepeticionIzel"), campo=document.getElementById("repeticionHastaIzel"), mostrar=repeticion!=="ninguna"; grupo.hidden=!mostrar; campo.required=mostrar; if(!mostrar)campo.value=""; }
+function izelOcurreEnFecha(item, fecha) { return tareaOcurreEnFecha({fecha:item.fecha,repeticion:item.repeticion||"ninguna",repeticionHasta:item.repeticionHasta||""},fecha); }
+function izelRegistroCompletadoEnFecha(item, fecha) { if(!item)return false; if(!item.repeticion||item.repeticion==="ninguna")return Boolean(item.completado); return Array.isArray(item.fechasCompletadas)&&item.fechasCompletadas.includes(fecha); }
+function cerrarModalIzel() { document.getElementById("modalIzel").style.display="none"; izelEditando=null; }
+function guardarRegistroIzel() { const tipo=document.getElementById("tipoRegistroIzel").value, titulo=document.getElementById("tituloRegistroIzel").value.trim(), fecha=document.getElementById("fechaRegistroIzel").value, repeticion=document.getElementById("repeticionIzel").value, repeticionHasta=document.getElementById("repeticionHastaIzel").value, nota=document.getElementById("notaRegistroIzel").value.trim(); if(!titulo){alert("Escribe el nombre del registro.");document.getElementById("tituloRegistroIzel").focus();return;} if(!fecha){alert("Selecciona la fecha.");return;} if(repeticion!=="ninguna"&&!repeticionHasta){alert("Selecciona hasta qué fecha se repetirá el registro.");document.getElementById("repeticionHastaIzel").focus();return;} if(repeticion!=="ninguna"&&repeticionHasta<fecha){alert("La fecha final debe ser igual o posterior a la fecha inicial.");document.getElementById("repeticionHastaIzel").focus();return;} const anterior=izelEditando===null?null:izelRegistros[izelEditando], mismaSerie=anterior&&anterior.fecha===fecha&&(anterior.repeticion||"ninguna")===repeticion; const item={id:anterior?.id||"izel-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),tipo,titulo,fecha,nota,repeticion,repeticionHasta:repeticion==="ninguna"?"":repeticionHasta,fechasCompletadas:mismaSerie&&Array.isArray(anterior.fechasCompletadas)?anterior.fechasCompletadas:[],completado:repeticion==="ninguna"?Boolean(anterior?.completado&&mismaSerie):false}; if(izelEditando===null)izelRegistros.push(item);else izelRegistros[izelEditando]=item;localStorage.setItem("izelRegistros",JSON.stringify(izelRegistros));diaSeleccionado=fecha;const d=new Date(fecha+"T00:00:00");mesContextual=new Date(d.getFullYear(),d.getMonth(),1);cerrarModalIzel();mostrarListaIzel();mostrarResumenIzel(); }
+function cambiarEstadoRegistroIzel(indice,completado,fechaClave) { const item=izelRegistros[indice];if(!item||item.tipo==="fecha")return;const fecha=fechaClave||diaSeleccionado;if(item.repeticion&&item.repeticion!=="ninguna"){if(!Array.isArray(item.fechasCompletadas))item.fechasCompletadas=[];const posicion=item.fechasCompletadas.indexOf(fecha);if(completado&&posicion<0)item.fechasCompletadas.push(fecha);if(!completado&&posicion>=0)item.fechasCompletadas.splice(posicion,1);}else item.completado=completado;localStorage.setItem("izelRegistros",JSON.stringify(izelRegistros));mostrarListaIzel();mostrarResumenIzel(); }function eliminarRegistroIzel(indice) { if(!izelRegistros[indice]||!confirm("¿Quieres eliminar este registro de Izel?"))return;izelRegistros.splice(indice,1);localStorage.setItem("izelRegistros",JSON.stringify(izelRegistros));mostrarListaIzel();mostrarResumenIzel(); }
+function mostrarListaIzel() { const lista=document.getElementById("listaIzel");if(!lista)return;const f=document.getElementById("fechaIzel");if(f)f.value=diaSeleccionado;lista.replaceChildren();const items=izelRegistros.map((item,indice)=>({item,indice})).filter(x=>izelOcurreEnFecha(x.item,diaSeleccionado)).sort((a,b)=>a.item.tipo.localeCompare(b.item.tipo));if(!items.length){const p=document.createElement("p");p.className="estado-vacio-modulo";p.textContent="No hay vacunas, pendientes ni fechas de Izel para este día.";lista.appendChild(p);}items.forEach(({item,indice})=>{const completado=izelRegistroCompletadoEnFecha(item,diaSeleccionado);const c=document.createElement("article");c.className="tarjeta-registro-modulo tarjeta-izel";if(completado)c.classList.add("registro-izel-completado");const icono=item.tipo==="vacuna"?(completado?"✅":"💉"):item.tipo==="pendiente"?(completado?"☑️":"✅"):"🌟";const h=document.createElement("h3");h.textContent=icono+" "+item.titulo;c.appendChild(h);const meta=document.createElement("p");meta.textContent=item.tipo==="vacuna"?(completado?"Vacuna aplicada":"Vacuna pendiente") : item.tipo==="pendiente"?(completado?"Pendiente completado":"Pendiente por hacer"):"Fecha especial";c.appendChild(meta);if(item.repeticion&&item.repeticion!=="ninguna"){const nombres={diaria:"Cada día",semanal:"Cada semana",quincenal:"Cada 2 semanas",mensual:"Cada mes",anual:"Cada año"};const r=document.createElement("p");r.className="detalle-repeticion-izel";r.textContent="🔁 "+(nombres[item.repeticion]||"Recurrente")+" · Se repetirá hasta "+formatoFechaCorta(item.repeticionHasta);c.appendChild(r);}if(item.nota){const p=document.createElement("p");p.textContent=item.nota;c.appendChild(p);}const actions=document.createElement("div");actions.className="acciones-registro-modulo";if(item.tipo!=="fecha"){const check=document.createElement("label");check.className="check-registro-izel";const box=document.createElement("input");box.type="checkbox";box.checked=completado;box.onchange=()=>cambiarEstadoRegistroIzel(indice,box.checked,diaSeleccionado);check.append(box,document.createTextNode(item.tipo==="vacuna"?"Aplicada":"Realizada"));actions.appendChild(check);}const edit=document.createElement("button");edit.type="button";edit.textContent="Editar";edit.onclick=()=>editarRegistroIzel(indice);const del=document.createElement("button");del.type="button";del.textContent="Eliminar";del.onclick=()=>eliminarRegistroIzel(indice);actions.append(edit,del);c.appendChild(actions);lista.appendChild(c);});actualizarCalendarioContextual(); }function mostrarResumenIzel() { const panel=document.getElementById("panelResumenIzel"),pEl=document.getElementById("periodoResumenIzel"),fEl=document.getElementById("fechaReferenciaIzel");if(!panel||!pEl||!fEl)return;if(!fEl.value)fEl.value=fechaClaveCalendario(new Date());panel.replaceChildren();const rango=obtenerRangoResumenFinanzas(pEl.value,fEl.value),ocurrencias=[];for(const item of izelRegistros){const cursor=new Date(rango.inicio);for(let i=0;i<rango.cantidadDias;i++){const fecha=claveDiaCalendario(cursor);if(izelOcurreEnFecha(item,fecha))ocurrencias.push({...item,fechaOcurrencia:fecha,ocurrenciaCompletada:izelRegistroCompletadoEnFecha(item,fecha)});cursor.setDate(cursor.getDate()+1);}}ocurrencias.sort((a,b)=>b.fechaOcurrencia.localeCompare(a.fechaOcurrencia));const vacunas=ocurrencias.filter(x=>x.tipo==="vacuna"),pendientes=ocurrencias.filter(x=>x.tipo==="pendiente"&&!x.ocurrenciaCompletada),fechas=ocurrencias.filter(x=>x.tipo==="fecha");const cards=document.createElement("div");cards.className="tarjetas-resumen-finanzas";[[String(vacunas.length),"Ocurrencias de vacunas"],[String(vacunas.filter(x=>!x.ocurrenciaCompletada).length),"Vacunas pendientes"],[String(vacunas.filter(x=>x.ocurrenciaCompletada).length),"Vacunas aplicadas"],[String(pendientes.length),"Tareas pendientes"],[String(ocurrencias.filter(x=>x.tipo==="pendiente"&&x.ocurrenciaCompletada).length),"Tareas realizadas"],[String(fechas.length),"Fechas especiales"]].forEach(([v,l])=>{const c=document.createElement("article");c.className="tarjeta-metrica-finanzas";const s=document.createElement("strong");s.textContent=v;const t=document.createElement("span");t.textContent=l;c.append(s,t);cards.appendChild(c);});panel.appendChild(cards);const h=document.createElement("h3");h.className="titulo-lista-aprendizajes-resumen";h.textContent="Ocurrencias del periodo";panel.appendChild(h);const list=document.createElement("div");list.className="lista-registros-resumen";if(!ocurrencias.length){const p=document.createElement("p");p.className="estado-vacio-modulo";p.textContent="Aún no hay registros de Izel en este periodo.";list.appendChild(p);}else ocurrencias.forEach(item=>{const c=document.createElement("article");c.className="tarjeta-registro-modulo tarjeta-izel";const h=document.createElement("h4"),icono=item.tipo==="vacuna"?(item.ocurrenciaCompletada?"✅":"💉"):item.tipo==="pendiente"?(item.ocurrenciaCompletada?"☑️":"✅"):"🌟";h.textContent=icono+" "+item.titulo+" · "+new Date(item.fechaOcurrencia+"T00:00:00").toLocaleDateString("es-MX",{dateStyle:"long"});c.appendChild(h);if(item.repeticion&&item.repeticion!=="ninguna"){const r=document.createElement("p");r.textContent="🔁 Se repetirá hasta "+formatoFechaCorta(item.repeticionHasta);c.appendChild(r);}if(item.nota){const p=document.createElement("p");p.textContent=item.nota;c.appendChild(p);}list.appendChild(c);});panel.appendChild(list); }
