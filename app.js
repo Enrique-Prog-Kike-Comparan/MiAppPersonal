@@ -1,8 +1,12 @@
 
 
 let saludRegistros = JSON.parse(localStorage.getItem("saludRegistros") || "[]"), saludEditando = null;
-let izelRegistros = JSON.parse(localStorage.getItem("izelRegistros") || "[]"), izelEditando = null;
+let izelRegistrosLocales = JSON.parse(localStorage.getItem("izelRegistros") || "[]"), izelRegistros = izelRegistrosLocales.slice(), izelRegistrosNube = [], izelEditando = null, izelUsuarioUid = null, izelVinculoActivo = false;
 let tareas = JSON.parse(localStorage.getItem("tareas")) || [];
+let tareasLocalesEnDispositivo = tareas.filter(tarea => !tarea.ownerUid);
+let tareasNube = [];
+let tareasUsuarioUid = null;
+let tareasVinculoActivo = false;
 let gastos = JSON.parse(localStorage.getItem("gastosFinanzas") || "[]");
 let gastoEditando = null;
 
@@ -10,11 +14,12 @@ let tareaEditando = null;
 let tipoFiltroActivo = null;
 let mesContextual=new Date(new Date().getFullYear(),new Date().getMonth(),1),diaSeleccionado=claveDiaCalendario(new Date());
 let aprendizajes=JSON.parse(localStorage.getItem("aprendizajes")||"[]"),aprendizajeEditando=null;
-let entrenamientos=JSON.parse(localStorage.getItem("entrenamientos")||"[]"),entrenamientoEditando=null;
+let entrenamientosLocalesEnDispositivo=JSON.parse(localStorage.getItem("entrenamientos")||"[]").filter(item=>!item.ownerUid),entrenamientos=entrenamientosLocalesEnDispositivo.slice(),entrenamientosNube=[],entrenamientoUsuarioUid=null,entrenamientoVinculoActivo=false,entrenamientoEditando=null;
 let objetivos=JSON.parse(localStorage.getItem("objetivos")||"[]"),objetivoEditando=null;
 let registrosTiempo=JSON.parse(localStorage.getItem("registrosTiempo")||"[]"),registroTiempoEditando=null;
-let proyectos=JSON.parse(localStorage.getItem("proyectos")||"[]"),proyectoEditando=null;
-let pagosPendientes=JSON.parse(localStorage.getItem("pagosPendientes")||"[]"),pagoEditando=null;
+let proyectosLocalesEnDispositivo=JSON.parse(localStorage.getItem("proyectos")||"[]").filter(item=>!item.ownerUid),proyectos=proyectosLocalesEnDispositivo.slice(),proyectosNube=[],proyectosUsuarioUid=null,proyectosVinculoActivo=false,proyectoEditando=null;
+const firmasProyectosSincronizados=new Map(),colasProyectosSincronizando=new Map();
+let pagosLocalesEnDispositivo=JSON.parse(localStorage.getItem("pagosPendientes")||"[]").filter(pago=>!pago.ownerUid),pagosPendientes=pagosLocalesEnDispositivo.slice(),pagosNube=[],pagosUsuarioUid=null,pagosVinculoActivo=false,pagoEditando=null;
 let avisosOcultosParaHoy = "";
 const notificacionesEnProceso = new Set();
 
@@ -25,8 +30,37 @@ function mostrarTareas() {
 }
 
 function guardarTareas() {
-    localStorage.setItem("tareas", JSON.stringify(tareas));
+    tareasLocalesEnDispositivo = tareas.filter(tarea => !tarea.ownerUid);
+    localStorage.setItem("tareas", JSON.stringify(tareasLocalesEnDispositivo));
+    if (tareasUsuarioUid) localStorage.setItem("tareas:" + tareasUsuarioUid, JSON.stringify(tareasNube));
     if (typeof actualizarAvisosDelDia === "function") actualizarAvisosDelDia();
+}
+
+function actualizarControlCompartirTarea() {
+    const check = document.getElementById("compartirTarea");
+    const ayuda = document.getElementById("ayudaCompartirTarea");
+    if (!check) return;
+    const tarea = tareaEditando === null ? null : tareas[tareaEditando];
+    const esCompartidaAjena = Boolean(tarea?.ownerUid && tarea.ownerUid !== tareasUsuarioUid);
+    check.checked = Boolean(tarea?.ownerUid && tarea.sharedWithUids?.length);
+    const esPropiaYaCompartida = Boolean(tarea?.ownerUid === tareasUsuarioUid && tarea.sharedWithUids?.length);
+    check.disabled = !tareasUsuarioUid || (!tareasVinculoActivo && !esPropiaYaCompartida) || esCompartidaAjena;
+    if (ayuda) ayuda.textContent = !tareasUsuarioUid
+        ? "Sin sesión: la tarea se guardará solo en este dispositivo."
+        : esCompartidaAjena
+            ? "Tarea compartida: ambas cuentas pueden editarla; solo quien la creó puede eliminarla."
+            : !tareasVinculoActivo
+                ? "La tarea se guardará privada en tu cuenta. Vincula las cuentas para compartirla."
+                : tarea && !tarea.ownerUid
+                    ? "Si compartes esta tarea local, se copiará a tu cuenta; desmarcada seguirá solo en este dispositivo."
+                    : "Las tareas nuevas se guardan privadas en tu cuenta. Puedes elegir compartirlas.";
+}
+
+function reconstruirTareas() {
+    const ids = new Set(tareasNube.map(tarea => tarea.id));
+    tareas = tareasLocalesEnDispositivo.filter(tarea => !ids.has(tarea.id)).concat(tareasNube);
+    guardarTareas();
+    mostrarListaTareas();
 }
 
 function mostrarListaTareas() {
@@ -67,16 +101,19 @@ function mostrarListaTareas() {
         const repeticionHasta = tarea.repeticion && tarea.repeticion !== "ninguna"
             ? (tarea.repeticionHasta ? " · Se repetirá hasta " + formatoFechaCorta(tarea.repeticionHasta) : " · Sin fecha límite")
             : "";
+        const privacidad = !tarea.ownerUid ? "Solo en este dispositivo" : tarea.sharedWithUids?.length ? "Compartida con la cuenta vinculada" : "Privada en tu cuenta";
+        const puedeEliminar = !tarea.ownerUid || tarea.ownerUid === tareasUsuarioUid;
         elemento.innerHTML =
             '<input type="checkbox" ' + (completadaEnDiaSeleccionado ? "checked" : "") + (ocurreEnDiaSeleccionado ? "" : " disabled") + ' onchange="completarTarea(' + indice + ', diaSeleccionado)">' +
             '<div class="contenido-tarea">' +
             '<strong>' + tarea.texto + '</strong>' +
+            '<div class="privacidad-tarea">' + privacidad + '</div>' +
             '<div>' + informacion + '</div>' +
             '<div>' + prioridad + " · " + categoria + '</div>' +
             '<div>' + recordatorio + " · " + repeticion + repeticionHasta + '</div>' +
             '<div class="acciones-tarea">' +
             '<button onclick="editarTarea(' + indice + ')">✏️ Editar</button>' +
-            '<button onclick="eliminarTarea(' + indice + ')">🗑️ Eliminar</button>' +
+            '<button onclick="eliminarTarea(' + indice + ')"' + (puedeEliminar ? "" : " disabled title=\"Solo quien creó la tarea puede eliminarla\"") + '>🗑️ Eliminar</button>' +
             '</div></div>';
         lista.appendChild(elemento);
     });
@@ -181,14 +218,17 @@ function agregarTarea() {
     document.getElementById("editarRepeticion").value = "ninguna";
     document.getElementById("editarRepeticionHasta").value = "";
     actualizarCampoFinRepeticion();
+    actualizarControlCompartirTarea();
     document.getElementById("tituloEdicionTarea").textContent = "➕ Nueva tarea";
     document.getElementById("botonGuardarTarea").textContent = "Agregar tarea";
     document.getElementById("ventanaEdicion").style.display = "flex";
     document.getElementById("editarTexto").focus();
 }
-function completarTarea(indice, fechaClave = diaSeleccionado) {
+async function completarTarea(indice, fechaClave = diaSeleccionado) {
     const tarea = tareas[indice];
     if (!tarea || !tareaOcurreEnFecha(tarea, fechaClave)) return;
+    const anterior = JSON.parse(JSON.stringify(tarea));
+    const completada = !tareaCompletadaEnFecha(tarea, fechaClave);
     if (tarea.repeticion && tarea.repeticion !== "ninguna") {
         if (tarea.completada) {
             tarea.completada = false;
@@ -204,6 +244,17 @@ function completarTarea(indice, fechaClave = diaSeleccionado) {
     }
     guardarTareas();
     mostrarListaTareas();
+    if (tarea.ownerUid && window.miappTareasCloud) {
+        try {
+            await window.miappTareasCloud.marcar(tarea, fechaClave, completada);
+        } catch (error) {
+            const actual = tareas.findIndex(item => item.id === tarea.id);
+            if (actual >= 0) tareas[actual] = anterior;
+            tareasNube = tareasNube.map(item => item.id === anterior.id ? anterior : item);
+            guardarTareas(); mostrarListaTareas();
+            alert("No se pudo guardar el check de la tarea: " + error.message);
+        }
+    }
 }
 
 function editarTarea(indice) {
@@ -219,6 +270,7 @@ function editarTarea(indice) {
     document.getElementById("editarRepeticion").value = tarea.repeticion || "ninguna";
     document.getElementById("editarRepeticionHasta").value = tarea.repeticionHasta || "";
     actualizarCampoFinRepeticion();
+    actualizarControlCompartirTarea();
     document.getElementById("tituloEdicionTarea").textContent = "✏️ Editar tarea";
     document.getElementById("botonGuardarTarea").textContent = "Guardar cambios";
     document.getElementById("ventanaEdicion").style.display = "flex";
@@ -242,7 +294,7 @@ function actualizarCampoFinRepeticion() {
     if (!mostrar) campo.value = "";
 }
 
-function guardarEdicion() {
+async function guardarEdicion() {
     const texto = document.getElementById("editarTexto").value.trim();
     if (texto === "") {
         alert("Escribe el nombre de la tarea.");
@@ -280,19 +332,30 @@ function guardarEdicion() {
         repeticion,
         repeticionHasta: repeticion === "ninguna" ? "" : repeticionHasta,
         fechasCompletadas: mismaSerie && Array.isArray(tareaAnterior.fechasCompletadas) ? tareaAnterior.fechasCompletadas : [],
-        completada: tareaEditando === null ? false : Boolean(tareaAnterior && tareaAnterior.completada)
+        completada: tareaEditando === null ? false : Boolean(tareaAnterior && tareaAnterior.completada),
+        ...(tareaAnterior?.ownerUid ? { ownerUid: tareaAnterior.ownerUid, sharedWithUids: tareaAnterior.sharedWithUids || [], pairId: tareaAnterior.pairId || null } : {})
     };
-    if (tareaEditando === null) {
-        tareas.push(nuevaTarea);
-    } else {
-        if (!tareas[tareaEditando]) return;
-        tareas[tareaEditando] = nuevaTarea;
+    const compartir = document.getElementById("compartirTarea").checked;
+    const indiceAnterior = tareaEditando;
+    if (indiceAnterior !== null && !tareas[indiceAnterior]) return;
+    if (tareasUsuarioUid && (tareaAnterior?.ownerUid || indiceAnterior === null || (tareaAnterior && !tareaAnterior.ownerUid && compartir))) {
+        try {
+            const guardada = await window.miappTareasCloud.guardar(nuevaTarea, compartir);
+            Object.assign(nuevaTarea, guardada);
+        } catch (error) {
+            alert("No se pudo guardar la tarea en tu cuenta: " + error.message);
+            return;
+        }
     }
+    if (indiceAnterior === null) tareas.push(nuevaTarea);
+    else tareas[indiceAnterior] = nuevaTarea;
+    if (nuevaTarea.ownerUid) tareasNube = tareasNube.filter(item => item.id !== nuevaTarea.id).concat(nuevaTarea);
+    else tareasLocalesEnDispositivo = tareasLocalesEnDispositivo.filter(item => item.id !== nuevaTarea.id).concat(nuevaTarea);
     guardarTareas();
     mostrarListaTareas();
     cerrarEdicion();
 }
-function eliminarTarea(indice) {
+async function eliminarTarea(indice) {
 
     const confirmar = confirm(
         "¿Seguro que quieres eliminar esta tarea?"
@@ -302,6 +365,16 @@ function eliminarTarea(indice) {
         return;
     }
 
+    const tarea = tareas[indice];
+    if (!tarea) return;
+    if (tarea.ownerUid && tarea.ownerUid !== tareasUsuarioUid) { alert("Solo quien creó esta tarea puede eliminarla."); return; }
+    if (tarea.ownerUid) {
+        try { await window.miappTareasCloud.eliminar(tarea); }
+        catch (error) { alert("No se pudo eliminar la tarea: " + error.message); return; }
+        tareasNube = tareasNube.filter(item => item.id !== tarea.id);
+    } else {
+        tareasLocalesEnDispositivo = tareasLocalesEnDispositivo.filter(item => item.id !== tarea.id);
+    }
     tareas.splice(indice, 1);
 
     guardarTareas();
@@ -686,7 +759,35 @@ let fechasImportantes =
     JSON.parse(localStorage.getItem("fechasImportantes")) || [];
 let agendaUsuarioUid = null;
 let agendaVinculoActivo = false;
-const fechasLocalesDePrueba = fechasImportantes.slice();
+let fechasLocalesEnDispositivo = fechasImportantes.slice();
+
+function combinarFechas(...listas) {
+    const resultado = [];
+    const ids = new Set();
+    for (const lista of listas) {
+        for (const fecha of lista || []) {
+            if (fecha && fecha.id) {
+                if (ids.has(fecha.id)) {
+                    const posicion = resultado.findIndex(item => item.id === fecha.id);
+                    if (posicion >= 0) resultado[posicion] = fecha;
+                    continue;
+                }
+                ids.add(fecha.id);
+            }
+            resultado.push(fecha);
+        }
+    }
+    return resultado;
+}
+
+function leerFechasLocales() {
+    try {
+        const datos = JSON.parse(localStorage.getItem("fechasImportantes") || "[]");
+        return Array.isArray(datos) ? datos : [];
+    } catch (_) {
+        return [];
+    }
+}
 
 function formatearFecha(fecha) {
 
@@ -783,8 +884,17 @@ function esFechaEsteMes(fecha) {
 
 
 function guardarFechas() {
-    const llave = agendaUsuarioUid ? "fechasImportantes:" + agendaUsuarioUid : "fechasImportantes";
-    localStorage.setItem(llave, JSON.stringify(fechasImportantes));
+    if (agendaUsuarioUid) {
+        fechasLocalesEnDispositivo = fechasImportantes.filter(fecha => !fecha.ownerUid);
+        localStorage.setItem("fechasImportantes", JSON.stringify(fechasLocalesEnDispositivo));
+        localStorage.setItem(
+            "fechasImportantes:" + agendaUsuarioUid,
+            JSON.stringify(fechasImportantes.filter(fecha => Boolean(fecha.ownerUid)))
+        );
+    } else {
+        fechasLocalesEnDispositivo = fechasImportantes.slice();
+        localStorage.setItem("fechasImportantes", JSON.stringify(fechasImportantes));
+    }
     if (typeof actualizarAvisosDelDia === "function") actualizarAvisosDelDia();
 }
 function mensajeAgenda(texto, error) {
@@ -826,7 +936,7 @@ async function eliminarFechaImportante(indice) {
     const fecha = fechasImportantes[indice]; if (!fecha) return;
     if (agendaUsuarioUid && fecha.ownerUid !== agendaUsuarioUid) { alert("Solo puedes eliminar las fechas que creaste."); return; }
     if (!confirm("¿Seguro que quieres eliminar esta fecha?")) return;
-    try { if (agendaUsuarioUid && fecha.id) await window.miappAgendaCloud.eliminar(fecha); fechasImportantes.splice(indice, 1); guardarFechas(); mostrarFechas(); }
+    try { if (agendaUsuarioUid && fecha.ownerUid) await window.miappAgendaCloud.eliminar(fecha); fechasImportantes.splice(indice, 1); guardarFechas(); mostrarFechas(); }
     catch (error) { alert(error.message || "No se pudo eliminar la fecha."); }
 }
 
@@ -853,10 +963,21 @@ function editarFechaImportante(indice) {
         fecha.recordatorio || "ninguno";
     const controlCompartir = document.getElementById("editarCompartirFecha");
     const ayudaCompartir = document.getElementById("ayudaEditarCompartirFecha");
-    const esPropia = !agendaUsuarioUid || fecha.ownerUid === agendaUsuarioUid;
+    const esLocalEnDispositivo = !fecha.ownerUid;
+    const esPropia = esLocalEnDispositivo || fecha.ownerUid === agendaUsuarioUid;
     controlCompartir.checked = Boolean(fecha.sharedWithUids && fecha.sharedWithUids.length);
     controlCompartir.disabled = !agendaUsuarioUid || !esPropia || !agendaVinculoActivo;
-    ayudaCompartir.textContent = !agendaUsuarioUid ? "Las fechas de prueba siguen siendo locales." : (!esPropia ? "Puedes editar esta fecha compartida; solo quien la creó puede cambiar quién la ve." : (!agendaVinculoActivo ? "Vincula las cuentas para cambiar el uso compartido." : "Sin marcar, esta fecha será privada."));
+    ayudaCompartir.textContent = !agendaUsuarioUid
+        ? "Esta fecha sigue solo en este dispositivo. Inicia sesión y marca compartir para compartirla."
+        : esLocalEnDispositivo
+            ? (agendaVinculoActivo
+                ? "Esta fecha sigue solo en este dispositivo. Marca la casilla para compartirla; si la dejas desmarcada, seguirá local."
+                : "Esta fecha sigue solo en este dispositivo. Vincula las cuentas para poder compartirla.")
+            : (!esPropia
+                ? "Puedes editar esta fecha compartida; solo quien la creó puede cambiar quién la ve."
+                : (!agendaVinculoActivo
+                    ? "Vincula las cuentas para cambiar el uso compartido."
+                    : "Sin marcar, esta fecha será privada en tu cuenta."));
 
     document.getElementById("tituloEdicionFecha").textContent = "✏️ Editar fecha especial";
     document.getElementById("botonGuardarFecha").textContent = "Guardar cambios";
@@ -882,17 +1003,33 @@ async function guardarEdicionFecha() {
 
     const base = esNueva ? {} : fechasImportantes[indice];
     const registro = { ...base, nombre, tipo, fecha, hora, recordatorio, recordatorioProcesado: null };
+    const esLocalExistente = !esNueva && !base.ownerUid;
     try {
-        if (agendaUsuarioUid) {
-            registro.id = base.id;
+        if (agendaUsuarioUid && (!esLocalExistente || compartir)) {
+            if (esLocalExistente) {
+                delete registro.id;
+                delete registro.ownerUid;
+                delete registro.sharedWithUids;
+                delete registro.pairId;
+            } else {
+                registro.id = base.id;
+            }
             const guardada = await window.miappAgendaCloud.guardar(registro, compartir);
             if (esNueva) fechasImportantes.push(guardada);
             else fechasImportantes[indice] = guardada;
-            mensajeAgenda(esNueva ? "Fecha guardada en tu cuenta" + (compartir ? " y compartida." : " como privada.") : "Cambios guardados en tu cuenta.");
+            mensajeAgenda(esLocalExistente
+                ? "Fecha del dispositivo compartida con la cuenta vinculada."
+                : esNueva
+                    ? "Fecha guardada en tu cuenta" + (compartir ? " y compartida." : " como privada.")
+                    : "Cambios guardados en tu cuenta.");
         } else {
             if (esNueva) fechasImportantes.push(registro);
             else fechasImportantes[indice] = registro;
-            mensajeAgenda(esNueva ? "Fecha guardada solo en este dispositivo. Inicia sesión para sincronizar nuevas fechas." : "Cambios guardados solo en este dispositivo.");
+            mensajeAgenda(esLocalExistente
+                ? "Cambios guardados solo en este dispositivo. Puedes compartir esta fecha después."
+                : esNueva
+                    ? "Fecha guardada solo en este dispositivo. Inicia sesión para sincronizar nuevas fechas."
+                    : "Cambios guardados solo en este dispositivo.");
         }
         guardarFechas();
         window.fechaEditando = undefined;
@@ -1026,7 +1163,11 @@ function mostrarFechas(omitirDesplazamiento) {
         const esPropia = !agendaUsuarioUid || !fecha.ownerUid || fecha.ownerUid === agendaUsuarioUid;
         const privacidad = document.createElement("span");
         privacidad.className = "etiqueta-privacidad";
-        privacidad.textContent = !agendaUsuarioUid ? "Solo en este dispositivo" : esCompartida ? "Compartida" : "Privada";
+        privacidad.textContent = !agendaUsuarioUid || !fecha.ownerUid
+            ? "Solo en este dispositivo"
+            : esCompartida
+                ? "Compartida"
+                : "Privada";
         const icono = fecha.tipo === "cumpleanos" ? "🎂" : fecha.tipo === "aniversario" ? "❤️" : "🗓️";
         const nombre = document.createElement("strong");
         nombre.textContent = icono + " " + (fecha.nombre || "Fecha especial");
@@ -1144,7 +1285,7 @@ function filtrarFechasPorTipo(tipo) {
 function mostrarPantalla(id){document.querySelectorAll(".pantalla").forEach(p=>p.classList.remove("activa"));const modal=document.getElementById("ventanaEdicion");if(modal)modal.style.display="none";const modalGasto=document.getElementById("modalGasto");if(modalGasto)modalGasto.style.display="none";const modalEntrenamiento=document.getElementById("modalEntrenamiento");if(modalEntrenamiento)modalEntrenamiento.style.display="none";const modalObjetivo=document.getElementById("modalObjetivo");if(modalObjetivo)modalObjetivo.style.display="none";const modalProyecto=document.getElementById("modalProyecto");if(modalProyecto)modalProyecto.style.display="none";const modalSalud=document.getElementById("modalSalud");if(modalSalud)modalSalud.style.display="none";const modalIzel=document.getElementById("modalIzel");if(modalIzel)modalIzel.style.display="none";const v=document.getElementById(id);if(!v)return;v.classList.add("activa");
 const useCal=["seccionFechas","seccionTareas","seccionPagos","seccionFinanzas","seccionEntrenamiento","seccionTiempo","seccionAprendizajes","seccionObjetivos","seccionSalud","seccionIzel"].includes(id),cal=document.getElementById("calendarioContextual");if(cal)cal.hidden=!useCal;
 document.querySelectorAll(".boton-nav").forEach(x=>{const on=x.dataset.pantalla===id;x.classList.toggle("activo",on);if(on)x.setAttribute("aria-current","page");else x.removeAttribute("aria-current");});const title=document.getElementById("tituloCalendario");if(title)title.textContent=id==="seccionFechas"?"Fechas especiales":id==="seccionTareas"?"Tareas":id==="seccionFinanzas"?"Finanzas":id==="seccionSalud"?"Salud":id==="seccionIzel"?"Mi peque Izel":"Calendario";
-if(id==="seccionFechas")mostrarFechas();if(id==="seccionTiempo")mostrarListaTiempo();if(id==="seccionProyectos")mostrarListaProyectos();if(id==="seccionObjetivos")mostrarListaObjetivos();if(id==="seccionEntrenamiento")mostrarListaEntrenamientos();if(id==="seccionFinanzas")mostrarListaFinanzas();if(id==="resultadoEntrenamiento")mostrarResumenEntrenamiento();if(id==="resultadoTiempo")mostrarResumenTiempo();if(id==="resultadoAprendizajes")mostrarResumenAprendizajes();if(id==="resultadoFinanzas")mostrarResumenFinanzas();if(id==="seccionAprendizajes")mostrarListaAprendizajes();if(id==="seccionPagos")mostrarListaPagos();if(id==="resultadoPagos")mostrarResumenPagos();if(id==="seccionSalud")mostrarListaSalud();if(id==="seccionIzel")mostrarListaIzel();if(id==="resultadoSalud")mostrarResumenSalud();if(id==="resultadoIzel")mostrarResumenIzel();if(typeof actualizarAvisosDelDia==="function")actualizarAvisosDelDia();if(typeof actualizarCalendarioContextual==="function")actualizarCalendarioContextual();window.scrollTo({top:0,behavior:"smooth"});}
+if(id==="seccionFechas")mostrarFechas();if(id==="seccionTiempo")mostrarListaTiempo();if(id==="seccionProyectos")mostrarListaProyectos();if(id==="seccionObjetivos")mostrarListaObjetivos();if(id==="seccionEntrenamiento")mostrarListaEntrenamientos();if(id==="seccionFinanzas")mostrarListaFinanzas();if(id==="resultadoEntrenamiento")mostrarResumenEntrenamiento();if(id==="resultadoTiempo")mostrarResumenTiempo();if(id==="resultadoAprendizajes")mostrarResumenAprendizajes();if(id==="resultadoFinanzas")mostrarResumenFinanzas();if(id==="seccionAprendizajes")mostrarListaAprendizajes();if(id==="seccionPagos")mostrarListaPagos();if(id==="resultadoPagos")mostrarResumenPagos();if(id==="seccionSalud")mostrarListaSalud();if(id==="seccionIzel")mostrarListaIzel();if(id==="resultadoSalud")mostrarResumenSalud();if(id==="resultadoIzel")mostrarResumenIzel();if(id==="resultadoTareas")mostrarResumenTareas();if(typeof actualizarAvisosDelDia==="function")actualizarAvisosDelDia();if(typeof actualizarCalendarioContextual==="function")actualizarCalendarioContextual();window.scrollTo({top:0,behavior:"smooth"});}
 function mostrarInicio(){mostrarPantalla("inicio");}
 revisarRecordatoriosFechas();
 
@@ -1318,18 +1459,89 @@ alert(
 }
 
 window.addEventListener("miapp:agenda-usuario", function(event) {
-    const uid=event.detail&&event.detail.uid; agendaUsuarioUid=uid||null;
-    if(agendaUsuarioUid){fechasImportantes=JSON.parse(localStorage.getItem("fechasImportantes:"+agendaUsuarioUid)||"[]");mensajeAgenda("Conectando Agenda de esta cuenta. Tus fechas de prueba siguen locales.");}
-    else {fechasImportantes=fechasLocalesDePrueba.slice();mensajeAgenda("Sesión cerrada. Las fechas de prueba siguen en este dispositivo.");}
-    actualizarControlCompartir();mostrarFechas(true);
+    const uid = event.detail && event.detail.uid;
+    agendaUsuarioUid = uid || null;
+    if (agendaUsuarioUid) {
+        let guardadasDeCuenta = [];
+        try {
+            const datos = JSON.parse(localStorage.getItem("fechasImportantes:" + agendaUsuarioUid) || "[]");
+            guardadasDeCuenta = Array.isArray(datos) ? datos : [];
+        } catch (_) {}
+        fechasLocalesEnDispositivo = combinarFechas(
+            leerFechasLocales(),
+            guardadasDeCuenta.filter(fecha => !fecha.ownerUid)
+        );
+        fechasImportantes = combinarFechas(
+            fechasLocalesEnDispositivo,
+            guardadasDeCuenta.filter(fecha => Boolean(fecha.ownerUid))
+        );
+        mensajeAgenda("Conectando Agenda de esta cuenta. Las fechas del dispositivo siguen locales.");
+        guardarFechas();
+    } else {
+        fechasLocalesEnDispositivo = leerFechasLocales();
+        fechasImportantes = fechasLocalesEnDispositivo.slice();
+        mensajeAgenda("Sesión cerrada. Las fechas siguen en este dispositivo.");
+    }
+    actualizarControlCompartir();
+    mostrarFechas(true);
 });
-window.addEventListener("miapp:agenda-datos", function(event){if(!agendaUsuarioUid||!event.detail||event.detail.uid!==agendaUsuarioUid)return;fechasImportantes=event.detail.fechas||[];guardarFechas();mostrarFechas(true);});
+window.addEventListener("miapp:agenda-datos", function(event) {
+    if (!agendaUsuarioUid || !event.detail || event.detail.uid !== agendaUsuarioUid) return;
+    fechasImportantes = combinarFechas(fechasLocalesEnDispositivo, event.detail.fechas || []);
+    guardarFechas();
+    mostrarFechas(true);
+});
 window.addEventListener("miapp:agenda-vinculo", function(event){if(!agendaUsuarioUid||!event.detail||event.detail.uid!==agendaUsuarioUid)return;agendaVinculoActivo=Boolean(event.detail.activo);actualizarControlCompartir();});
 window.addEventListener("miapp:agenda-estado", function(event){if(!event.detail||event.detail.uid!==agendaUsuarioUid)return;mensajeAgenda(event.detail.mensaje||"",event.detail.error);});
+window.addEventListener("miapp:izel-usuario", event => { const uid = event.detail?.uid || null; if (uid !== izelUsuarioUid) { izelRegistrosNube = []; reconstruirRegistrosIzel(); } izelUsuarioUid = uid; actualizarControlesCompartirIzel(); });
+window.addEventListener("miapp:izel-vinculo", event => { if (event.detail?.uid !== izelUsuarioUid) return; izelVinculoActivo = Boolean(event.detail.active); actualizarControlesCompartirIzel(); });
+window.addEventListener("miapp:izel-estado", event => { if (event.detail?.uid !== izelUsuarioUid) return; const el = document.getElementById("estadoIzelNube"); if (el) { el.textContent = event.detail.message || ""; el.dataset.error = String(Boolean(event.detail.error)); } });
+window.addEventListener("miapp:izel-datos", event => { if (!event.detail?.uid) { izelRegistrosNube = []; reconstruirRegistrosIzel(); return; } if (!izelUsuarioUid || event.detail.uid !== izelUsuarioUid) return; izelRegistrosNube = event.detail.records || []; reconstruirRegistrosIzel(); });
+window.addEventListener("miapp:tareas-usuario", event => {
+    const uid = event.detail?.uid || null;
+    if (uid !== tareasUsuarioUid) {
+        tareasNube = [];
+        let cache = [];
+        if (uid) { try { const parsed = JSON.parse(localStorage.getItem("tareas:" + uid) || "[]"); cache = Array.isArray(parsed) ? parsed : []; } catch (_) {} }
+        tareasLocalesEnDispositivo = tareas.filter(item => !item.ownerUid).concat(cache.filter(item => !item.ownerUid));
+        tareasNube = cache.filter(item => Boolean(item.ownerUid));
+        tareasUsuarioUid = uid;
+        reconstruirTareas();
+    }
+    actualizarControlCompartirTarea();
+});
+window.addEventListener("miapp:tareas-vinculo", event => { if (event.detail?.uid !== tareasUsuarioUid) return; tareasVinculoActivo = Boolean(event.detail.active); actualizarControlCompartirTarea(); });
+window.addEventListener("miapp:tareas-datos", event => { if (!tareasUsuarioUid || event.detail?.uid !== tareasUsuarioUid) return; tareasNube = event.detail.tasks || []; guardarTareas(); mostrarListaTareas(); });
+window.addEventListener("miapp:tareas-estado", event => { if (event.detail?.uid && event.detail.uid !== tareasUsuarioUid) return; const el = document.getElementById("estadoSincronizacionTareas"); if (el) { el.textContent = event.detail.message || ""; el.dataset.error = String(Boolean(event.detail.error)); } });
+window.addEventListener("miapp:pagos-usuario", event => {
+    const uid = event.detail?.uid || null;
+    if (uid !== pagosUsuarioUid) { pagosNube = []; pagosUsuarioUid = uid; reconstruirPagos(); }
+    actualizarControlCompartirPago();
+});
+window.addEventListener("miapp:pagos-vinculo", event => { if (event.detail?.uid !== pagosUsuarioUid) return; pagosVinculoActivo = Boolean(event.detail.active); actualizarControlCompartirPago(); });
+window.addEventListener("miapp:pagos-datos", event => { if (!pagosUsuarioUid || event.detail?.uid !== pagosUsuarioUid) return; pagosNube = event.detail.payments || []; reconstruirPagos(); });
+window.addEventListener("miapp:pagos-estado", event => { if (event.detail?.uid && event.detail.uid !== pagosUsuarioUid) return; const el = document.getElementById("estadoSincronizacionPagos"); if (el) { el.textContent = event.detail.message || ""; el.dataset.error = String(Boolean(event.detail.error)); } });
+window.addEventListener("miapp:entrenamiento-usuario", event => { const uid=event.detail?.uid||null; if(uid!==entrenamientoUsuarioUid){entrenamientoNube=[];entrenamientoUsuarioUid=uid;reconstruirEntrenamientos();} actualizarControlCompartirEntrenamiento(); });
+window.addEventListener("miapp:entrenamiento-vinculo", event => { if(event.detail?.uid!==entrenamientoUsuarioUid)return;entrenamientoVinculoActivo=Boolean(event.detail.active);actualizarControlCompartirEntrenamiento(); });
+window.addEventListener("miapp:entrenamiento-datos", event => { if(event.detail?.uid!==entrenamientoUsuarioUid)return;entrenamientosNube=event.detail.items||[];reconstruirEntrenamientos(); });
+window.addEventListener("miapp:entrenamiento-estado", event => { if(event.detail?.uid&&event.detail.uid!==entrenamientoUsuarioUid)return;const el=document.getElementById("estadoSincronizacionEntrenamiento");if(el){el.textContent=event.detail.message||"";el.dataset.error=String(Boolean(event.detail.error));} });
+window.addEventListener("miapp:proyectos-usuario", event => { const uid=event.detail?.uid||null;if(uid!==proyectosUsuarioUid){proyectosNube=[];proyectosUsuarioUid=uid;reconstruirProyectos();}actualizarControlCompartirProyecto(); });
+window.addEventListener("miapp:proyectos-vinculo", event => { if(event.detail?.uid!==proyectosUsuarioUid)return;proyectosVinculoActivo=Boolean(event.detail.active);actualizarControlCompartirProyecto(); });
+window.addEventListener("miapp:proyectos-datos", event => { if(event.detail?.uid!==proyectosUsuarioUid)return;proyectosNube=event.detail.projects||[];reconstruirProyectos(); });
+window.addEventListener("miapp:proyectos-estado", event => { if(event.detail?.uid&&event.detail.uid!==proyectosUsuarioUid)return;const el=document.getElementById("estadoSincronizacionProyectos");if(el){el.textContent=event.detail.message||"";el.dataset.error=String(Boolean(event.detail.error));} });
+function reconstruirPagos() { const ids = new Set(pagosNube.map(pago => pago.id)); pagosPendientes = pagosLocalesEnDispositivo.filter(pago => !ids.has(pago.id)).concat(pagosNube); mostrarListaPagos(); mostrarResumenPagos(); if (typeof actualizarAvisosDelDia === "function") actualizarAvisosDelDia(); }
+function actualizarControlCompartirPago() { const check = document.getElementById("compartirPago"), ayuda = document.getElementById("ayudaCompartirPago"); if (!check) return; const pago = pagoEditando === null ? null : pagosPendientes[pagoEditando]; const compartidoAjeno = Boolean(pago?.ownerUid && pago.ownerUid !== pagosUsuarioUid); const yaCompartidoPropio = Boolean(pago?.ownerUid === pagosUsuarioUid && pago.sharedWithUids?.length); check.checked = Boolean(pago?.ownerUid && pago.sharedWithUids?.length); check.disabled = !pagosUsuarioUid || (!pagosVinculoActivo && !yaCompartidoPropio) || compartidoAjeno; if (ayuda) ayuda.textContent = !pagosUsuarioUid ? "Sin sesión: el pago se guardará solo en este dispositivo." : compartidoAjeno ? "Pago compartido: ambas cuentas pueden verlo y editarlo; solo quien lo creó puede eliminarlo." : !pagosVinculoActivo ? "El pago se guardará privado en tu cuenta. Vincula las cuentas para compartirlo." : pago && !pago.ownerUid ? "Si compartes este pago local, se copiará a tu cuenta; desmarcado seguirá solo en este dispositivo." : "Los pagos nuevos se guardan privados en tu cuenta. Puedes elegir compartirlos."; }
+function reconstruirEntrenamientos(){const ids=new Set(entrenamientosNube.map(item=>item.id));entrenamientos=entrenamientosLocalesEnDispositivo.filter(item=>!ids.has(item.id)).concat(entrenamientosNube);if(typeof mostrarListaEntrenamientos==="function")mostrarListaEntrenamientos();if(typeof mostrarResumenEntrenamiento==="function")mostrarResumenEntrenamiento();if(typeof actualizarAvisosDelDia==="function")actualizarAvisosDelDia();}
+function actualizarControlCompartirEntrenamiento(){const check=document.getElementById("compartirEntrenamiento"),ayuda=document.getElementById("ayudaCompartirEntrenamiento");if(!check)return;const item=entrenamientoEditando===null?null:entrenamientos[entrenamientoEditando],ajeno=Boolean(item?.ownerUid&&item.ownerUid!==entrenamientoUsuarioUid),yaCompartido=Boolean(item?.ownerUid===entrenamientoUsuarioUid&&item.sharedWithUids?.length);check.checked=Boolean(item?.ownerUid&&item.sharedWithUids?.length);check.disabled=!entrenamientoUsuarioUid||(!entrenamientoVinculoActivo&&!yaCompartido)||ajeno;if(ayuda)ayuda.textContent=!entrenamientoUsuarioUid?"Sin sesión: la actividad se guarda en este dispositivo.":ajeno?"Actividad compartida: ambas cuentas pueden verla y editarla; solo quien la creó puede eliminarla.":!entrenamientoVinculoActivo?"La actividad se guardará privada en tu cuenta. Vincula las cuentas para compartirla.":item&&!item.ownerUid?"Si compartes esta actividad local, se copiará a tu cuenta; si no, seguirá en este dispositivo.":"Las actividades nuevas se guardan privadas en tu cuenta. Puedes elegir compartirlas.";}
+function reconstruirProyectos(){const ids=new Set(proyectosNube.map(item=>item.id));proyectos=proyectosLocalesEnDispositivo.filter(item=>!ids.has(item.id)).concat(proyectosNube.map(item=>JSON.parse(JSON.stringify(item))));firmasProyectosSincronizados.clear();proyectosNube.forEach(item=>firmasProyectosSincronizados.set(item.id,firmaProyecto(item)));if(typeof mostrarListaProyectos==="function")mostrarListaProyectos();}
+function actualizarControlCompartirProyecto(){const check=document.getElementById("compartirProyecto"),ayuda=document.getElementById("ayudaCompartirProyecto");if(!check)return;const item=proyectoEditando===null?null:proyectos[proyectoEditando],ajeno=Boolean(item?.ownerUid&&item.ownerUid!==proyectosUsuarioUid),yaCompartido=Boolean(item?.ownerUid===proyectosUsuarioUid&&item.sharedWithUids?.length);check.checked=Boolean(item?.ownerUid&&item.sharedWithUids?.length);check.disabled=!proyectosUsuarioUid||(!proyectosVinculoActivo&&!yaCompartido)||ajeno;if(ayuda)ayuda.textContent=!proyectosUsuarioUid?"Sin sesión: el proyecto se guarda en este dispositivo.":ajeno?"Proyecto compartido: ambas cuentas pueden verlo y editarlo; solo quien lo creó puede eliminarlo.":!proyectosVinculoActivo?"El proyecto se guardará privado en tu cuenta. Vincula las cuentas para compartirlo.":item&&!item.ownerUid?"Si compartes este proyecto local, se copiará a tu cuenta; si no, seguirá en este dispositivo.":"Los proyectos nuevos se guardan privados en tu cuenta. Puedes elegir compartirlos.";}
+function reconstruirRegistrosIzel() { const ids = new Set(izelRegistrosNube.map(item => item.id)); izelRegistros = izelRegistrosLocales.filter(item => !ids.has(item.id)).concat(izelRegistrosNube); mostrarListaIzel(); mostrarResumenIzel(); }
+function persistirRegistrosLocalesIzel() { localStorage.setItem("izelRegistros", JSON.stringify(izelRegistrosLocales)); reconstruirRegistrosIzel(); }
+function actualizarControlesCompartirIzel() { const check = document.getElementById("compartirRegistroIzel"), ayuda = document.getElementById("ayudaCompartirIzel"); if (!check) return; check.disabled = !izelVinculoActivo || Boolean(izelRegistros[izelEditando]?.ownerUid && izelRegistros[izelEditando].ownerUid !== izelUsuarioUid); if (ayuda) ayuda.textContent = !izelUsuarioUid ? "Sin sesión: el registro se guardará solo en este dispositivo." : !izelVinculoActivo ? "El registro se guardará en tu cuenta como privado. Vincula las cuentas para compartirlo." : "Puedes compartirlo con la cuenta vinculada o dejarlo privado."; }
 
 
 function claveDiaCalendario(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}function fechaClaveCalendario(d){return claveDiaCalendario(d);}
-function moverMesCalendario(n){const seleccionado=new Date(diaSeleccionado+"T00:00:00"),mesNuevo=new Date(mesContextual.getFullYear(),mesContextual.getMonth()+n,1),ultimoDia=new Date(mesNuevo.getFullYear(),mesNuevo.getMonth()+1,0).getDate();mesContextual=mesNuevo;diaSeleccionado=claveDiaCalendario(new Date(mesNuevo.getFullYear(),mesNuevo.getMonth(),Math.min(seleccionado.getDate(),ultimoDia)));const pantalla=document.querySelector(".contenedor>.pantalla.activa")?.id;if(pantalla==="seccionFechas")mostrarFechas(true);else if(pantalla==="seccionTareas")mostrarListaTareas();else if(pantalla==="seccionEntrenamiento")mostrarListaEntrenamientos();else{if(pantalla==="seccionSalud"){const input=document.getElementById("fechaSalud");if(input)input.value=diaSeleccionado;mostrarListaSalud();}if(pantalla==="seccionIzel"){const input=document.getElementById("fechaIzel");if(input)input.value=diaSeleccionado;mostrarListaIzel();}if(pantalla==="seccionAprendizajes"){const input=document.getElementById("fechaAprendizaje");if(input)input.value=diaSeleccionado;}if(pantalla==="seccionPagos"){const input=document.getElementById("fechaPago");if(input)input.value=diaSeleccionado;}if(pantalla==="seccionFinanzas"){const input=document.getElementById("fechaFinanzas");if(input)input.value=diaSeleccionado;mostrarListaFinanzas();}actualizarCalendarioContextual();}}
+function moverMesCalendario(n){const seleccionado=new Date(diaSeleccionado+"T00:00:00"),mesNuevo=new Date(mesContextual.getFullYear(),mesContextual.getMonth()+n,1),ultimoDia=new Date(mesNuevo.getFullYear(),mesNuevo.getMonth()+1,0).getDate();mesContextual=mesNuevo;diaSeleccionado=claveDiaCalendario(new Date(mesNuevo.getFullYear(),mesNuevo.getMonth(),Math.min(seleccionado.getDate(),ultimoDia)));const pantalla=document.querySelector(".contenedor>.pantalla.activa")?.id;if(pantalla==="seccionFechas")mostrarFechas(true);else if(pantalla==="seccionTareas")mostrarListaTareas();else if(pantalla==="seccionEntrenamiento")mostrarListaEntrenamientos();else{if(pantalla==="seccionSalud"){const input=document.getElementById("fechaSalud");if(input)input.value=diaSeleccionado;mostrarListaSalud();}if(pantalla==="seccionIzel"){const input=document.getElementById("fechaIzel");if(input)input.value=diaSeleccionado;mostrarListaIzel();}if(pantalla==="seccionAprendizajes"){const input=document.getElementById("fechaAprendizaje");if(input)input.value=diaSeleccionado;}if(pantalla==="seccionPagos"){const input=document.getElementById("fechaPago");if(input)input.value=diaSeleccionado;mostrarListaPagos();return;}if(pantalla==="seccionFinanzas"){const input=document.getElementById("fechaFinanzas");if(input)input.value=diaSeleccionado;mostrarListaFinanzas();}actualizarCalendarioContextual();}}
 function actualizarCalendarioContextual() {
     const grid = document.getElementById("cuadriculaCalendario");
     const title = document.getElementById("mesCalendarioTitulo");
@@ -1413,8 +1625,15 @@ function actualizarCalendarioContextual() {
         });
     }
     if (isPayments && Array.isArray(pagosPendientes)) {
+        const totalDiasPagos = new Date(mesContextual.getFullYear(), mesContextual.getMonth() + 1, 0).getDate();
         pagosPendientes.forEach(item => {
-            if (item.fecha) items.push({ fecha: item.fecha, texto: (item.pagado ? "☑️ " : "💡 ") + (item.nombre || "Pago") });
+            if (!item.fecha) return;
+            for (let dia = 1; dia <= totalDiasPagos; dia++) {
+                const clave = claveDiaCalendario(new Date(mesContextual.getFullYear(), mesContextual.getMonth(), dia));
+                if (!pagoOcurreEnFecha(item, clave)) continue;
+                const pagadoEnDia = pagoPagadoEnFecha(item, clave);
+                items.push({ fecha: clave, texto: (pagadoEnDia ? "☑️ " : "💡 ") + (item.nombre || "Pago") });
+            }
         });
     }
     if (isFinance && Array.isArray(gastos)) {
@@ -1626,6 +1845,8 @@ function actualizarCalendarioContextual() {
             if (isPayments) {
                 const input = document.getElementById("fechaPago");
                 if (input) input.value = clave;
+                mostrarListaPagos();
+                return;
             }
             if (isFinance) {
                 const input = document.getElementById("fechaFinanzas");
@@ -1679,7 +1900,7 @@ function obtenerAvisosDelDia(fechaHoy) {
         if (tarea.prioridad === "alta" && tareaOcurreEnFecha(tarea, fechaHoy) && !tareaCompletadaEnFecha(tarea, fechaHoy)) avisos.push({ categoria:"Tarea de prioridad alta", texto:tarea.texto||"Tarea sin título" });
     });
     pagosPendientes.forEach(pago => {
-        if (!pago.pagado && pago.fecha === fechaHoy) avisos.push({ categoria:"Pago pendiente", texto:(pago.nombre||"Pago")+" · "+formatoMonedaPago(pago.monto) });
+        if (pagoOcurreEnFecha(pago, fechaHoy) && !pagoPagadoEnFecha(pago, fechaHoy)) avisos.push({ categoria:"Pago pendiente", texto:(pago.nombre||"Pago")+" · "+formatoMonedaPago(pago.monto) });
     });
     entrenamientos.forEach(item => {
         if (entrenamientoOcurreEnFecha(item, fechaHoy) && !entrenamientoCompletadoEnFecha(item, fechaHoy)) avisos.push({ categoria:"Entrenamiento", texto:item.actividad||"Actividad programada" });
@@ -1840,7 +2061,6 @@ function cambiarEstadoObjetivo(indice, completado) {
     guardarObjetivosEnDispositivo();
     mostrarListaObjetivos();
 }
-
 function guardarRegistrosTiempoEnDispositivo() {
     localStorage.setItem("registrosTiempo", JSON.stringify(registrosTiempo));
 }
@@ -1971,8 +2191,13 @@ function eliminarRegistroTiempo(indice) {
     mostrarListaTiempo();
 }
 function guardarProyectosEnDispositivo() {
-    localStorage.setItem("proyectos", JSON.stringify(proyectos));
+    proyectosLocalesEnDispositivo=proyectos.filter(proyecto=>!proyecto.ownerUid);
+    localStorage.setItem("proyectos", JSON.stringify(proyectosLocalesEnDispositivo));
+    proyectos.filter(proyecto=>Boolean(proyecto.ownerUid)).forEach(proyecto=>sincronizarProyectoPendiente(proyecto.id));
 }
+
+function firmaProyecto(proyecto){if(!proyecto)return"";const data={...proyecto};delete data.id;delete data.ownerUid;delete data.sharedWithUids;delete data.pairId;return JSON.stringify({data,sharedWithUids:proyecto.sharedWithUids||[],pairId:proyecto.pairId||null});}
+function sincronizarProyectoPendiente(id){if(!id||!proyectosUsuarioUid)return Promise.resolve();const previa=colasProyectosSincronizando.get(id)||Promise.resolve();const tarea=previa.catch(()=>{}).then(async()=>{const indice=proyectos.findIndex(item=>item.id===id),actual=proyectos[indice];if(indice<0||!actual?.ownerUid)return;const firmaActual=firmaProyecto(actual);if(firmasProyectosSincronizados.get(id)===firmaActual)return;const copia=JSON.parse(JSON.stringify(actual));if(!window.miappProyectosCloud)throw new Error("La sincronización de Proyectos todavía se está iniciando.");const guardado=await window.miappProyectosCloud.guardar(copia,Boolean(copia.sharedWithUids?.length));const posicion=proyectos.findIndex(item=>item.id===id);if(posicion<0)return;const estadoActual=proyectos[posicion];if(firmaProyecto(estadoActual)===firmaActual)proyectos[posicion]=guardado;else Object.assign(estadoActual,{ownerUid:guardado.ownerUid,sharedWithUids:guardado.sharedWithUids,pairId:guardado.pairId});const sincronizado=proyectos[posicion];proyectosNube=proyectosNube.filter(item=>item.id!==id).concat(JSON.parse(JSON.stringify(sincronizado)));firmasProyectosSincronizados.set(id,firmaProyecto(guardado));if(firmaProyecto(sincronizado)!==firmaProyecto(guardado))queueMicrotask(()=>sincronizarProyectoPendiente(id));if(document.getElementById("seccionProyectos")?.classList.contains("activa"))mostrarListaProyectos();});colasProyectosSincronizando.set(id,tarea);tarea.catch(error=>{console.error("No se pudo sincronizar el proyecto:",error);const estado=document.getElementById("estadoSincronizacionProyectos");if(estado){estado.textContent="No se pudo sincronizar un cambio de proyecto: "+(error.message||"revisa tu conexión.");estado.dataset.error="true";}}).finally(()=>{if(colasProyectosSincronizando.get(id)===tarea)colasProyectosSincronizando.delete(id);});return tarea;}
 
 function asegurarRamasProyecto(proyecto) {
     const migrarComoCompletado = proyecto.estado === "completado" && proyecto.completada !== true;
@@ -2091,6 +2316,8 @@ function abrirNuevoProyecto() {
     document.getElementById("tituloProyecto").value = "";
     document.getElementById("descripcionProyecto").value = "";
     document.getElementById("estadoProyecto").value = "activo";
+    document.getElementById("compartirProyecto").checked = false;
+    actualizarControlCompartirProyecto();
     document.getElementById("tituloModalProyecto").textContent = "＋ Nuevo proyecto";
     document.getElementById("botonGuardarProyecto").textContent = "Guardar proyecto";
     document.getElementById("modalProyecto").style.display = "flex";
@@ -2104,6 +2331,8 @@ function editarProyecto(indice) {
     document.getElementById("tituloProyecto").value = proyecto.titulo || "";
     document.getElementById("descripcionProyecto").value = proyecto.descripcion || "";
     document.getElementById("estadoProyecto").value = proyecto.estado || "activo";
+    document.getElementById("compartirProyecto").checked = Boolean(proyecto.sharedWithUids?.length);
+    actualizarControlCompartirProyecto();
     document.getElementById("tituloModalProyecto").textContent = "✏️ Editar proyecto";
     document.getElementById("botonGuardarProyecto").textContent = "Guardar cambios";
     document.getElementById("modalProyecto").style.display = "flex";
@@ -2116,12 +2345,13 @@ function cerrarModalProyecto() {
     proyectoEditando = null;
 }
 
-function guardarProyecto() {
+async function guardarProyecto() {
     const tituloCampo = document.getElementById("tituloProyecto");
     const titulo = tituloCampo.value.trim();
     if (!titulo) { alert("Escribe el nombre del proyecto."); tituloCampo.focus(); return; }
     const anterior = proyectoEditando === null ? null : proyectos[proyectoEditando];
     const proyecto = {
+        ...(anterior||{}),
         id: anterior?.id || "proyecto-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
         titulo,
         descripcion: document.getElementById("descripcionProyecto").value.trim(),
@@ -2132,11 +2362,24 @@ function guardarProyecto() {
         creadoEn: anterior?.creadoEn || new Date().toISOString()
     };
     actualizarMarcadoDescendientes(asegurarRamasProyecto(proyecto), proyecto.completada);
-    if (proyectoEditando === null) proyectos.push(proyecto);
-    else proyectos[proyectoEditando] = proyecto;
-    guardarProyectosEnDispositivo();
-    cerrarModalProyecto();
-    mostrarListaProyectos();
+    const compartir=document.getElementById("compartirProyecto").checked,boton=document.getElementById("botonGuardarProyecto");
+    boton.disabled=true;
+    try{
+        if(anterior?.ownerUid||(proyectosUsuarioUid&&(proyectoEditando===null||compartir))){
+            if(!window.miappProyectosCloud)throw new Error("La sincronización de Proyectos todavía se está iniciando. Inténtalo en unos segundos.");
+            const guardado=await window.miappProyectosCloud.guardar(proyecto,compartir);
+            if(!anterior?.ownerUid)proyectosLocalesEnDispositivo=proyectosLocalesEnDispositivo.filter(item=>item.id!==anterior?.id);
+            proyectosNube=proyectosNube.filter(item=>item.id!==guardado.id).concat(JSON.parse(JSON.stringify(guardado)));
+            if(proyectoEditando===null)proyectos.push(guardado);else proyectos[proyectoEditando]=guardado;
+            firmasProyectosSincronizados.set(guardado.id,firmaProyecto(guardado));
+        }else if(proyectoEditando===null)proyectos.push(proyecto);
+        else proyectos[proyectoEditando]=proyecto;
+        proyectoEditando=null;
+        guardarProyectosEnDispositivo();
+        cerrarModalProyecto();
+        mostrarListaProyectos();
+    }catch(error){alert("No se pudo guardar el proyecto: "+(error.message||"revisa tu conexión."));}
+    finally{boton.disabled=false;}
 }
 
 function cambiarEstadoProyecto(indice, estado) {
@@ -2149,11 +2392,12 @@ function cambiarEstadoProyecto(indice, estado) {
     mostrarListaProyectos();
 }
 
-function eliminarProyecto(indice) {
+async function eliminarProyecto(indice) {
     if (!proyectos[indice] || !confirm("¿Quieres eliminar este proyecto y sus subtareas?")) return;
-    proyectos.splice(indice, 1);
-    guardarProyectosEnDispositivo();
-    mostrarListaProyectos();
+    const proyecto=proyectos[indice];
+    if(proyecto.ownerUid&&proyecto.ownerUid!==proyectosUsuarioUid){alert("Solo quien creó este proyecto puede eliminarlo.");return;}
+    try{if(proyecto.ownerUid){if(!window.miappProyectosCloud)throw new Error("La sincronización todavía se está iniciando.");await window.miappProyectosCloud.eliminar(proyecto);proyectosNube=proyectosNube.filter(item=>item.id!==proyecto.id);firmasProyectosSincronizados.delete(proyecto.id);}proyectos.splice(indice,1);guardarProyectosEnDispositivo();mostrarListaProyectos();}
+    catch(error){alert("No se pudo eliminar el proyecto: "+(error.message||"revisa tu conexión."));}
 }
 
 function agregarRamaProyecto(indice, ruta, titulo) {
@@ -2269,6 +2513,7 @@ function crearTarjetaProyecto(proyecto, indice) {
     controles.append(etiquetaCheck, estado, indicador);
     encabezado.append(titulo, controles);
     tarjeta.appendChild(encabezado);
+    const privacidad=document.createElement("small");privacidad.className="estado-privacidad-proyecto";privacidad.textContent=!proyecto.ownerUid?"Solo en este dispositivo":proyecto.sharedWithUids?.length?"Compartido con la cuenta vinculada":"Privado en tu cuenta";tarjeta.appendChild(privacidad);
     if (proyecto.descripcion) {
         const descripcion = document.createElement("p");
         descripcion.className = "descripcion-proyecto";
@@ -2287,6 +2532,8 @@ function crearTarjetaProyecto(proyecto, indice) {
     const eliminar = document.createElement("button");
     eliminar.type = "button";
     eliminar.textContent = "Eliminar proyecto";
+    eliminar.disabled=Boolean(proyecto.ownerUid&&proyecto.ownerUid!==proyectosUsuarioUid);
+    if(eliminar.disabled)eliminar.title="Solo quien creó este proyecto puede eliminarlo.";
     eliminar.onclick = function () { eliminarProyecto(indice); };
     acciones.append(editar, eliminar);
     tarjeta.appendChild(acciones);
@@ -2532,7 +2779,8 @@ function mostrarListaObjetivos() {
     }
     actualizarCalendarioContextual();
 }function guardarEntrenamientosEnDispositivo() {
-    localStorage.setItem("entrenamientos", JSON.stringify(entrenamientos));
+    entrenamientosLocalesEnDispositivo=entrenamientos.filter(item=>!item.ownerUid);
+    localStorage.setItem("entrenamientos", JSON.stringify(entrenamientosLocalesEnDispositivo));
     if (typeof actualizarAvisosDelDia === "function") actualizarAvisosDelDia();
 }
 
@@ -2546,6 +2794,8 @@ function abrirNuevoEntrenamiento() {
     document.getElementById("fechaEntrenamiento").value = diaSeleccionado;
     document.getElementById("duracionEntrenamiento").value = "";
     document.getElementById("notaEntrenamiento").value = "";
+    document.getElementById("compartirEntrenamiento").checked = false;
+    actualizarControlCompartirEntrenamiento();
     document.getElementById("tituloModalEntrenamiento").textContent = "＋ Nueva actividad";
     document.getElementById("botonGuardarEntrenamiento").textContent = "Guardar actividad";
     document.getElementById("modalEntrenamiento").style.display = "flex";
@@ -2564,6 +2814,8 @@ function editarEntrenamiento(indice) {
     document.getElementById("fechaEntrenamiento").value = item.fecha || diaSeleccionado;
     document.getElementById("duracionEntrenamiento").value = item.duracion || "";
     document.getElementById("notaEntrenamiento").value = item.nota || "";
+    document.getElementById("compartirEntrenamiento").checked = Boolean(item.sharedWithUids?.length);
+    actualizarControlCompartirEntrenamiento();
     document.getElementById("tituloModalEntrenamiento").textContent = "✏️ Editar actividad";
     document.getElementById("botonGuardarEntrenamiento").textContent = "Guardar cambios";
     document.getElementById("modalEntrenamiento").style.display = "flex";
@@ -2596,9 +2848,10 @@ function cerrarModalEntrenamiento() {
     const modal = document.getElementById("modalEntrenamiento");
     if (modal) modal.style.display = "none";
     entrenamientoEditando = null;
+    actualizarControlCompartirEntrenamiento();
 }
 
-function guardarEntrenamiento() {
+async function guardarEntrenamiento() {
     const actividadCampo = document.getElementById("actividadEntrenamiento");
     const fecha = document.getElementById("fechaEntrenamiento").value;
     const actividad = actividadCampo.value.trim();
@@ -2612,6 +2865,7 @@ function guardarEntrenamiento() {
     const anterior = entrenamientoEditando === null ? null : entrenamientos[entrenamientoEditando];
     const mismaSerie = anterior && anterior.fecha === fecha && (anterior.repeticion || "ninguna") === repeticion;
     const registro = {
+        ...(anterior||{}),
         id: anterior?.id || "entrenamiento-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
         tipo: document.getElementById("tipoEntrenamiento").value === "mental" ? "mental" : "fisico",
         actividad,
@@ -2623,17 +2877,23 @@ function guardarEntrenamiento() {
         fechasCompletadas: mismaSerie && Array.isArray(anterior.fechasCompletadas) ? anterior.fechasCompletadas : [],
         completada: repeticion === "ninguna" ? Boolean(anterior?.completada) : Boolean(anterior?.completada && mismaSerie)
     };
-    if (entrenamientoEditando === null) entrenamientos.push(registro);
-    else entrenamientos[entrenamientoEditando] = registro;
-    diaSeleccionado = fecha;
-    const seleccionada = new Date(fecha + "T00:00:00");
-    mesContextual = new Date(seleccionada.getFullYear(), seleccionada.getMonth(), 1);
-    guardarEntrenamientosEnDispositivo();
-    cerrarModalEntrenamiento();
-    mostrarListaEntrenamientos();
+    const compartir=document.getElementById("compartirEntrenamiento").checked,boton=document.getElementById("botonGuardarEntrenamiento");boton.disabled=true;
+    try{
+        if(anterior?.ownerUid||(entrenamientoUsuarioUid&&(entrenamientoEditando===null||compartir))){
+            if(!window.miappEntrenamientoCloud)throw new Error("La sincronización de Entrenamiento todavía se está iniciando. Inténtalo en unos segundos.");
+            const guardado=await window.miappEntrenamientoCloud.guardar({...anterior,...registro},compartir);
+            if(!anterior?.ownerUid)entrenamientosLocalesEnDispositivo=entrenamientosLocalesEnDispositivo.filter(item=>item.id!==anterior?.id);
+            entrenamientosNube=entrenamientosNube.filter(item=>item.id!==guardado.id).concat(guardado);
+            if(entrenamientoEditando===null)entrenamientos.push(guardado);else entrenamientos[entrenamientoEditando]=guardado;
+        }else if(entrenamientoEditando===null)entrenamientos.push(registro);
+        else entrenamientos[entrenamientoEditando]=registro;
+        entrenamientoEditando=null;diaSeleccionado=fecha;const seleccionada=new Date(fecha+"T00:00:00");mesContextual=new Date(seleccionada.getFullYear(),seleccionada.getMonth(),1);
+        guardarEntrenamientosEnDispositivo();cerrarModalEntrenamiento();mostrarListaEntrenamientos();mostrarResumenEntrenamiento();
+    }catch(error){alert("No se pudo guardar la actividad: "+(error.message||"revisa tu conexión."));}
+    finally{boton.disabled=false;}
 }
 
-function cambiarEstadoEntrenamiento(indice, fechaClave, completada) {
+async function cambiarEstadoEntrenamiento(indice, fechaClave, completada) {
     const item = entrenamientos[indice];
     if (!item || !entrenamientoOcurreEnFecha(item, fechaClave)) return;
     if (item.repeticion && item.repeticion !== "ninguna") {
@@ -2644,15 +2904,15 @@ function cambiarEstadoEntrenamiento(indice, fechaClave, completada) {
     } else {
         item.completada = completada;
     }
-    guardarEntrenamientosEnDispositivo();
-    mostrarListaEntrenamientos();
+    try{if(item.ownerUid){if(!window.miappEntrenamientoCloud)throw new Error("La sincronización todavía se está iniciando.");await window.miappEntrenamientoCloud.marcar(item,fechaClave,completada);entrenamientosNube=entrenamientosNube.map(registro=>registro.id===item.id?{...item}:registro);}guardarEntrenamientosEnDispositivo();mostrarListaEntrenamientos();mostrarResumenEntrenamiento();}
+    catch(error){alert("No se pudo actualizar la actividad: "+(error.message||"revisa tu conexión."));}
 }
 
-function eliminarEntrenamiento(indice) {
+async function eliminarEntrenamiento(indice) {
     if (!entrenamientos[indice] || !confirm("¿Quieres eliminar esta actividad de entrenamiento?")) return;
-    entrenamientos.splice(indice, 1);
-    guardarEntrenamientosEnDispositivo();
-    mostrarListaEntrenamientos();
+    const item=entrenamientos[indice];if(item.ownerUid&&item.ownerUid!==entrenamientoUsuarioUid){alert("Solo quien creó esta actividad puede eliminarla.");return;}
+    try{if(item.ownerUid){if(!window.miappEntrenamientoCloud)throw new Error("La sincronización todavía se está iniciando.");await window.miappEntrenamientoCloud.eliminar(item);entrenamientosNube=entrenamientosNube.filter(registro=>registro.id!==item.id);}entrenamientos.splice(indice,1);guardarEntrenamientosEnDispositivo();mostrarListaEntrenamientos();mostrarResumenEntrenamiento();}
+    catch(error){alert("No se pudo eliminar la actividad: "+(error.message||"revisa tu conexión."));}
 }
 
 function mostrarListaEntrenamientos() {
@@ -2680,6 +2940,7 @@ function mostrarListaEntrenamientos() {
         tipo.textContent = item.tipo === "mental" ? "Ejercicio mental" : "Ejercicio físico";
         encabezado.append(nombre, tipo);
         tarjeta.appendChild(encabezado);
+        const privacidad=document.createElement("small");privacidad.className="detalle-entrenamiento";privacidad.textContent=!item.ownerUid?"Solo en este dispositivo":item.sharedWithUids?.length?"Compartida con la cuenta vinculada":"Privada en tu cuenta";tarjeta.appendChild(privacidad);
         if (item.repeticion && item.repeticion !== "ninguna") {
             const nombresRepeticion = { diaria: "Cada día", semanal: "Cada semana", quincenal: "Cada 2 semanas", mensual: "Cada mes", anual: "Cada año" };
             const repeticionTexto = document.createElement("p");
@@ -2715,6 +2976,8 @@ function mostrarListaEntrenamientos() {
         const borrar = document.createElement("button");
         borrar.type = "button";
         borrar.textContent = "Eliminar";
+        borrar.disabled=Boolean(item.ownerUid&&item.ownerUid!==entrenamientoUsuarioUid);
+        if(borrar.disabled)borrar.title="Solo quien creó esta actividad puede eliminarla.";
         borrar.onclick = function () { eliminarEntrenamiento(indice); };
         acciones.append(etiqueta, editar, borrar);
         tarjeta.appendChild(acciones);
@@ -2848,6 +3111,198 @@ function mostrarResumenEntrenamiento() {
     }
     panel.appendChild(tendencia);
 }
+function prepararInterfazResumenTareas() {
+    const seccion = document.getElementById("resultadoTareas");
+    if (!seccion || document.getElementById("panelResumenTareas")) return;
+    seccion.replaceChildren();
+    const titulo = document.createElement("h2");
+    titulo.textContent = "✅ Resultado de tareas";
+    const descripcion = document.createElement("p");
+    descripcion.textContent = "Consulta las tareas programadas, completadas y pendientes por día, semana, mes o año. Las repeticiones se cuentan por cada fecha en que ocurren.";
+    const controles = document.createElement("div");
+    controles.className = "controles-resumen-finanzas";
+    const campoPeriodo = document.createElement("div");
+    const etiquetaPeriodo = document.createElement("label");
+    etiquetaPeriodo.htmlFor = "periodoResumenTareas";
+    etiquetaPeriodo.textContent = "Periodo";
+    const selectorPeriodo = document.createElement("select");
+    selectorPeriodo.id = "periodoResumenTareas";
+    [["dia", "Día"], ["semana", "Semana"], ["mes", "Mes"], ["anio", "Año"]].forEach(([valor, texto]) => {
+        const opcion = document.createElement("option");
+        opcion.value = valor;
+        opcion.textContent = texto;
+        if (valor === "mes") opcion.selected = true;
+        selectorPeriodo.appendChild(opcion);
+    });
+    selectorPeriodo.onchange = mostrarResumenTareas;
+    campoPeriodo.append(etiquetaPeriodo, selectorPeriodo);
+    const campoFecha = document.createElement("div");
+    const etiquetaFecha = document.createElement("label");
+    etiquetaFecha.htmlFor = "fechaReferenciaTareas";
+    etiquetaFecha.textContent = "Fecha de referencia";
+    const selectorFecha = document.createElement("input");
+    selectorFecha.id = "fechaReferenciaTareas";
+    selectorFecha.type = "date";
+    selectorFecha.value = diaSeleccionado || fechaClaveCalendario(new Date());
+    selectorFecha.onchange = mostrarResumenTareas;
+    campoFecha.append(etiquetaFecha, selectorFecha);
+    controles.append(campoPeriodo, campoFecha);
+    const panel = document.createElement("div");
+    panel.id = "panelResumenTareas";
+    panel.className = "panel-resumen-tareas";
+    panel.setAttribute("aria-live", "polite");
+    seccion.append(titulo, descripcion, controles, panel);
+}
+
+function mostrarResumenTareas() {
+    prepararInterfazResumenTareas();
+    const panel = document.getElementById("panelResumenTareas");
+    const selectorPeriodo = document.getElementById("periodoResumenTareas");
+    const selectorFecha = document.getElementById("fechaReferenciaTareas");
+    if (!panel || !selectorPeriodo || !selectorFecha) return;
+    if (!selectorFecha.value) selectorFecha.value = diaSeleccionado || fechaClaveCalendario(new Date());
+    panel.replaceChildren();
+
+    const periodo = selectorPeriodo.value;
+    const rango = obtenerRangoResumenFinanzas(periodo, selectorFecha.value);
+    const ocurrencias = [];
+    const gruposTarea = new Map();
+    for (let desplazamiento = 0; desplazamiento < rango.cantidadDias; desplazamiento++) {
+        const fecha = claveDiaCalendario(new Date(rango.inicio.getFullYear(), rango.inicio.getMonth(), rango.inicio.getDate() + desplazamiento));
+        tareas.forEach((tarea, indice) => {
+            if (!tarea.fecha || !tareaOcurreEnFecha(tarea, fecha)) return;
+            const completada = tareaCompletadaEnFecha(tarea, fecha);
+            const prioridad = ["alta", "media", "baja"].includes(tarea.prioridad) ? tarea.prioridad : "ninguna";
+            const ocurrencia = { tarea, indice, fecha, completada, prioridad };
+            ocurrencias.push(ocurrencia);
+            if (!gruposTarea.has(indice)) gruposTarea.set(indice, { tarea, prioridad, total: 0, completadas: 0, fechas: [] });
+            const grupo = gruposTarea.get(indice);
+            grupo.total++;
+            if (completada) grupo.completadas++;
+            grupo.fechas.push({ fecha, completada });
+        });
+    }
+
+    const completadas = ocurrencias.filter(item => item.completada).length;
+    const pendientes = ocurrencias.length - completadas;
+    const altaPendiente = ocurrencias.filter(item => item.prioridad === "alta" && !item.completada).length;
+    const cumplimiento = ocurrencias.length ? Math.round(completadas / ocurrencias.length * 100) : 0;
+    const nombrePeriodo = { dia: "del día", semana: "de la semana", mes: "del mes", anio: "del año" }[periodo];
+    const tarjetas = document.createElement("div");
+    tarjetas.className = "tarjetas-resumen-finanzas";
+    [
+        [String(ocurrencias.length), "Ocurrencias " + nombrePeriodo],
+        [String(completadas), "Completadas"],
+        [String(pendientes), "Pendientes"],
+        [cumplimiento + "%", "Cumplimiento"],
+        [String(altaPendiente), "Pendientes de prioridad alta"]
+    ].forEach(([valor, etiqueta]) => {
+        const tarjeta = document.createElement("article");
+        tarjeta.className = "tarjeta-metrica-finanzas";
+        const numero = document.createElement("strong");
+        numero.textContent = valor;
+        const texto = document.createElement("span");
+        texto.textContent = etiqueta;
+        tarjeta.append(numero, texto);
+        tarjetas.appendChild(tarjeta);
+    });
+    panel.appendChild(tarjetas);
+
+    const porPrioridad = document.createElement("section");
+    porPrioridad.className = "resumen-prioridades-tareas";
+    const tituloPrioridad = document.createElement("h3");
+    tituloPrioridad.textContent = "Desglose por prioridad";
+    porPrioridad.appendChild(tituloPrioridad);
+    [["alta", "🔴 Alta"], ["media", "🟡 Media"], ["baja", "🟢 Baja"], ["ninguna", "⚪ Sin prioridad"]].forEach(([prioridad, nombre]) => {
+        const grupo = ocurrencias.filter(item => item.prioridad === prioridad);
+        const realizadas = grupo.filter(item => item.completada).length;
+        const fila = document.createElement("p");
+        fila.textContent = nombre + " · " + grupo.length + " programadas · " + realizadas + " completadas · " + (grupo.length - realizadas) + " pendientes";
+        porPrioridad.appendChild(fila);
+    });
+    panel.appendChild(porPrioridad);
+
+    const grafica = document.createElement("section");
+    grafica.className = "grafica-tendencia-finanzas";
+    const tituloGrafica = document.createElement("h3");
+    tituloGrafica.textContent = periodo === "anio" ? "Tareas por mes" : periodo === "dia" ? "Tareas del día" : "Tareas por día";
+    grafica.appendChild(tituloGrafica);
+    if (!ocurrencias.length) {
+        const vacio = document.createElement("p");
+        vacio.textContent = "No hay tareas con fecha en este periodo.";
+        grafica.appendChild(vacio);
+    } else {
+        const serie = [];
+        if (periodo === "anio") {
+            for (let mes = 0; mes < 12; mes++) {
+                const desde = claveDiaCalendario(new Date(rango.inicio.getFullYear(), mes, 1));
+                const hasta = claveDiaCalendario(new Date(rango.inicio.getFullYear(), mes + 1, 0));
+                const items = ocurrencias.filter(item => item.fecha >= desde && item.fecha <= hasta);
+                serie.push({ etiqueta: new Date(rango.inicio.getFullYear(), mes, 1).toLocaleDateString("es-MX", { month: "short" }), total: items.length, completadas: items.filter(item => item.completada).length });
+            }
+        } else {
+            for (let dia = 0; dia < rango.cantidadDias; dia++) {
+                const fecha = claveDiaCalendario(new Date(rango.inicio.getFullYear(), rango.inicio.getMonth(), rango.inicio.getDate() + dia));
+                const items = ocurrencias.filter(item => item.fecha === fecha);
+                serie.push({ etiqueta: periodo === "dia" ? "Hoy" : periodo === "semana" ? new Date(fecha + "T00:00:00").toLocaleDateString("es-MX", { weekday: "short" }) : String(Number(fecha.slice(-2))), total: items.length, completadas: items.filter(item => item.completada).length });
+            }
+        }
+        const barras = document.createElement("div");
+        barras.className = "grafica-barras-finanzas";
+        const maximo = Math.max(...serie.map(item => item.total), 1);
+        serie.forEach(item => {
+            const columna = document.createElement("div");
+            columna.className = "columna-grafica-finanzas";
+            columna.title = item.etiqueta + ": " + item.total + " programadas, " + item.completadas + " completadas";
+            const barra = document.createElement("span");
+            barra.className = "barra-periodo-finanzas";
+            barra.style.height = Math.max(3, item.total / maximo * 100) + "%";
+            barra.setAttribute("aria-label", item.total + " tareas, " + item.completadas + " completadas");
+            const valor = document.createElement("small");
+            valor.className = "valor-periodo-finanzas";
+            valor.textContent = String(item.total);
+            const etiqueta = document.createElement("small");
+            etiqueta.className = "etiqueta-periodo-finanzas";
+            etiqueta.textContent = item.etiqueta;
+            columna.append(barra, valor, etiqueta);
+            barras.appendChild(columna);
+        });
+        grafica.appendChild(barras);
+    }
+    panel.appendChild(grafica);
+
+    const lista = document.createElement("section");
+    lista.className = "lista-resumen-tareas";
+    const tituloLista = document.createElement("h3");
+    tituloLista.textContent = "Tareas del periodo";
+    lista.appendChild(tituloLista);
+    if (!gruposTarea.size) {
+        const vacio = document.createElement("p");
+        vacio.className = "estado-vacio-modulo";
+        vacio.textContent = "Aún no hay tareas con fecha para este periodo.";
+        lista.appendChild(vacio);
+    } else {
+        gruposTarea.forEach(grupo => {
+            const tarjeta = document.createElement("article");
+            tarjeta.className = "tarjeta-resumen-tarea";
+            const nombre = document.createElement("h4");
+            nombre.textContent = (grupo.tarea.prioridad === "alta" ? "🔴 " : grupo.tarea.prioridad === "media" ? "🟡 " : grupo.tarea.prioridad === "baja" ? "🟢 " : "⚪ ") + (grupo.tarea.texto || "Tarea sin título");
+            const detalle = document.createElement("p");
+            detalle.textContent = grupo.total + (grupo.total === 1 ? " ocurrencia" : " ocurrencias") + " · " + grupo.completadas + " completadas · " + (grupo.total - grupo.completadas) + " pendientes";
+            tarjeta.append(nombre, detalle);
+            if (grupo.fechas.length > 1) {
+                const fechas = document.createElement("small");
+                const muestra = grupo.fechas.slice(0, 6).map(item => formatoFechaCorta(item.fecha) + (item.completada ? " ✓" : " · pendiente"));
+                if (grupo.fechas.length > muestra.length) muestra.push("y " + (grupo.fechas.length - muestra.length) + " más");
+                fechas.textContent = "Ocurrencias: " + muestra.join(" · ");
+                tarjeta.appendChild(fechas);
+            }
+            lista.appendChild(tarjeta);
+        });
+    }
+    panel.appendChild(lista);
+}
+
 function mostrarResumenTiempo() {
     const panel = document.getElementById("panelResumenTiempo");
     const selectorPeriodo = document.getElementById("periodoResumenTiempo");
@@ -3125,14 +3580,20 @@ function mostrarResumenFinanzas() {
     panel.appendChild(bloqueTendencia);
 }
 
-function guardarPagosEnDispositivo(){localStorage.setItem("pagosPendientes",JSON.stringify(pagosPendientes));if(typeof actualizarAvisosDelDia==="function")actualizarAvisosDelDia();}
+function guardarPagosEnDispositivo(){localStorage.setItem("pagosPendientes",JSON.stringify(pagosLocalesEnDispositivo));if(typeof actualizarAvisosDelDia==="function")actualizarAvisosDelDia();}
 function formatoMonedaPago(monto){return new Intl.NumberFormat("es-MX",{style:"currency",currency:"MXN"}).format(Number(monto)||0);}
-function mostrarListaPagos(){const lista=document.getElementById("listaPagos");if(!lista)return;lista.replaceChildren();if(!pagosPendientes.length){const p=document.createElement("p");p.textContent="Aún no has registrado pagos.";lista.appendChild(p);actualizarCalendarioContextual();return;}pagosPendientes.map((pago,indice)=>({pago,indice})).sort((a,b)=>(a.pago.fecha||"").localeCompare(b.pago.fecha||"")).forEach(({pago,indice})=>{const tarjeta=document.createElement("article");tarjeta.className="tarjeta-pago";const titulo=document.createElement("h3");titulo.textContent=pago.nombre;const detalle=document.createElement("p");detalle.textContent=(pago.pagado?"✅ Pagado":"⏳ Pendiente")+" · Vence: "+(pago.fecha||"Sin fecha")+" · "+formatoMonedaPago(pago.monto);const acciones=document.createElement("div");acciones.className="acciones-pago-tarjeta";const estado=document.createElement("button");estado.type="button";estado.textContent=pago.pagado?"Marcar pendiente":"Marcar pagado";estado.onclick=function(){cambiarEstadoPago(indice);};const editar=document.createElement("button");editar.type="button";editar.textContent="Editar";editar.onclick=function(){editarPago(indice);};const borrar=document.createElement("button");borrar.type="button";borrar.textContent="Eliminar";borrar.onclick=function(){eliminarPago(indice);};acciones.append(estado,editar,borrar);tarjeta.append(titulo,detalle,acciones);lista.appendChild(tarjeta);});actualizarCalendarioContextual();}
-function guardarPago(){const nombre=document.getElementById("nombrePago"),fecha=document.getElementById("fechaPago"),monto=document.getElementById("montoPago"),pagado=document.getElementById("pagoRealizado"),concepto=nombre.value.trim(),importe=Number(monto.value);if(!concepto){alert("Escribe el concepto del pago.");nombre.focus();return;}if(!fecha.value){alert("Selecciona la fecha de vencimiento.");fecha.focus();return;}if(!Number.isFinite(importe)||importe<=0){alert("Escribe un monto mayor que cero.");monto.focus();return;}if(pagoEditando===null){pagosPendientes.push({id:"pago-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),nombre:concepto,fecha:fecha.value,monto:importe,pagado:pagado.checked});}else{pagosPendientes[pagoEditando]={...pagosPendientes[pagoEditando],nombre:concepto,fecha:fecha.value,monto:importe,pagado:pagado.checked};}pagoEditando=null;guardarPagosEnDispositivo();cancelarEdicionPago();mostrarListaPagos();mostrarResumenPagos();}
-function editarPago(indice){const pago=pagosPendientes[indice];if(!pago)return;pagoEditando=indice;document.getElementById("nombrePago").value=pago.nombre||"";document.getElementById("fechaPago").value=pago.fecha||"";document.getElementById("montoPago").value=Number(pago.monto)||"";document.getElementById("pagoRealizado").checked=Boolean(pago.pagado);document.getElementById("botonGuardarPago").textContent="Guardar cambios";document.getElementById("botonCancelarPago").hidden=false;document.getElementById("nombrePago").focus();}
-function cancelarEdicionPago(){pagoEditando=null;const nombre=document.getElementById("nombrePago");if(!nombre)return;nombre.value="";document.getElementById("fechaPago").value=fechaClaveCalendario(new Date());document.getElementById("montoPago").value="";document.getElementById("pagoRealizado").checked=false;document.getElementById("botonGuardarPago").textContent="Agregar pago";document.getElementById("botonCancelarPago").hidden=true;}
-function cambiarEstadoPago(indice){const pago=pagosPendientes[indice];if(!pago)return;pago.pagado=!pago.pagado;guardarPagosEnDispositivo();mostrarListaPagos();mostrarResumenPagos();}
-function eliminarPago(indice){if(!pagosPendientes[indice])return;if(!confirm("¿Quieres eliminar este pago?"))return;pagosPendientes.splice(indice,1);guardarPagosEnDispositivo();mostrarListaPagos();mostrarResumenPagos();}
+function pagoOcurreEnFecha(pago,fecha){return tareaOcurreEnFecha({fecha:pago?.fecha,repeticion:pago?.repeticion||"ninguna",repeticionHasta:pago?.repeticionHasta||""},fecha);}
+function pagoPagadoEnFecha(pago,fecha){if(!pago)return false;if(!pago.repeticion||pago.repeticion==="ninguna")return Boolean(pago.pagado);return Array.isArray(pago.fechasPagadas)&&pago.fechasPagadas.includes(fecha)||fecha===pago.fecha&&Boolean(pago.pagado);}
+function actualizarCampoFinRepeticionPago(){const repetir=document.getElementById("repeticionPago"),grupo=document.getElementById("grupoFinRepeticionPago"),hasta=document.getElementById("repeticionHastaPago"),fecha=document.getElementById("fechaPago");if(!repetir||!grupo||!hasta)return;const activa=repetir.value!=="ninguna";grupo.hidden=!activa;hasta.required=activa;if(fecha?.value)hasta.min=fecha.value;if(!activa)hasta.value="";}
+function seleccionarFechaPago(fecha){if(!fecha)return;diaSeleccionado=fecha;mesContextual=new Date(fecha+"T00:00:00");mesContextual=new Date(mesContextual.getFullYear(),mesContextual.getMonth(),1);actualizarCampoFinRepeticionPago();mostrarListaPagos();}
+function mostrarListaPagos(){const lista=document.getElementById("listaPagos");if(!lista)return;lista.replaceChildren();if(!pagosPendientes.length){const p=document.createElement("p");p.textContent="Aún no has registrado pagos.";lista.appendChild(p);actualizarCalendarioContextual();return;}pagosPendientes.map((pago,indice)=>({pago,indice})).sort((a,b)=>(a.pago.fecha||"").localeCompare(b.pago.fecha||"")).forEach(({pago,indice})=>{const tarjeta=document.createElement("article");tarjeta.className="tarjeta-pago";const titulo=document.createElement("h3");titulo.textContent=pago.nombre;const recurrente=Boolean(pago.repeticion&&pago.repeticion!=="ninguna");const ocurreHoy=pagoOcurreEnFecha(pago,diaSeleccionado);const pagado=pagoPagadoEnFecha(pago,recurrente?diaSeleccionado:pago.fecha);const detalle=document.createElement("p");detalle.textContent=(recurrente?(ocurreHoy?(pagado?"✅ Pagado":"⏳ Pendiente")+" el "+diaSeleccionado:"No vence el "+diaSeleccionado)+" · Inicio: "+(pago.fecha||"Sin fecha")+(pago.repeticionHasta?" · Se repetirá hasta "+formatearFechaPago(pago.repeticionHasta):""): (pagado?"✅ Pagado":"⏳ Pendiente")+" · Vence: "+(pago.fecha||"Sin fecha"))+" · "+formatoMonedaPago(pago.monto);const privacidad=document.createElement("small");privacidad.className="privacidad-pago";privacidad.textContent=!pago.ownerUid?"Solo en este dispositivo":pago.sharedWithUids?.length?"Compartido con la cuenta vinculada":"Privado en tu cuenta";const acciones=document.createElement("div");acciones.className="acciones-pago-tarjeta";const estado=document.createElement("button");estado.type="button";estado.textContent=pagado?"Marcar pendiente":"Marcar pagado";estado.disabled=recurrente&&!ocurreHoy;estado.title=estado.disabled?"Selecciona en el calendario una fecha en la que vence este pago.":"";estado.onclick=function(){cambiarEstadoPago(indice);};const editar=document.createElement("button");editar.type="button";editar.textContent="Editar";editar.onclick=function(){editarPago(indice);};const borrar=document.createElement("button");borrar.type="button";borrar.textContent="Eliminar";borrar.disabled=Boolean(pago.ownerUid&&pago.ownerUid!==pagosUsuarioUid);if(borrar.disabled)borrar.title="Solo quien creó el pago puede eliminarlo.";borrar.onclick=function(){eliminarPago(indice);};acciones.append(estado,editar,borrar);tarjeta.append(titulo,detalle);if(recurrente){const frecuencia=document.createElement("small");frecuencia.className="privacidad-pago";frecuencia.textContent="🔁 "+etiquetaRepeticionPago(pago.repeticion);tarjeta.appendChild(frecuencia);}tarjeta.append(privacidad,acciones);lista.appendChild(tarjeta);});actualizarCalendarioContextual();}
+function etiquetaRepeticionPago(valor){return ({diaria:"Cada día",semanal:"Cada semana",quincenal:"Cada 2 semanas",mensual:"Cada mes",anual:"Cada año"})[valor]||"No repetir";}
+function formatearFechaPago(fecha){const d=new Date(fecha+"T00:00:00");return Number.isNaN(d.getTime())?fecha:d.toLocaleDateString("es-MX",{day:"numeric",month:"short",year:"numeric"}).replace(" de ","-");}
+async function guardarPago(){const nombre=document.getElementById("nombrePago"),fecha=document.getElementById("fechaPago"),monto=document.getElementById("montoPago"),pagado=document.getElementById("pagoRealizado"),repeticion=document.getElementById("repeticionPago"),hasta=document.getElementById("repeticionHastaPago"),concepto=nombre.value.trim(),importe=Number(monto.value),frecuencia=repeticion?.value||"ninguna";if(!concepto){alert("Escribe el concepto del pago.");nombre.focus();return;}if(!fecha.value){alert("Selecciona la fecha de vencimiento.");fecha.focus();return;}if(frecuencia!=="ninguna"&&(!hasta?.value||hasta.value<fecha.value)){alert("Selecciona una fecha final igual o posterior al primer vencimiento.");hasta?.focus();return;}if(!Number.isFinite(importe)||importe<=0){alert("Escribe un monto mayor que cero.");monto.focus();return;}const anterior=pagoEditando===null?null:pagosPendientes[pagoEditando];if(pagoEditando!==null&&!anterior)return;const pago={...(anterior||{}),id:anterior?.id||"pago-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),nombre:concepto,fecha:fecha.value,monto:importe,pagado:pagado.checked,repeticion:frecuencia,repeticionHasta:frecuencia==="ninguna"?"":hasta.value,fechasPagadas:anterior?.fechasPagadas||[]};const compartir=document.getElementById("compartirPago")?.checked||false;try{if(pagosUsuarioUid&&(anterior?.ownerUid||pagoEditando===null||(!anterior?.ownerUid&&compartir))){if(!window.miappPagosCloud)throw new Error("La sincronización todavía se está iniciando. Inténtalo de nuevo en unos segundos.");const guardado=await window.miappPagosCloud.guardar(pago,compartir);Object.assign(pago,guardado);pagosNube=pagosNube.filter(item=>item.id!==pago.id).concat(pago);if(!anterior?.ownerUid)pagosLocalesEnDispositivo=pagosLocalesEnDispositivo.filter(item=>item.id!==anterior?.id);}else if(anterior?.ownerUid){throw new Error("Inicia sesión otra vez para guardar este pago de la cuenta.");}else{pagosLocalesEnDispositivo=pagosLocalesEnDispositivo.filter(item=>item.id!==pago.id).concat(pago);}pagoEditando=null;guardarPagosEnDispositivo();cancelarEdicionPago();reconstruirPagos();}catch(error){alert("No se pudo guardar el pago: "+(error.message||"revisa tu conexión."));}}
+function editarPago(indice){const pago=pagosPendientes[indice];if(!pago)return;pagoEditando=indice;document.getElementById("nombrePago").value=pago.nombre||"";document.getElementById("fechaPago").value=pago.fecha||"";document.getElementById("montoPago").value=Number(pago.monto)||"";document.getElementById("pagoRealizado").checked=Boolean(pago.pagado);document.getElementById("repeticionPago").value=pago.repeticion||"ninguna";document.getElementById("repeticionHastaPago").value=pago.repeticionHasta||"";actualizarCampoFinRepeticionPago();document.getElementById("botonGuardarPago").textContent="Guardar cambios";document.getElementById("botonCancelarPago").hidden=false;actualizarControlCompartirPago();document.getElementById("nombrePago").focus();}
+function cancelarEdicionPago(){pagoEditando=null;const nombre=document.getElementById("nombrePago");if(!nombre)return;nombre.value="";document.getElementById("fechaPago").value=fechaClaveCalendario(new Date());document.getElementById("montoPago").value="";document.getElementById("pagoRealizado").checked=false;document.getElementById("repeticionPago").value="ninguna";document.getElementById("repeticionHastaPago").value="";actualizarCampoFinRepeticionPago();document.getElementById("botonGuardarPago").textContent="Agregar pago";document.getElementById("botonCancelarPago").hidden=true;actualizarControlCompartirPago();}
+async function cambiarEstadoPago(indice){const anterior=pagosPendientes[indice];if(!anterior)return;const recurrente=Boolean(anterior.repeticion&&anterior.repeticion!=="ninguna"),fecha= recurrente?diaSeleccionado:anterior.fecha;if(!pagoOcurreEnFecha(anterior,fecha))return;const nuevoEstado=!pagoPagadoEnFecha(anterior,fecha);let actualizado;if(recurrente){const fechas=new Set(Array.isArray(anterior.fechasPagadas)?anterior.fechasPagadas:[]);if(fecha===anterior.fecha&&anterior.pagado!==nuevoEstado){actualizado={...anterior,pagado:nuevoEstado};}else{if(nuevoEstado)fechas.add(fecha);else fechas.delete(fecha);actualizado={...anterior,fechasPagadas:[...fechas]};}}else actualizado={...anterior,pagado:nuevoEstado};try{if(anterior.ownerUid){if(!window.miappPagosCloud)throw new Error("La sincronización todavía se está iniciando.");if(recurrente&&!(fecha===anterior.fecha&&anterior.pagado!==nuevoEstado)){await window.miappPagosCloud.marcar(anterior,fecha,nuevoEstado);actualizado={...actualizado};}else{const guardado=await window.miappPagosCloud.guardar(actualizado,Boolean(anterior.sharedWithUids?.length));Object.assign(actualizado,guardado);}pagosNube=pagosNube.map(item=>item.id===anterior.id?actualizado:item);}else pagosLocalesEnDispositivo=pagosLocalesEnDispositivo.map(item=>item.id===anterior.id?actualizado:item);guardarPagosEnDispositivo();reconstruirPagos();}catch(error){alert("No se pudo actualizar el pago: "+(error.message||"revisa tu conexión."));}}
+async function eliminarPago(indice){const pago=pagosPendientes[indice];if(!pago)return;if(pago.ownerUid&&pago.ownerUid!==pagosUsuarioUid){alert("Solo quien creó este pago puede eliminarlo.");return;}if(!confirm("¿Quieres eliminar este pago?"))return;try{if(pago.ownerUid){if(!window.miappPagosCloud)throw new Error("La sincronización todavía se está iniciando.");await window.miappPagosCloud.eliminar(pago);pagosNube=pagosNube.filter(item=>item.id!==pago.id);}else pagosLocalesEnDispositivo=pagosLocalesEnDispositivo.filter(item=>item.id!==pago.id);guardarPagosEnDispositivo();reconstruirPagos();}catch(error){alert("No se pudo eliminar el pago: "+(error.message||"revisa tu conexión."));}}
 function mostrarResumenPagos(){const area=document.getElementById("resumenPagos");if(!area)return;area.replaceChildren();const pendientes=pagosPendientes.filter(p=>!p.pagado),pagados=pagosPendientes.filter(p=>p.pagado),totalPendiente=pendientes.reduce((s,p)=>s+(Number(p.monto)||0),0),totalPagado=pagados.reduce((s,p)=>s+(Number(p.monto)||0),0),totalRegistrado=totalPendiente+totalPagado;const tarjetas=document.createElement("div");tarjetas.className="tarjetas-resumen-pagos";[[String(pendientes.length),"Pagos pendientes"],[formatoMonedaPago(totalPendiente),"Monto pendiente"],[String(pagados.length),"Pagos realizados"],[formatoMonedaPago(totalPagado),"Monto pagado"],[formatoMonedaPago(totalRegistrado),"Total registrado"]].forEach(([valor,etiqueta])=>{const tarjeta=document.createElement("article");tarjeta.className="tarjeta-metrica-pago";const fuerte=document.createElement("strong");fuerte.textContent=valor;const texto=document.createElement("span");texto.textContent=etiqueta;tarjeta.append(fuerte,texto);tarjetas.appendChild(tarjeta);});area.appendChild(tarjetas);[[pendientes,"Pendientes","No hay pagos pendientes."],[pagados,"Realizados","Aún no has marcado pagos como realizados."]].forEach(([items,titulo,vacio])=>{const grupo=document.createElement("section");grupo.className="grupo-resumen-pagos";const h=document.createElement("h3");h.textContent=titulo+" ("+items.length+")";grupo.appendChild(h);if(!items.length){const p=document.createElement("p");p.textContent=vacio;grupo.appendChild(p);}else{const lista=document.createElement("ul");items.slice().sort((a,b)=>(a.fecha||"").localeCompare(b.fecha||"")).forEach(pago=>{const li=document.createElement("li");li.textContent=(pago.nombre||"Pago")+" · "+(pago.fecha||"Sin fecha")+" · "+formatoMonedaPago(pago.monto);lista.appendChild(li);});grupo.appendChild(lista);}area.appendChild(grupo);});}
 if(document.getElementById("fechaPago"))document.getElementById("fechaPago").value=fechaClaveCalendario(new Date());
 mostrarListaPagos();mostrarResumenPagos();
@@ -3208,12 +3669,14 @@ function mostrarListaSalud() {
 }
 
 function seleccionarFechaIzel(fecha) { if (!fecha) return; diaSeleccionado=fecha; const d=new Date(fecha+"T00:00:00"); mesContextual=new Date(d.getFullYear(),d.getMonth(),1); mostrarListaIzel(); }
-function abrirNuevoRegistroIzel() { izelEditando=null; document.getElementById("tipoRegistroIzel").value="vacuna"; document.getElementById("tituloRegistroIzel").value=""; document.getElementById("fechaRegistroIzel").value=diaSeleccionado; document.getElementById("repeticionIzel").value="ninguna"; document.getElementById("repeticionHastaIzel").value=""; actualizarCampoFinRepeticionIzel(); document.getElementById("notaRegistroIzel").value=""; document.getElementById("tituloModalIzel").textContent="＋ Nuevo registro de Izel"; document.getElementById("botonGuardarIzel").textContent="Guardar registro"; document.getElementById("modalIzel").style.display="flex"; }
-function editarRegistroIzel(indice) { const item=izelRegistros[indice]; if(!item)return; izelEditando=indice; document.getElementById("tipoRegistroIzel").value=item.tipo; document.getElementById("tituloRegistroIzel").value=item.titulo||""; document.getElementById("fechaRegistroIzel").value=item.fecha||""; document.getElementById("repeticionIzel").value=item.repeticion||"ninguna"; document.getElementById("repeticionHastaIzel").value=item.repeticionHasta||""; actualizarCampoFinRepeticionIzel(); document.getElementById("notaRegistroIzel").value=item.nota||""; document.getElementById("tituloModalIzel").textContent="✏️ Editar registro de Izel"; document.getElementById("botonGuardarIzel").textContent="Guardar cambios"; document.getElementById("modalIzel").style.display="flex"; }
+function abrirNuevoRegistroIzel() { izelEditando=null; document.getElementById("tipoRegistroIzel").value="vacuna"; document.getElementById("tituloRegistroIzel").value=""; document.getElementById("fechaRegistroIzel").value=diaSeleccionado; document.getElementById("repeticionIzel").value="ninguna"; document.getElementById("repeticionHastaIzel").value=""; actualizarCampoFinRepeticionIzel(); document.getElementById("notaRegistroIzel").value=""; document.getElementById("compartirRegistroIzel").checked=false; actualizarControlesCompartirIzel(); document.getElementById("tituloModalIzel").textContent="＋ Nuevo registro de Izel"; document.getElementById("botonGuardarIzel").textContent="Guardar registro"; document.getElementById("modalIzel").style.display="flex"; }
+function editarRegistroIzel(indice) { const item=izelRegistros[indice]; if(!item)return; izelEditando=indice; document.getElementById("tipoRegistroIzel").value=item.tipo; document.getElementById("tituloRegistroIzel").value=item.titulo||""; document.getElementById("fechaRegistroIzel").value=item.fecha||""; document.getElementById("repeticionIzel").value=item.repeticion||"ninguna"; document.getElementById("repeticionHastaIzel").value=item.repeticionHasta||""; actualizarCampoFinRepeticionIzel(); document.getElementById("notaRegistroIzel").value=item.nota||""; document.getElementById("compartirRegistroIzel").checked=Boolean(item.sharedWithUids?.length); actualizarControlesCompartirIzel(); document.getElementById("tituloModalIzel").textContent="✏️ Editar registro de Izel"; document.getElementById("botonGuardarIzel").textContent="Guardar cambios"; document.getElementById("modalIzel").style.display="flex"; }
 function actualizarCampoFinRepeticionIzel() { const repeticion=document.getElementById("repeticionIzel").value, grupo=document.getElementById("grupoFinRepeticionIzel"), campo=document.getElementById("repeticionHastaIzel"), mostrar=repeticion!=="ninguna"; grupo.hidden=!mostrar; campo.required=mostrar; if(!mostrar)campo.value=""; }
 function izelOcurreEnFecha(item, fecha) { return tareaOcurreEnFecha({fecha:item.fecha,repeticion:item.repeticion||"ninguna",repeticionHasta:item.repeticionHasta||""},fecha); }
 function izelRegistroCompletadoEnFecha(item, fecha) { if(!item)return false; if(!item.repeticion||item.repeticion==="ninguna")return Boolean(item.completado); return Array.isArray(item.fechasCompletadas)&&item.fechasCompletadas.includes(fecha); }
 function cerrarModalIzel() { document.getElementById("modalIzel").style.display="none"; izelEditando=null; }
-function guardarRegistroIzel() { const tipo=document.getElementById("tipoRegistroIzel").value, titulo=document.getElementById("tituloRegistroIzel").value.trim(), fecha=document.getElementById("fechaRegistroIzel").value, repeticion=document.getElementById("repeticionIzel").value, repeticionHasta=document.getElementById("repeticionHastaIzel").value, nota=document.getElementById("notaRegistroIzel").value.trim(); if(!titulo){alert("Escribe el nombre del registro.");document.getElementById("tituloRegistroIzel").focus();return;} if(!fecha){alert("Selecciona la fecha.");return;} if(repeticion!=="ninguna"&&!repeticionHasta){alert("Selecciona hasta qué fecha se repetirá el registro.");document.getElementById("repeticionHastaIzel").focus();return;} if(repeticion!=="ninguna"&&repeticionHasta<fecha){alert("La fecha final debe ser igual o posterior a la fecha inicial.");document.getElementById("repeticionHastaIzel").focus();return;} const anterior=izelEditando===null?null:izelRegistros[izelEditando], mismaSerie=anterior&&anterior.fecha===fecha&&(anterior.repeticion||"ninguna")===repeticion; const item={id:anterior?.id||"izel-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),tipo,titulo,fecha,nota,repeticion,repeticionHasta:repeticion==="ninguna"?"":repeticionHasta,fechasCompletadas:mismaSerie&&Array.isArray(anterior.fechasCompletadas)?anterior.fechasCompletadas:[],completado:repeticion==="ninguna"?Boolean(anterior?.completado&&mismaSerie):false}; if(izelEditando===null)izelRegistros.push(item);else izelRegistros[izelEditando]=item;localStorage.setItem("izelRegistros",JSON.stringify(izelRegistros));diaSeleccionado=fecha;const d=new Date(fecha+"T00:00:00");mesContextual=new Date(d.getFullYear(),d.getMonth(),1);cerrarModalIzel();mostrarListaIzel();mostrarResumenIzel(); }
-function cambiarEstadoRegistroIzel(indice,completado,fechaClave) { const item=izelRegistros[indice];if(!item||item.tipo==="fecha")return;const fecha=fechaClave||diaSeleccionado;if(item.repeticion&&item.repeticion!=="ninguna"){if(!Array.isArray(item.fechasCompletadas))item.fechasCompletadas=[];const posicion=item.fechasCompletadas.indexOf(fecha);if(completado&&posicion<0)item.fechasCompletadas.push(fecha);if(!completado&&posicion>=0)item.fechasCompletadas.splice(posicion,1);}else item.completado=completado;localStorage.setItem("izelRegistros",JSON.stringify(izelRegistros));mostrarListaIzel();mostrarResumenIzel(); }function eliminarRegistroIzel(indice) { if(!izelRegistros[indice]||!confirm("¿Quieres eliminar este registro de Izel?"))return;izelRegistros.splice(indice,1);localStorage.setItem("izelRegistros",JSON.stringify(izelRegistros));mostrarListaIzel();mostrarResumenIzel(); }
-function mostrarListaIzel() { const lista=document.getElementById("listaIzel");if(!lista)return;const f=document.getElementById("fechaIzel");if(f)f.value=diaSeleccionado;lista.replaceChildren();const items=izelRegistros.map((item,indice)=>({item,indice})).filter(x=>izelOcurreEnFecha(x.item,diaSeleccionado)).sort((a,b)=>a.item.tipo.localeCompare(b.item.tipo));if(!items.length){const p=document.createElement("p");p.className="estado-vacio-modulo";p.textContent="No hay vacunas, pendientes ni fechas de Izel para este día.";lista.appendChild(p);}items.forEach(({item,indice})=>{const completado=izelRegistroCompletadoEnFecha(item,diaSeleccionado);const c=document.createElement("article");c.className="tarjeta-registro-modulo tarjeta-izel";if(completado)c.classList.add("registro-izel-completado");const icono=item.tipo==="vacuna"?(completado?"✅":"💉"):item.tipo==="pendiente"?(completado?"☑️":"✅"):"🌟";const h=document.createElement("h3");h.textContent=icono+" "+item.titulo;c.appendChild(h);const meta=document.createElement("p");meta.textContent=item.tipo==="vacuna"?(completado?"Vacuna aplicada":"Vacuna pendiente") : item.tipo==="pendiente"?(completado?"Pendiente completado":"Pendiente por hacer"):"Fecha especial";c.appendChild(meta);if(item.repeticion&&item.repeticion!=="ninguna"){const nombres={diaria:"Cada día",semanal:"Cada semana",quincenal:"Cada 2 semanas",mensual:"Cada mes",anual:"Cada año"};const r=document.createElement("p");r.className="detalle-repeticion-izel";r.textContent="🔁 "+(nombres[item.repeticion]||"Recurrente")+" · Se repetirá hasta "+formatoFechaCorta(item.repeticionHasta);c.appendChild(r);}if(item.nota){const p=document.createElement("p");p.textContent=item.nota;c.appendChild(p);}const actions=document.createElement("div");actions.className="acciones-registro-modulo";if(item.tipo!=="fecha"){const check=document.createElement("label");check.className="check-registro-izel";const box=document.createElement("input");box.type="checkbox";box.checked=completado;box.onchange=()=>cambiarEstadoRegistroIzel(indice,box.checked,diaSeleccionado);check.append(box,document.createTextNode(item.tipo==="vacuna"?"Aplicada":"Realizada"));actions.appendChild(check);}const edit=document.createElement("button");edit.type="button";edit.textContent="Editar";edit.onclick=()=>editarRegistroIzel(indice);const del=document.createElement("button");del.type="button";del.textContent="Eliminar";del.onclick=()=>eliminarRegistroIzel(indice);actions.append(edit,del);c.appendChild(actions);lista.appendChild(c);});actualizarCalendarioContextual(); }function mostrarResumenIzel() { const panel=document.getElementById("panelResumenIzel"),pEl=document.getElementById("periodoResumenIzel"),fEl=document.getElementById("fechaReferenciaIzel");if(!panel||!pEl||!fEl)return;if(!fEl.value)fEl.value=fechaClaveCalendario(new Date());panel.replaceChildren();const rango=obtenerRangoResumenFinanzas(pEl.value,fEl.value),ocurrencias=[];for(const item of izelRegistros){const cursor=new Date(rango.inicio);for(let i=0;i<rango.cantidadDias;i++){const fecha=claveDiaCalendario(cursor);if(izelOcurreEnFecha(item,fecha))ocurrencias.push({...item,fechaOcurrencia:fecha,ocurrenciaCompletada:izelRegistroCompletadoEnFecha(item,fecha)});cursor.setDate(cursor.getDate()+1);}}ocurrencias.sort((a,b)=>b.fechaOcurrencia.localeCompare(a.fechaOcurrencia));const vacunas=ocurrencias.filter(x=>x.tipo==="vacuna"),pendientes=ocurrencias.filter(x=>x.tipo==="pendiente"&&!x.ocurrenciaCompletada),fechas=ocurrencias.filter(x=>x.tipo==="fecha");const cards=document.createElement("div");cards.className="tarjetas-resumen-finanzas";[[String(vacunas.length),"Ocurrencias de vacunas"],[String(vacunas.filter(x=>!x.ocurrenciaCompletada).length),"Vacunas pendientes"],[String(vacunas.filter(x=>x.ocurrenciaCompletada).length),"Vacunas aplicadas"],[String(pendientes.length),"Tareas pendientes"],[String(ocurrencias.filter(x=>x.tipo==="pendiente"&&x.ocurrenciaCompletada).length),"Tareas realizadas"],[String(fechas.length),"Fechas especiales"]].forEach(([v,l])=>{const c=document.createElement("article");c.className="tarjeta-metrica-finanzas";const s=document.createElement("strong");s.textContent=v;const t=document.createElement("span");t.textContent=l;c.append(s,t);cards.appendChild(c);});panel.appendChild(cards);const h=document.createElement("h3");h.className="titulo-lista-aprendizajes-resumen";h.textContent="Ocurrencias del periodo";panel.appendChild(h);const list=document.createElement("div");list.className="lista-registros-resumen";if(!ocurrencias.length){const p=document.createElement("p");p.className="estado-vacio-modulo";p.textContent="Aún no hay registros de Izel en este periodo.";list.appendChild(p);}else ocurrencias.forEach(item=>{const c=document.createElement("article");c.className="tarjeta-registro-modulo tarjeta-izel";const h=document.createElement("h4"),icono=item.tipo==="vacuna"?(item.ocurrenciaCompletada?"✅":"💉"):item.tipo==="pendiente"?(item.ocurrenciaCompletada?"☑️":"✅"):"🌟";h.textContent=icono+" "+item.titulo+" · "+new Date(item.fechaOcurrencia+"T00:00:00").toLocaleDateString("es-MX",{dateStyle:"long"});c.appendChild(h);if(item.repeticion&&item.repeticion!=="ninguna"){const r=document.createElement("p");r.textContent="🔁 Se repetirá hasta "+formatoFechaCorta(item.repeticionHasta);c.appendChild(r);}if(item.nota){const p=document.createElement("p");p.textContent=item.nota;c.appendChild(p);}list.appendChild(c);});panel.appendChild(list); }
+async function guardarRegistroIzel() { const tipo=document.getElementById("tipoRegistroIzel").value, titulo=document.getElementById("tituloRegistroIzel").value.trim(), fecha=document.getElementById("fechaRegistroIzel").value, repeticion=document.getElementById("repeticionIzel").value, repeticionHasta=document.getElementById("repeticionHastaIzel").value, nota=document.getElementById("notaRegistroIzel").value.trim(); if(!titulo){alert("Escribe el nombre del registro.");document.getElementById("tituloRegistroIzel").focus();return;} if(!fecha){alert("Selecciona la fecha.");return;} if(repeticion!=="ninguna"&&!repeticionHasta){alert("Selecciona hasta qué fecha se repetirá el registro.");document.getElementById("repeticionHastaIzel").focus();return;} if(repeticion!=="ninguna"&&repeticionHasta<fecha){alert("La fecha final debe ser igual o posterior a la fecha inicial.");document.getElementById("repeticionHastaIzel").focus();return;} const anterior=izelEditando===null?null:izelRegistros[izelEditando], mismaSerie=anterior&&anterior.fecha===fecha&&(anterior.repeticion||"ninguna")===repeticion; const item={id:anterior?.id||"izel-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),tipo,titulo,fecha,nota,repeticion,repeticionHasta:repeticion==="ninguna"?"":repeticionHasta,fechasCompletadas:mismaSerie&&Array.isArray(anterior.fechasCompletadas)?anterior.fechasCompletadas:[],completado:repeticion==="ninguna"?Boolean(anterior?.completado&&mismaSerie):false}; const compartir=document.getElementById("compartirRegistroIzel").checked; const boton=document.getElementById("botonGuardarIzel"); boton.disabled=true; try { if(anterior?.ownerUid||(izelUsuarioUid&&(!anterior||compartir))){ if(!window.miappIzelCloud) throw new Error("La sincronización todavía se está iniciando. Inténtalo de nuevo en unos segundos."); const guardado=await window.miappIzelCloud.save({...anterior,...item},compartir); if(!guardado) throw new Error("Inicia sesión para guardar este registro en la cuenta."); if(!anterior?.ownerUid){izelRegistrosLocales=izelRegistrosLocales.filter(x=>x.id!==anterior?.id); izelRegistrosNube=izelRegistrosNube.filter(x=>x.id!==guardado.id); izelRegistrosNube.push(guardado);} else {izelRegistrosNube=izelRegistrosNube.map(x=>x.id===guardado.id?guardado:x);} } else { const posicion=izelRegistrosLocales.findIndex(x=>x.id===item.id); if(posicion<0)izelRegistrosLocales.push(item);else izelRegistrosLocales[posicion]=item; } persistirRegistrosLocalesIzel(); diaSeleccionado=fecha; const d=new Date(fecha+"T00:00:00"); mesContextual=new Date(d.getFullYear(),d.getMonth(),1); cerrarModalIzel(); mostrarListaIzel(); mostrarResumenIzel(); } catch(error) { alert(error.message||"No se pudo guardar el registro."); } finally { boton.disabled=false; } }
+async function cambiarEstadoRegistroIzel(indice,completado,fechaClave) { const item=izelRegistros[indice];if(!item||item.tipo==="fecha")return;const fecha=fechaClave||diaSeleccionado;if(item.repeticion&&item.repeticion!=="ninguna"){if(!Array.isArray(item.fechasCompletadas))item.fechasCompletadas=[];const posicion=item.fechasCompletadas.indexOf(fecha);if(completado&&posicion<0)item.fechasCompletadas.push(fecha);if(!completado&&posicion>=0)item.fechasCompletadas.splice(posicion,1);}else item.completado=completado;try{if(item.ownerUid){const guardado=await window.miappIzelCloud.save(item,false);izelRegistrosNube=izelRegistrosNube.map(x=>x.id===guardado.id?guardado:x);}else{const local=izelRegistrosLocales.find(x=>x.id===item.id);if(local)Object.assign(local,item);}persistirRegistrosLocalesIzel();mostrarListaIzel();mostrarResumenIzel();}catch(error){alert(error.message||"No se pudo actualizar el registro.");}}
+async function eliminarRegistroIzel(indice) { const item=izelRegistros[indice];if(!item||!confirm("¿Quieres eliminar este registro de Izel?"))return;try{if(item.ownerUid){await window.miappIzelCloud.remove(item);izelRegistrosNube=izelRegistrosNube.filter(x=>x.id!==item.id);}else izelRegistrosLocales=izelRegistrosLocales.filter(x=>x.id!==item.id);persistirRegistrosLocalesIzel();mostrarListaIzel();mostrarResumenIzel();}catch(error){alert(error.message||"No se pudo eliminar el registro.");}}
+function mostrarListaIzel() { const lista=document.getElementById("listaIzel");if(!lista)return;const f=document.getElementById("fechaIzel");if(f)f.value=diaSeleccionado;lista.replaceChildren();const items=izelRegistros.map((item,indice)=>({item,indice})).filter(x=>izelOcurreEnFecha(x.item,diaSeleccionado)).sort((a,b)=>a.item.tipo.localeCompare(b.item.tipo));if(!items.length){const p=document.createElement("p");p.className="estado-vacio-modulo";p.textContent="No hay vacunas, pendientes ni fechas de Izel para este día.";lista.appendChild(p);}items.forEach(({item,indice})=>{const completado=izelRegistroCompletadoEnFecha(item,diaSeleccionado);const c=document.createElement("article");c.className="tarjeta-registro-modulo tarjeta-izel";if(completado)c.classList.add("registro-izel-completado");const icono=item.tipo==="vacuna"?(completado?"✅":"💉"):item.tipo==="pendiente"?(completado?"☑️":"✅"):"🌟";const h=document.createElement("h3");h.textContent=icono+" "+item.titulo;c.appendChild(h);const meta=document.createElement("p");meta.textContent=item.tipo==="vacuna"?(completado?"Vacuna aplicada":"Vacuna pendiente"):item.tipo==="pendiente"?(completado?"Pendiente completado":"Pendiente por hacer"):"Fecha especial";c.appendChild(meta);const vis=document.createElement("p");vis.className="detalle-repeticion-izel";vis.textContent=item.ownerUid?(item.sharedWithUids?.length?"Compartido con la cuenta vinculada":"Privado en tu cuenta"):"Solo en este dispositivo";c.appendChild(vis);if(item.repeticion&&item.repeticion!=="ninguna"){const nombres={diaria:"Cada día",semanal:"Cada semana",quincenal:"Cada 2 semanas",mensual:"Cada mes",anual:"Cada año"};const r=document.createElement("p");r.className="detalle-repeticion-izel";r.textContent="🔁 "+(nombres[item.repeticion]||"Recurrente")+" · Se repetirá hasta "+formatoFechaCorta(item.repeticionHasta);c.appendChild(r);}if(item.nota){const p=document.createElement("p");p.textContent=item.nota;c.appendChild(p);}const actions=document.createElement("div");actions.className="acciones-registro-modulo";if(item.tipo!=="fecha"){const check=document.createElement("label");check.className="check-registro-izel";const box=document.createElement("input");box.type="checkbox";box.checked=completado;box.onchange=()=>cambiarEstadoRegistroIzel(indice,box.checked,diaSeleccionado);check.append(box,document.createTextNode(item.tipo==="vacuna"?"Aplicada":"Realizada"));actions.appendChild(check);}const edit=document.createElement("button");edit.type="button";edit.textContent="Editar";edit.onclick=()=>editarRegistroIzel(indice);const del=document.createElement("button");del.type="button";del.textContent="Eliminar";del.disabled=Boolean(item.ownerUid&&item.ownerUid!==izelUsuarioUid);if(del.disabled)del.title="Solo quien creó el registro puede eliminarlo.";del.onclick=()=>eliminarRegistroIzel(indice);actions.append(edit,del);c.appendChild(actions);lista.appendChild(c);});actualizarCalendarioContextual(); }
+function mostrarResumenIzel() { const panel=document.getElementById("panelResumenIzel"),pEl=document.getElementById("periodoResumenIzel"),fEl=document.getElementById("fechaReferenciaIzel");if(!panel||!pEl||!fEl)return;if(!fEl.value)fEl.value=fechaClaveCalendario(new Date());panel.replaceChildren();const rango=obtenerRangoResumenFinanzas(pEl.value,fEl.value),ocurrencias=[];for(const item of izelRegistros){const cursor=new Date(rango.inicio);for(let i=0;i<rango.cantidadDias;i++){const fecha=claveDiaCalendario(cursor);if(izelOcurreEnFecha(item,fecha))ocurrencias.push({...item,fechaOcurrencia:fecha,ocurrenciaCompletada:izelRegistroCompletadoEnFecha(item,fecha)});cursor.setDate(cursor.getDate()+1);}}ocurrencias.sort((a,b)=>b.fechaOcurrencia.localeCompare(a.fechaOcurrencia));const vacunas=ocurrencias.filter(x=>x.tipo==="vacuna"),pendientes=ocurrencias.filter(x=>x.tipo==="pendiente"&&!x.ocurrenciaCompletada),fechas=ocurrencias.filter(x=>x.tipo==="fecha");const cards=document.createElement("div");cards.className="tarjetas-resumen-finanzas";[[String(vacunas.length),"Ocurrencias de vacunas"],[String(vacunas.filter(x=>!x.ocurrenciaCompletada).length),"Vacunas pendientes"],[String(vacunas.filter(x=>x.ocurrenciaCompletada).length),"Vacunas aplicadas"],[String(pendientes.length),"Tareas pendientes"],[String(ocurrencias.filter(x=>x.tipo==="pendiente"&&x.ocurrenciaCompletada).length),"Tareas realizadas"],[String(fechas.length),"Fechas especiales"]].forEach(([v,l])=>{const c=document.createElement("article");c.className="tarjeta-metrica-finanzas";const s=document.createElement("strong");s.textContent=v;const t=document.createElement("span");t.textContent=l;c.append(s,t);cards.appendChild(c);});panel.appendChild(cards);const h=document.createElement("h3");h.className="titulo-lista-aprendizajes-resumen";h.textContent="Ocurrencias del periodo";panel.appendChild(h);const list=document.createElement("div");list.className="lista-registros-resumen";if(!ocurrencias.length){const p=document.createElement("p");p.className="estado-vacio-modulo";p.textContent="Aún no hay registros de Izel en este periodo.";list.appendChild(p);}else ocurrencias.forEach(item=>{const c=document.createElement("article");c.className="tarjeta-registro-modulo tarjeta-izel";const h=document.createElement("h4"),icono=item.tipo==="vacuna"?(item.ocurrenciaCompletada?"✅":"💉"):item.tipo==="pendiente"?(item.ocurrenciaCompletada?"☑️":"✅"):"🌟";h.textContent=icono+" "+item.titulo+" · "+new Date(item.fechaOcurrencia+"T00:00:00").toLocaleDateString("es-MX",{dateStyle:"long"});c.appendChild(h);if(item.repeticion&&item.repeticion!=="ninguna"){const r=document.createElement("p");r.textContent="🔁 Se repetirá hasta "+formatoFechaCorta(item.repeticionHasta);c.appendChild(r);}if(item.nota){const p=document.createElement("p");p.textContent=item.nota;c.appendChild(p);}list.appendChild(c);});panel.appendChild(list); }

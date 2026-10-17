@@ -48,7 +48,7 @@ formCrearCuenta.addEventListener("submit", async function(event) {
     try {
         await createUserWithEmailAndPassword(auth, correo, contrasena);
         formCrearCuenta.reset();
-        mensajeCuenta.textContent = "Cuenta creada. La Agenda se sincroniza con esta cuenta y las Tareas permanecen en este dispositivo.";
+        mensajeCuenta.textContent = "Cuenta creada. Agenda, Tareas, Pagos, Entrenamiento, Proyectos e Izel ya pueden conectarse con esta cuenta. Los registros permanecen privados salvo que elijas compartirlos.";
     } catch (error) {
         mensajeCuenta.textContent = mostrarErrorCuenta(error);
     } finally {
@@ -69,7 +69,7 @@ formIniciarSesion.addEventListener("submit", async function(event) {
     try {
         await signInWithEmailAndPassword(auth, correo, contrasena);
         formIniciarSesion.reset();
-        mensajeCuenta.textContent = "Sesión iniciada. La Agenda se está conectando con esta cuenta; las Tareas permanecen en este dispositivo.";
+        mensajeCuenta.textContent = "Sesión iniciada. Agenda, Tareas, Pagos, Entrenamiento, Proyectos e Izel se están conectando con esta cuenta. Puedes elegir qué elementos compartir con la cuenta vinculada.";
     } catch (error) {
         mensajeCuenta.textContent = mostrarErrorCuenta(error);
     } finally {
@@ -104,7 +104,7 @@ document.getElementById("cerrarSesion").addEventListener("click", async function
 
 onAuthStateChanged(auth, function(user) {
     if (user) {
-        estadoCuenta.textContent = "Sesión activa. La Agenda se sincroniza con esta cuenta; las Tareas permanecen en este dispositivo.";
+        estadoCuenta.textContent = "Sesión activa. Agenda, Tareas, Pagos, Entrenamiento y Proyectos se conectan con esta cuenta; puedes elegir qué elementos compartir.";
         correoSesion.textContent = "Sesión iniciada como: " + (user.email || "cuenta sin correo visible");
         sesionActiva.hidden = false;
         formulariosCuenta.hidden = true;

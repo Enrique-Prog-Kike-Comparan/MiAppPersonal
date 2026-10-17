@@ -118,8 +118,12 @@ function escucharRegistrosCompartidos() {
         return;
     }
 
+    const uidPropietarioCompartido = pareja.ownerUid === usuarioActual.uid
+        ? pareja.inviteeUid
+        : pareja.ownerUid;
     const consulta = query(
         registros,
+        where("ownerUid", "==", uidPropietarioCompartido),
         where("sharedWithUids", "==", [usuarioActual.uid]),
         where("pairId", "==", pareja.id),
         where("module", "==", "agenda")
