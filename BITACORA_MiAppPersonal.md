@@ -191,4 +191,12 @@ Kike decidió que no desea sincronizar otros módulos. La sincronización queda 
 
 La validación pendiente de Objetivos se cancela. No se implementará sincronización en otros módulos.
 
-**12H.23.5.9.34 — Publicar la versión actual en GitHub Pages y validar en el celular.** Kike aceptó continuar con esta actividad. La publicación debe ir a `backup/2026-10-11-12H-23-5-8`; `main` permanece intacta. Después de publicarla, falta confirmar la prueba manual en el teléfono. Finanzas permanece local y no se sincronizan módulos adicionales.
+**12H.23.5.9.34 — Publicar la versión actual en GitHub Pages y validar en el celular.** Kike aceptó continuar con esta actividad. La publicación debe ir a `backup/2026-10-11-12H-23-5-8`; `main` permanece intacta. Kike confirmó que la versión llegó al teléfono; observó tamaños pequeños en Proyectos y Resultados, atendidos en 12H.23.5.9.35. Finanzas permanece local y no se sincronizan módulos adicionales.
+### 12H.23.5.9.35 — Mejorar lectura móvil de Proyectos y Resultados — publicado; validación manual pendiente — 17/10/2026
+
+- Se ajustó la barra lateral y el ancho disponible para el contenido en teléfonos.
+- Las ramas y subramas de Proyectos conservan un ancho legible y pueden recorrerse horizontalmente; checks, selectores y porcentajes tienen controles más cómodos al tacto.
+- Los campos de Resultados acomodan controles, tarjetas y gráficos en el ancho disponible, con texto más legible y sin desbordar sus contenedores.
+- Se revisó el formato del cambio (`git diff --check`); no se ejecutaron pruebas automatizadas ni se confirmó aún la apariencia final en el teléfono.
+- Commit `4826556` — **Mejorar vista móvil de módulos y resultados**. Publicado en `backup/2026-10-11-12H-23-5-8`; `main` sigue intacta.
+- Siguiente paso: recargar la app en el teléfono y confirmar la vista de Proyectos y los Resultados que antes se veían pequeños.
