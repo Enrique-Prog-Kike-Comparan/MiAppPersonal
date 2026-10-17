@@ -20,7 +20,6 @@ let registrosTiempo=JSON.parse(localStorage.getItem("registrosTiempo")||"[]"),re
 let proyectosLocalesEnDispositivo=JSON.parse(localStorage.getItem("proyectos")||"[]").filter(item=>!item.ownerUid),proyectos=proyectosLocalesEnDispositivo.slice(),proyectosNube=[],proyectosUsuarioUid=null,proyectosVinculoActivo=false,proyectoEditando=null;
 const firmasProyectosSincronizados=new Map(),colasProyectosSincronizando=new Map();
 let pagosLocalesEnDispositivo=JSON.parse(localStorage.getItem("pagosPendientes")||"[]").filter(pago=>!pago.ownerUid),pagosPendientes=pagosLocalesEnDispositivo.slice(),pagosNube=[],pagosUsuarioUid=null,pagosVinculoActivo=false,pagoEditando=null;
-let avisosOcultosParaHoy = "";
 const notificacionesEnProceso = new Set();
 
 function mostrarTareas() {
@@ -1905,8 +1904,10 @@ function actualizarCalendarioContextual() {
     });
     detail.appendChild(lista);
 }
-function cerrarAvisos(){const a=document.getElementById("barraAvisos");if(a){avisosOcultosParaHoy=fechaClaveCalendario(new Date());a.hidden=true;}}
-function mostrarAvisos(){avisosOcultosParaHoy="";actualizarAvisosDelDia();}
+function claveAvisosOcultos(fechaHoy){return "avisosCategoriasOcultas:"+fechaHoy;}
+function obtenerCategoriasAvisosOcultas(fechaHoy){try{const guardadas=JSON.parse(localStorage.getItem(claveAvisosOcultos(fechaHoy))||"[]");return new Set(Array.isArray(guardadas)?guardadas:[]);}catch{return new Set();}}
+function cerrarAvisosCategoria(categoria){const hoy=fechaClaveCalendario(new Date()),ocultas=obtenerCategoriasAvisosOcultas(hoy);ocultas.add(categoria);localStorage.setItem(claveAvisosOcultos(hoy),JSON.stringify(Array.from(ocultas)));actualizarAvisosDelDia();}
+function mostrarAvisos(){localStorage.removeItem(claveAvisosOcultos(fechaClaveCalendario(new Date())));actualizarAvisosDelDia();}
 
 function obtenerAvisosDelDia(fechaHoy) {
     const avisos = [];
@@ -1945,9 +1946,22 @@ function actualizarAvisosDelDia() {
     const hoy=fechaClaveCalendario(new Date()), avisos=obtenerAvisosDelDia(hoy);
     lista.replaceChildren();
     const titulo=document.createElement("strong");titulo.className="titulo-avisos-del-dia";titulo.textContent="Avisos de hoy";lista.appendChild(titulo);
-    if(!avisos.length){const vacio=document.createElement("span");vacio.className="aviso-del-dia";vacio.textContent="No hay avisos para hoy.";lista.appendChild(vacio);}
-    avisos.forEach(aviso=>{const elemento=document.createElement("span");elemento.className="aviso-del-dia";const categoria=document.createElement("strong");categoria.textContent=aviso.categoria+": ";elemento.append(categoria,document.createTextNode(aviso.texto));lista.appendChild(elemento);});
-    barra.hidden=avisosOcultosParaHoy===hoy;
+    const ocultas=obtenerCategoriasAvisosOcultas(hoy),grupos=new Map();
+    avisos.forEach(aviso=>{if(!grupos.has(aviso.categoria))grupos.set(aviso.categoria,[]);grupos.get(aviso.categoria).push(aviso.texto);});
+    let gruposVisibles=0;
+    grupos.forEach((mensajes,categoria)=>{
+        if(ocultas.has(categoria))return;
+        gruposVisibles++;
+        const grupo=document.createElement("section");grupo.className="grupo-aviso-del-dia";
+        const encabezado=document.createElement("div");encabezado.className="encabezado-aviso-del-dia";
+        const nombre=document.createElement("strong");nombre.className="nombre-categoria-aviso";nombre.textContent=categoria;
+        const cerrar=document.createElement("button");cerrar.type="button";cerrar.className="cerrar-categoria-aviso";cerrar.textContent="×";cerrar.setAttribute("aria-label","Ocultar avisos de "+categoria+" hasta mañana");cerrar.title="Ocultar hasta mañana";cerrar.onclick=()=>cerrarAvisosCategoria(categoria);
+        encabezado.append(nombre,cerrar);grupo.appendChild(encabezado);
+        mensajes.forEach(mensaje=>{const elemento=document.createElement("div");elemento.className="aviso-del-dia";elemento.textContent=mensaje;grupo.appendChild(elemento);});
+        lista.appendChild(grupo);
+    });
+    if(!gruposVisibles){const vacio=document.createElement("span");vacio.className="aviso-del-dia sin-avisos-visibles";vacio.textContent=avisos.length?"Ya ocultaste los avisos de hoy.":"No hay avisos para hoy.";lista.appendChild(vacio);}
+    barra.hidden=false;
     const avisosNotificables=avisos.filter(aviso=>aviso.categoria!=="Entrenamiento");
     const llave="avisosDiariosNotificados:"+hoy;
     if(avisosNotificables.length&&!localStorage.getItem(llave)&&!notificacionesEnProceso.has(llave)){
