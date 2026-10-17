@@ -1282,7 +1282,24 @@ function filtrarFechasPorTipo(tipo) {
 }
 
 
-function mostrarPantalla(id){document.querySelectorAll(".pantalla").forEach(p=>p.classList.remove("activa"));const modal=document.getElementById("ventanaEdicion");if(modal)modal.style.display="none";const modalGasto=document.getElementById("modalGasto");if(modalGasto)modalGasto.style.display="none";const modalEntrenamiento=document.getElementById("modalEntrenamiento");if(modalEntrenamiento)modalEntrenamiento.style.display="none";const modalObjetivo=document.getElementById("modalObjetivo");if(modalObjetivo)modalObjetivo.style.display="none";const modalProyecto=document.getElementById("modalProyecto");if(modalProyecto)modalProyecto.style.display="none";const modalSalud=document.getElementById("modalSalud");if(modalSalud)modalSalud.style.display="none";const modalIzel=document.getElementById("modalIzel");if(modalIzel)modalIzel.style.display="none";const v=document.getElementById(id);if(!v)return;v.classList.add("activa");
+function alternarMenuMovil(forzarAbierto) {
+    const barra = document.getElementById("barraLateral");
+    const boton = document.getElementById("botonMenuMovil");
+    const fondo = document.getElementById("fondoMenuMovil");
+    if (!barra || !boton) return;
+    const abierto = typeof forzarAbierto === "boolean"
+        ? forzarAbierto
+        : !barra.classList.contains("menu-movil-abierto");
+    barra.classList.toggle("menu-movil-abierto", abierto);
+    document.body.classList.toggle("menu-movil-abierto", abierto);
+    if (fondo) fondo.hidden = !abierto;
+    boton.setAttribute("aria-expanded", String(abierto));
+    boton.setAttribute("aria-label", abierto ? "Cerrar menú" : "Abrir menú");
+}
+document.addEventListener("keydown", function(event) {
+    if (event.key === "Escape") alternarMenuMovil(false);
+});
+function mostrarPantalla(id){document.querySelectorAll(".pantalla").forEach(p=>p.classList.remove("activa"));const modal=document.getElementById("ventanaEdicion");if(modal)modal.style.display="none";const modalGasto=document.getElementById("modalGasto");if(modalGasto)modalGasto.style.display="none";const modalEntrenamiento=document.getElementById("modalEntrenamiento");if(modalEntrenamiento)modalEntrenamiento.style.display="none";const modalObjetivo=document.getElementById("modalObjetivo");if(modalObjetivo)modalObjetivo.style.display="none";const modalProyecto=document.getElementById("modalProyecto");if(modalProyecto)modalProyecto.style.display="none";const modalSalud=document.getElementById("modalSalud");if(modalSalud)modalSalud.style.display="none";const modalIzel=document.getElementById("modalIzel");if(modalIzel)modalIzel.style.display="none";const v=document.getElementById(id);if(!v)return;alternarMenuMovil(false);v.classList.add("activa");
 const useCal=["seccionFechas","seccionTareas","seccionPagos","seccionFinanzas","seccionEntrenamiento","seccionTiempo","seccionAprendizajes","seccionObjetivos","seccionSalud","seccionIzel"].includes(id),cal=document.getElementById("calendarioContextual");if(cal)cal.hidden=!useCal;
 document.querySelectorAll(".boton-nav").forEach(x=>{const on=x.dataset.pantalla===id;x.classList.toggle("activo",on);if(on)x.setAttribute("aria-current","page");else x.removeAttribute("aria-current");});const title=document.getElementById("tituloCalendario");if(title)title.textContent=id==="seccionFechas"?"Fechas especiales":id==="seccionTareas"?"Tareas":id==="seccionFinanzas"?"Finanzas":id==="seccionSalud"?"Salud":id==="seccionIzel"?"Mi peque Izel":"Calendario";
 if(id==="seccionFechas")mostrarFechas();if(id==="seccionTiempo")mostrarListaTiempo();if(id==="seccionProyectos")mostrarListaProyectos();if(id==="seccionObjetivos")mostrarListaObjetivos();if(id==="seccionEntrenamiento")mostrarListaEntrenamientos();if(id==="seccionFinanzas")mostrarListaFinanzas();if(id==="resultadoEntrenamiento")mostrarResumenEntrenamiento();if(id==="resultadoTiempo")mostrarResumenTiempo();if(id==="resultadoAprendizajes")mostrarResumenAprendizajes();if(id==="resultadoFinanzas")mostrarResumenFinanzas();if(id==="seccionAprendizajes")mostrarListaAprendizajes();if(id==="seccionPagos")mostrarListaPagos();if(id==="resultadoPagos")mostrarResumenPagos();if(id==="seccionSalud")mostrarListaSalud();if(id==="seccionIzel")mostrarListaIzel();if(id==="resultadoSalud")mostrarResumenSalud();if(id==="resultadoIzel")mostrarResumenIzel();if(id==="resultadoTareas")mostrarResumenTareas();if(typeof actualizarAvisosDelDia==="function")actualizarAvisosDelDia();if(typeof actualizarCalendarioContextual==="function")actualizarCalendarioContextual();window.scrollTo({top:0,behavior:"smooth"});}

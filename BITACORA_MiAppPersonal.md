@@ -200,3 +200,10 @@ La validación pendiente de Objetivos se cancela. No se implementará sincroniza
 - Se revisó el formato del cambio (`git diff --check`); no se ejecutaron pruebas automatizadas ni se confirmó aún la apariencia final en el teléfono.
 - Commit `4826556` — **Mejorar vista móvil de módulos y resultados**. Publicado en `backup/2026-10-11-12H-23-5-8`; `main` sigue intacta.
 - Siguiente paso: recargar la app en el teléfono y confirmar la vista de Proyectos y los Resultados que antes se veían pequeños.
+### 12H.23.5.9.36 — Menú lateral desplegable en celular — implementado; validación manual pendiente — 17/10/2026
+
+- En pantallas de hasta 560 px, la barra de navegación se oculta y se abre con el botón «Menú».
+- Al elegir una sección, tocar el fondo oscuro o presionar Escape, el menú se cierra. La barra lateral de escritorio conserva su comportamiento.
+- Se añadieron el botón, el fondo de cierre, los estados accesibles del control y los estilos móviles. No se cambiaron datos de la aplicación.
+- Revisión de formato con `git diff --check`; no se ejecutaron pruebas automatizadas ni se ha validado manualmente en el celular.
+- Siguiente paso: publicar en la rama `backup/2026-10-11-12H-23-5-8` y probar abrir/cerrar el menú y seleccionar una sección desde el teléfono.
