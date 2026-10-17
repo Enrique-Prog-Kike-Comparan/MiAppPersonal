@@ -675,3 +675,18 @@ body>.contenedor{grid-column:2;grid-row:2;width:auto;max-width:none;margin:0;pad
   .boton-menu-movil { top: 12px; left: 12px; }
   .boton-cuenta-app { top: 12px; right: 12px; max-width: calc(100vw - 108px); white-space: nowrap; }
 }
+
+/* 12H.23.5.9.41 — Navegación Hoy, iconos de pagos y espacio del menú móvil */
+.acciones-navegacion-calendario{display:flex;align-items:center;gap:6px}
+.acciones-navegacion-calendario .boton-hoy-calendario{width:auto;padding:0 9px;font-size:13px}
+.iconos-pagos-dia{position:absolute;left:50%;bottom:1px;display:flex;justify-content:center;align-items:center;gap:1px;max-width:100%;transform:translateX(-50%);pointer-events:none}
+.mini-icono-pago{font-size:8px;line-height:10px}
+.mini-icono-pago.pago-realizado{color:#15803d}
+.mas-iconos-pago{font-size:8px;line-height:10px;font-weight:700;color:#475569}
+.dia-calendario.con-pagos:after{display:none}
+.dia-calendario.seleccionado .mini-icono-pago{filter:drop-shadow(0 0 1px #fff)}
+@media(max-width:560px){
+  .acciones-navegacion-calendario{gap:4px}
+  .acciones-navegacion-calendario .boton-hoy-calendario{padding:0 7px;font-size:12px}
+  .barra-lateral.menu-movil-abierto{padding-top:70px}
+}

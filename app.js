@@ -1557,6 +1557,26 @@ function actualizarControlesCompartirIzel() { const check = document.getElementB
 
 
 function claveDiaCalendario(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}function fechaClaveCalendario(d){return claveDiaCalendario(d);}
+function irAHoyCalendario(){
+    const ahora=new Date();
+    diaSeleccionado=claveDiaCalendario(ahora);
+    mesContextual=new Date(ahora.getFullYear(),ahora.getMonth(),1);
+    const pantalla=document.querySelector(".contenedor>.pantalla.activa")?.id;
+    const camposFecha={seccionPagos:"fechaPago",seccionFinanzas:"fechaFinanzas",seccionEntrenamiento:"fechaEntrenamiento",seccionTiempo:"fechaTiempo",seccionAprendizajes:"fechaAprendizaje",seccionSalud:"fechaSalud",seccionIzel:"fechaIzel"};
+    const campo=document.getElementById(camposFecha[pantalla]||"");
+    if(campo)campo.value=diaSeleccionado;
+    if(pantalla==="seccionFechas")mostrarFechas(true);
+    else if(pantalla==="seccionTareas")mostrarListaTareas();
+    else if(pantalla==="seccionPagos")mostrarListaPagos();
+    else if(pantalla==="seccionFinanzas")mostrarListaFinanzas();
+    else if(pantalla==="seccionEntrenamiento")mostrarListaEntrenamientos();
+    else if(pantalla==="seccionTiempo")mostrarListaTiempo();
+    else if(pantalla==="seccionAprendizajes")mostrarListaAprendizajes();
+    else if(pantalla==="seccionSalud")mostrarListaSalud();
+    else if(pantalla==="seccionIzel")mostrarListaIzel();
+    else if(pantalla==="seccionObjetivos")mostrarListaObjetivos();
+    actualizarCalendarioContextual();
+}
 function moverMesCalendario(n){const seleccionado=new Date(diaSeleccionado+"T00:00:00"),mesNuevo=new Date(mesContextual.getFullYear(),mesContextual.getMonth()+n,1),ultimoDia=new Date(mesNuevo.getFullYear(),mesNuevo.getMonth()+1,0).getDate();mesContextual=mesNuevo;diaSeleccionado=claveDiaCalendario(new Date(mesNuevo.getFullYear(),mesNuevo.getMonth(),Math.min(seleccionado.getDate(),ultimoDia)));const pantalla=document.querySelector(".contenedor>.pantalla.activa")?.id;if(pantalla==="seccionFechas")mostrarFechas(true);else if(pantalla==="seccionTareas")mostrarListaTareas();else if(pantalla==="seccionEntrenamiento")mostrarListaEntrenamientos();else{if(pantalla==="seccionSalud"){const input=document.getElementById("fechaSalud");if(input)input.value=diaSeleccionado;mostrarListaSalud();}if(pantalla==="seccionIzel"){const input=document.getElementById("fechaIzel");if(input)input.value=diaSeleccionado;mostrarListaIzel();}if(pantalla==="seccionAprendizajes"){const input=document.getElementById("fechaAprendizaje");if(input)input.value=diaSeleccionado;}if(pantalla==="seccionPagos"){const input=document.getElementById("fechaPago");if(input)input.value=diaSeleccionado;mostrarListaPagos();return;}if(pantalla==="seccionFinanzas"){const input=document.getElementById("fechaFinanzas");if(input)input.value=diaSeleccionado;mostrarListaFinanzas();}actualizarCalendarioContextual();}}
 function actualizarCalendarioContextual() {
     const grid = document.getElementById("cuadriculaCalendario");
@@ -1648,7 +1668,7 @@ function actualizarCalendarioContextual() {
                 const clave = claveDiaCalendario(new Date(mesContextual.getFullYear(), mesContextual.getMonth(), dia));
                 if (!pagoOcurreEnFecha(item, clave)) continue;
                 const pagadoEnDia = pagoPagadoEnFecha(item, clave);
-                items.push({ fecha: clave, texto: (pagadoEnDia ? "☑️ " : "💡 ") + (item.nombre || "Pago") });
+                items.push({ fecha: clave, texto: (pagadoEnDia ? "✅ Pagado · " : "💡 Pendiente · ") + (item.nombre || "Pago"), esPago: true, pagado: pagadoEnDia, iconoPago: pagadoEnDia ? "✅" : "💡" });
             }
         });
     }
@@ -1705,7 +1725,22 @@ function actualizarCalendarioContextual() {
         if (clave === diaSeleccionado) boton.classList.add("seleccionado");
 
         const elementosDia = items.filter(item => item.fecha === clave);
-        if (isDates && elementosDia.length) {
+        if (isPayments && elementosDia.length) {
+            const pagosDia=elementosDia.filter(item=>item.esPago);
+            const iconos=document.createElement("span");
+            iconos.className="iconos-pagos-dia";
+            iconos.setAttribute("aria-hidden","true");
+            pagosDia.slice(0,3).forEach(item=>{
+                const mini=document.createElement("span");
+                mini.className=item.pagado?"mini-icono-pago pago-realizado":"mini-icono-pago pago-pendiente";
+                mini.textContent=item.iconoPago;
+                iconos.appendChild(mini);
+            });
+            if(pagosDia.length>3){const extra=document.createElement("span");extra.className="mas-iconos-pago";extra.textContent="+"+(pagosDia.length-3);iconos.appendChild(extra);}
+            boton.appendChild(iconos);
+            boton.classList.add("con-pagos");
+            boton.setAttribute("aria-label",boton.getAttribute("aria-label")+". Pagos: "+pagosDia.map(item=>item.texto).join(", "));
+        } else if (isDates && elementosDia.length) {
             boton.classList.add("con-fechas-especiales");
             const tipos = ["cumpleanos", "aniversario", "importante"].filter(tipo => elementosDia.some(item => item.tipoFecha === tipo));
             const iconos = document.createElement("span");

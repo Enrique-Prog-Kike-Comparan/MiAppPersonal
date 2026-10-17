@@ -229,3 +229,14 @@ Kike confirmó que Proyectos y los campos de Resultados se ven bien en el celula
 ### 12H.23.5.9.40 — Validar avisos diarios y recordatorios — recomendación; pendiente de iniciar
 
 La vista móvil, Proyectos y Resultados ya quedaron validados por Kike. El siguiente paso recomendado es revisar los avisos del día y los recordatorios dentro de la app con datos de prueba: fechas especiales, tareas de prioridad alta, pagos que vencen hoy, entrenamiento sin completar, Salud y Mi peque Izel. También comprobar recordatorios configurados en Tareas y Fechas especiales. La prueba de notificaciones push con la app cerrada y la facturación de Firebase permanecen para la etapa final acordada.
+
+### 12H.23.5.9.41 — Notificaciones móviles confirmadas y navegación visual de calendarios — implementado; publicación pendiente — 17/10/2026
+
+Kike confirmó que las notificaciones ya funcionan en su celular. Se registra el resultado, sin afirmar aún pruebas específicas con la aplicación cerrada.
+
+- Se añadió el botón **Hoy** a la cabecera compartida de los calendarios. Regresa al mes actual y selecciona la fecha de hoy; también actualiza el campo/lista del módulo abierto.
+- En el calendario de Pagos pendientes, cada vencimiento muestra un pequeño foco si está pendiente y una palomita verde si ya se marcó pagado. Se muestran hasta tres iconos por día y `+N` si hay más; el detalle accesible conserva los nombres y estados.
+- En celular, al desplegar el menú lateral se reserva espacio sobre “MiAppPersonal” y “Organizar” para que el botón “Menú” no los tape.
+- Se actualizó la versión de caché de CSS y JavaScript a `12h-23-5-9-41`, para que el teléfono descargue los cambios publicados.
+- No se modificaron datos de usuario. No se ejecutaron pruebas automatizadas ni se confirmó todavía el resultado visual manual de estos cambios.
+- Pendiente: revisar el diff, publicar en `backup/2026-10-11-12H-23-5-8` y pedir a Kike que recargue la app en computadora y celular. `main` debe permanecer intacta.
