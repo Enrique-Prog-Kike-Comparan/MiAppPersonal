@@ -206,7 +206,7 @@ La validación pendiente de Objetivos se cancela. No se implementará sincroniza
 - Al elegir una sección, tocar el fondo oscuro o presionar Escape, el menú se cierra. La barra lateral de escritorio conserva su comportamiento.
 - Se añadieron el botón, el fondo de cierre, los estados accesibles del control y los estilos móviles. No se cambiaron datos de la aplicación.
 - Revisión de formato con `git diff --check`; no se ejecutaron pruebas automatizadas. Kike confirmó que pudo usar el menú en su celular.
-- Siguiente paso: publicar en la rama `backup/2026-10-11-12H-23-5-8` y probar abrir/cerrar el menú y seleccionar una sección desde el teléfono.
+- La publicación y la validación manual quedaron registradas en 12H.23.5.9.37.
 
 ### 12H.23.5.9.37 — Forzar actualización del menú en celular — validado por Kike — 17/10/2026
 
