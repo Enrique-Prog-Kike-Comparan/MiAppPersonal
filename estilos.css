@@ -666,3 +666,12 @@ body>.contenedor{grid-column:2;grid-row:2;width:auto;max-width:none;margin:0;pad
   .boton-menu-movil span:first-child { font-size: 19px; line-height: 1; }
   body.menu-movil-abierto { overflow: hidden; }
 }
+
+/* 12H.23.5.9.39 — Separar el título móvil de los controles superiores */
+@media (max-width: 560px) {
+  body > header { padding: 68px 12px 14px; text-align: center; }
+  body > header h1 { margin: 0; font-size: 20px; line-height: 1.25; }
+  body > header p { margin: 6px 0 0; font-size: 14px; line-height: 1.35; }
+  .boton-menu-movil { top: 12px; left: 12px; }
+  .boton-cuenta-app { top: 12px; right: 12px; max-width: calc(100vw - 108px); white-space: nowrap; }
+}

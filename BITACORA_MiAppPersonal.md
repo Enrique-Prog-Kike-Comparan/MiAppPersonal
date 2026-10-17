@@ -214,3 +214,14 @@ La validación pendiente de Objetivos se cancela. No se implementará sincroniza
 - Se agregaron versiones en las referencias de `estilos.css` y `app.js` para que la app solicite archivos nuevos después de actualizarse. No se borraron datos ni se cambió la lógica del menú.
 - Se revisó el diff y `git diff --check`; no se ejecutaron pruebas automatizadas. Kike confirmó que el menú funcionó en el teléfono.
 - Publicado en `backup/2026-10-11-12H-23-5-8`; `main` permanece intacta.
+
+### 12H.23.5.9.38 — Validar legibilidad móvil de Proyectos y Resultados — confirmado por Kike — 17/10/2026
+
+Kike confirmó que Proyectos y los campos de Resultados se ven bien en el celular. El menú también había quedado funcional en el punto 12H.23.5.9.37.
+
+### 12H.23.5.9.39 — Separar el título móvil de los controles superiores — implementado; validación pendiente — 17/10/2026
+
+- Se aumentó el espacio superior del encabezado y se centró el título debajo de los botones «Menú» y «Mi cuenta» en pantallas pequeñas.
+- Se actualizó la versión del CSS en `index.html` para que el teléfono descargue estos estilos.
+- `git diff --check` no reportó errores. No se ejecutaron pruebas automatizadas ni se ha confirmado aún en el celular.
+- Siguiente paso: recargar la app instalada y confirmar que el título ya no queda debajo de los botones.
