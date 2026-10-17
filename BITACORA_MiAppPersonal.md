@@ -225,3 +225,7 @@ Kike confirmó que Proyectos y los campos de Resultados se ven bien en el celula
 - Se actualizó la versión del CSS en `index.html` para que el teléfono descargue estos estilos.
 - `git diff --check` no reportó errores. No se ejecutaron pruebas automatizadas ni se ha confirmado aún en el celular.
 - Siguiente paso: recargar la app instalada y confirmar que el título ya no queda debajo de los botones.
+
+### 12H.23.5.9.40 — Validar avisos diarios y recordatorios — recomendación; pendiente de iniciar
+
+La vista móvil, Proyectos y Resultados ya quedaron validados por Kike. El siguiente paso recomendado es revisar los avisos del día y los recordatorios dentro de la app con datos de prueba: fechas especiales, tareas de prioridad alta, pagos que vencen hoy, entrenamiento sin completar, Salud y Mi peque Izel. También comprobar recordatorios configurados en Tareas y Fechas especiales. La prueba de notificaciones push con la app cerrada y la facturación de Firebase permanecen para la etapa final acordada.
