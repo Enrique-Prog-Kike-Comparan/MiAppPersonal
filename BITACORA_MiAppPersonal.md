@@ -354,3 +354,13 @@ Revisar y publicar en Firebase las reglas locales que incluyen Salud, una vez qu
 ### Siguiente actividad
 
 Validar en MiAppPersonal, primero con Kike y después con Yesica, que un nuevo registro privado de Finanzas, Salud, Objetivos, Aprendizajes y Tiempo se sincronice entre los dispositivos de la misma cuenta y no aparezca en la cuenta de la pareja. Confirmar también que cada Resultado refleje los registros de su cuenta. No importar datos locales anteriores ni limpiar los registros QA.
+### 12H.23.5.9.55 — Publicar sincronización privada en la rama de respaldo — publicado — 17/10/2026
+
+- Con autorización de Kike, se creó el commit `3bf7f95` — **Sincronizar módulos privados entre dispositivos**.
+- Se envió correctamente a `origin/backup/2026-10-11-12H-23-5-8`, fuente de GitHub Pages. La rama `main` no se modificó.
+- El paquete publicado incorpora el adaptador de Firebase para Finanzas, Salud, Objetivos, Aprendizajes y Tiempo, los cambios de interfaz y las reglas locales; las reglas de Salud ya se habían publicado en Firebase en 12H.23.5.9.54.
+- Pendiente: dejar que GitHub Pages actualice y validar manualmente en computadora y celular que los registros nuevos sincronizan entre dispositivos del propietario, que la pareja no ve sus datos privados y que cada Resultado se actualiza. No se limpiarán datos anteriores ni registros QA.
+
+### Siguiente actividad
+
+Abrir la versión actualizada en computadora y celular y validar un registro nuevo en cada módulo privado con Kike. Después repetir con Yesica y confirmar que los registros privados de cada cuenta no se muestran a la otra. No introducir datos personales sensibles de salud en las pruebas; usar registros ficticios y eliminarlos solo cuando Kike indique la limpieza final.
