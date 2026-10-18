@@ -274,3 +274,11 @@ Kike pidió un módulo para organizar listas de compra junto con Yesica, con un 
 - No se borraron datos ni se modificaron Firebase Rules. Se actualizó la versión de `estilos.css` y `app.js` a `12h-23-5-9-45` para refrescar la aplicación instalada.
 - Kike confirmó que probó en computadora y celular: sin sesión, la navegación queda restringida; la prueba funcionó en ambos dispositivos. La recuperación del menú después de iniciar sesión se conserva según la prueba reportada.
 - Commit `1996984` — **Restringir modulos sin sesion**. Publicado en `backup/2026-10-11-12H-23-5-8`; `main` permanece intacta.
+### 12H.23.5.9.46 — Validar la versión publicada del control de acceso — confirmado por Kike — 17/10/2026
+
+- Kike confirmó que la versión publicada funciona en computadora y celular.
+- La validación cubre el cambio de 12H.23.5.9.45 en la rama `backup/2026-10-11-12H-23-5-8`; `main` permanece intacta.
+
+### Siguiente actividad recomendada
+
+**12H.23.5.9.47 — Inventario final antes del cierre.** Revisar la bitácora para separar módulos y flujos confirmados de los pendientes explícitos. Mantener la limpieza general de datos de prueba y cualquier ajuste de facturación para el final, como pidió Kike; no borrar datos ni registrar facturación hasta que lo indique.
