@@ -279,6 +279,22 @@ Kike pidió un módulo para organizar listas de compra junto con Yesica, con un 
 - Kike confirmó que la versión publicada funciona en computadora y celular.
 - La validación cubre el cambio de 12H.23.5.9.45 en la rama `backup/2026-10-11-12H-23-5-8`; `main` permanece intacta.
 
+### 12H.23.5.9.47 — Inventario de avance y asuntos de cierre — completado — 17/10/2026
+
+- **Confirmado por Kike:** sincronización y uso compartido de Compra Pen. Despensa tras iniciar sesión; el control de acceso por sesión funciona en computadora y celular, también en la versión publicada; el acceso a Menú/Mi cuenta queda disponible para iniciar sesión.
+- **Confirmado anteriormente:** sincronización de Entrenamiento y Proyectos con privacidad, edición y eliminación según los límites acordados; notificaciones en el celular; navegación móvil y cambios en avisos que Kike probó.
+- **Alcance vigente:** no sincronizar módulos adicionales. Finanzas se mantiene local.
+- **Aplazado por decisión de Kike:** limpieza de todos los datos de prueba y cualquier paso que habilite facturación. No se borraron datos ni se cambió la cuenta de facturación.
+- La bitácora conserva anotaciones históricas que aún dicen «pendiente»; para evitar afirmar escenarios que no se detallaron, el estado se determina con los reportes posteriores de Kike y no se inventan casos de prueba.
+
+### 12H.23.5.9.48 — Revisión informativa de Firebase y costos — completado; sin cambios de configuración — 17/10/2026
+
+- La inspección local encontró Firebase Authentication (correo/contraseña), Cloud Firestore y el SDK receptor de Firebase Cloud Messaging (FCM). El sitio se publica desde GitHub Pages. No se encontraron imports de Firebase Storage ni un backend de Cloud Functions en el proyecto.
+- La tabla oficial de precios presenta Spark como plan sin costo y sin método de pago requerido; FCM aparece como producto sin costo. Authentication para opciones distintas de teléfono está incluida. Firestore Standard incluye cuotas gratuitas de 1 GiB almacenado, 50,000 lecturas al día, 20,000 escrituras al día, 20,000 eliminaciones al día y 10 GiB de salida al mes. Las cuotas son por proyecto y el uso por encima requiere Blaze para el modelo de pago por uso. Fuentes: [precios de Firebase](https://firebase.google.com/pricing), [planes de Firebase](https://firebase.google.com/docs/projects/billing/firebase-pricing-plans) y [cuotas de Firestore](https://firebase.google.com/docs/firestore/quotas).
+- Blaze requiere vincular una cuenta de Cloud Billing y permite acceder a Cloud Functions. La documentación indica que desplegar Cloud Functions requiere Blaze; puede haber cargos por uso que exceda las cuotas gratuitas y por recursos de despliegue. Fuentes: [preguntas frecuentes de Cloud Functions](https://firebase.google.com/docs/functions/faq-and-troubleshooting) y [guía oficial de despliegue](https://firebase.google.com/docs/functions).
+- La app obtiene un token FCM y el Service Worker registra un manejador de mensajes en segundo plano. En los archivos inspeccionados no se encontró un servicio emisor de avisos programados. Por eso no se da por validado el envío automático a una hora futura con la app completamente cerrada; para esa modalidad hará falta definir un emisor confiable y su costo/operación. FCM por sí solo no tiene costo según la [tabla oficial](https://firebase.google.com/pricing).
+- No se inspeccionó el plan de facturación actual desde Firebase Console ni se estimó consumo real. No se cambió el plan, no se vinculó un medio de pago y no se desplegaron servicios facturables.
+
 ### Siguiente actividad recomendada
 
-**12H.23.5.9.47 — Inventario final antes del cierre.** Revisar la bitácora para separar módulos y flujos confirmados de los pendientes explícitos. Mantener la limpieza general de datos de prueba y cualquier ajuste de facturación para el final, como pidió Kike; no borrar datos ni registrar facturación hasta que lo indique.
+**12H.23.5.9.49 — Definir el alcance de notificaciones con la app cerrada.** Confirmar si Kike necesita envíos automáticos programados incluso cuando MiAppPersonal está cerrada. Si la respuesta es sí, preparar primero una propuesta local con arquitectura, cuotas, alertas de presupuesto y costo potencial; solicitar autorización explícita antes de vincular facturación o desplegar el backend. La limpieza de datos de prueba permanece para el final, según lo acordado.
