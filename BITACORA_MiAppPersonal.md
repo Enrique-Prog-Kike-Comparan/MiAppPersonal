@@ -388,3 +388,13 @@ La validación posterior quedó registrada en 12H.23.5.9.57: Kike confirmó la s
 ### Siguiente actividad
 
 Hacer una revisión final de privacidad y uso cotidiano: verificar que los módulos privados sigan separados entre las cuentas de Kike y Yesica, y que el compartir de elementos individuales continúe limitado a los siete módulos acordados. Después revisar qué registros de prueba desea conservar o eliminar. La limpieza general se hará solo cuando Kike la indique; mantener el plan gratuito y no habilitar facturación.
+
+### 12H.23.5.9.58 — Registrar enfermedades en Salud y Mi peque Izel — preparado para validar — 18/10/2026
+
+- Se añadieron registros de enfermedad en **Salud** (nombre, inicio, término y medicamentos) y en **Mi peque Izel** (enfermedad, inicio, término y medicamentos).
+- El calendario de ambos módulos muestra el mini icono 🤒 en cada día comprendido entre las fechas de inicio y término, inclusive. Los registros aparecen al navegar por cualquiera de esos días.
+- Los resultados de Salud muestran las veces registradas por periodo (incluidos mes y año), los nombres de las enfermedades, la duración total y los medicamentos anotados. Mi peque Izel incorpora el mismo resumen dentro de su módulo y muestra también las enfermedades en Resultados.
+- La duración cuenta ambos días, el de inicio y el de término. Los resúmenes agrupan cada episodio en el mes o año de inicio, aunque haya continuado en el periodo siguiente.
+- Se conserva la privacidad existente: Salud se guarda de forma privada en la cuenta de cada persona; cada registro de Izel conserva la opción individual para compartirlo. Los registros nuevos sincronizan entre dispositivos al iniciar sesión.
+- No se modificaron reglas de Firebase, datos existentes ni facturación. No se realizaron pruebas automatizadas ni validación manual de la interfaz en esta actividad.
+- Pendiente: publicar en `backup/2026-10-11-12H-23-5-8` y validar en computadora y celular con las cuentas de Kike y Yesica usando registros ficticios. Comprobar el icono en los días del rango, edición, resumen mensual/anual y privacidad/compartición.

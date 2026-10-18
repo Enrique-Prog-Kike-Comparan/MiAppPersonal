@@ -727,3 +727,5 @@ body.sesion-restringida .boton-menu-movil { display: inline-flex; position: fixe
   body.sesion-restringida > header { padding: 68px 12px 14px; text-align: center; }
   body.sesion-restringida > .contenedor { padding: 12px 9px; }
 }
+/* 12H.23.5.9.58 — Registro y resumen de enfermedades */
+.resumen-enfermedades-izel-modulo{margin-top:24px;padding:16px;border:1px solid #dbe5f3;border-radius:12px;background:#f8fbff}.resumen-enfermedades-izel-modulo>h3{margin:0 0 12px;color:#25344b}.mini-icono-salud{font-size:8px;line-height:10px}.tarjeta-registro-modulo.tarjeta-izel{min-width:0}
