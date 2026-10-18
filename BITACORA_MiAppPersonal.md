@@ -258,3 +258,9 @@ Kike pidió un módulo para organizar listas de compra junto con Yesica, con un 
 - Las listas pendientes con fecha de hoy aparecen en la tarjeta superior de avisos, bajo «Compra Pen. Despensa», con el nombre y número de productos. El cierre `×` existente oculta esa categoría durante el día.
 - Se actualizó la versión de caché a `12h-23-5-9-43` para que la computadora y la aplicación instalada soliciten los nuevos archivos.
 - Pendiente: validación manual en computadora y celular, incluida repetición, check de compra, actualización del calendario y aparición/cierre del aviso diario. No se ejecutaron pruebas automatizadas.
+### 12H.23.5.9.44 — Posponer avisos y abrir su módulo — implementado; validación manual pendiente — 17/10/2026
+
+- Cada tarjeta/categoría de avisos ahora tiene «Ver más tarde» junto a la `×`. Posponer oculta esa categoría durante cinco horas y luego la vuelve a mostrar; el plazo se conserva si se recarga la aplicación.
+- Cada aviso individual es seleccionable. Al tocarlo, abre el módulo correspondiente con el día de hoy seleccionado y elimina ese aviso de la tarjeta hasta el día siguiente. Los demás avisos de la categoría se conservan.
+- Se conservaron la `×` existente (oculta la categoría hasta mañana) y las reglas de notificación móvil existentes. Se actualizaron las versiones CSS/JS a `12h-23-5-9-44` para refrescar la app instalada.
+- `node --check app.js` pasó. Pendiente: comprobar manualmente el botón de cinco horas, navegación y desaparición de avisos en computadora y celular.

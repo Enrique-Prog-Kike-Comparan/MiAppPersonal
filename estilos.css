@@ -705,3 +705,10 @@ body>.contenedor{grid-column:2;grid-row:2;width:auto;max-width:none;margin:0;pad
 .mas-iconos-despensa{font-size:7px;line-height:10px;color:#334155}
 .dia-calendario.con-listas-despensa:after{display:none}
 .dia-calendario.seleccionado .mini-icono-despensa{filter:drop-shadow(0 0 1px #fff)}
+/* 12H.23.5.9.44 — Acciones de posponer y abrir avisos */
+.acciones-categoria-aviso{display:flex;align-items:center;gap:5px;flex:0 0 auto}
+.posponer-categoria-aviso{padding:5px 8px;border:1px solid #e8d4a5;border-radius:6px;background:#fffaf0;color:#6b4c0c;font:inherit;font-size:12px;cursor:pointer}
+.posponer-categoria-aviso:hover,.posponer-categoria-aviso:focus-visible{background:#f3e4c1;outline:2px solid #9a6a13}
+.aviso-del-dia-clicable{display:block;width:100%;padding:4px 6px;border:0;border-radius:5px;background:transparent;color:inherit;font:inherit;font-size:13px;text-align:left;cursor:pointer}
+.aviso-del-dia-clicable:hover,.aviso-del-dia-clicable:focus-visible{background:#fff3d7;outline:2px solid #9a6a13}
+@media(max-width:560px){.encabezado-aviso-del-dia{align-items:flex-start}.acciones-categoria-aviso{flex-wrap:wrap;justify-content:flex-end}.posponer-categoria-aviso{max-width:145px}}
