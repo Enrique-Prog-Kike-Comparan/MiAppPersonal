@@ -405,3 +405,11 @@ Hacer una revisión final de privacidad y uso cotidiano: verificar que los módu
 - Conserva sus selectores de mes/año y fecha de referencia, y muestra episodios, duración y medicamentos registrados. El resumen general de Izel también conserva las métricas de enfermedad.
 - Se actualizó el identificador de caché de `app.js` y `estilos.css` a `12h-23-5-9-59`.
 - Pendiente: publicar en la rama de respaldo y confirmar visualmente que el bloque solo aparezca en Resultados de Izel y que sus filtros respondan en computadora y celular.
+
+### 12H.23.5.9.60 — Añadir resumen de enfermedades a Resultados de Salud — preparado para validar — 18/10/2026
+
+- Se agregó un bloque **Resumen de enfermedades** dentro de **Resultados de Salud**, con filtros independientes por mes/año y fecha de referencia.
+- El bloque cuenta episodios por fecha de inicio, suma su duración (incluyendo inicio y término) y lista el nombre, fecha de término, duración y medicamentos anotados.
+- El resumen utiliza los registros privados de Salud de la cuenta activa. No cambia permisos, datos existentes ni reglas de Firebase.
+- Se actualizó el identificador de caché de `app.js` y `estilos.css` a `12h-23-5-9-60`.
+- Pendiente: publicar en la rama de respaldo y validar visualmente el resumen y sus filtros en computadora y celular.
