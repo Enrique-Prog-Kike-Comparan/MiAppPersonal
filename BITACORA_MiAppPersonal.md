@@ -192,7 +192,7 @@ Kike decidió que no desea sincronizar otros módulos. La sincronización queda 
 La validación pendiente de Objetivos se cancela. No se implementará sincronización en otros módulos.
 
 **12H.23.5.9.34 — Publicar la versión actual en GitHub Pages y validar en el celular.** Kike aceptó continuar con esta actividad. La publicación debe ir a `backup/2026-10-11-12H-23-5-8`; `main` permanece intacta. Kike confirmó que la versión llegó al teléfono; observó tamaños pequeños en Proyectos y Resultados, atendidos en 12H.23.5.9.35. Finanzas permanece local y no se sincronizan módulos adicionales.
-### 12H.23.5.9.35 — Mejorar lectura móvil de Proyectos y Resultados — publicado; validación manual pendiente — 17/10/2026
+### 12H.23.5.9.35 — Mejorar lectura móvil de Proyectos y Resultados — publicado; validado por Kike — 17/10/2026
 
 - Se ajustó la barra lateral y el ancho disponible para el contenido en teléfonos.
 - Las ramas y subramas de Proyectos conservan un ancho legible y pueden recorrerse horizontalmente; checks, selectores y porcentajes tienen controles más cómodos al tacto.
@@ -230,7 +230,7 @@ Kike confirmó que Proyectos y los campos de Resultados se ven bien en el celula
 
 La vista móvil, Proyectos y Resultados ya quedaron validados por Kike. El siguiente paso recomendado es revisar los avisos del día y los recordatorios dentro de la app con datos de prueba: fechas especiales, tareas de prioridad alta, pagos que vencen hoy, entrenamiento sin completar, Salud y Mi peque Izel. También comprobar recordatorios configurados en Tareas y Fechas especiales. La prueba de notificaciones push con la app cerrada y la facturación de Firebase permanecen para la etapa final acordada.
 
-### 12H.23.5.9.41 — Notificaciones móviles confirmadas y navegación visual de calendarios — publicado; validación manual pendiente — 17/10/2026
+### 12H.23.5.9.41 — Notificaciones móviles confirmadas y navegación visual de calendarios — publicado; validado por Kike — 17/10/2026
 
 Kike confirmó que las notificaciones ya funcionan en su celular. Se registra el resultado, sin afirmar aún pruebas específicas con la aplicación cerrada.
 
@@ -238,5 +238,14 @@ Kike confirmó que las notificaciones ya funcionan en su celular. Se registra el
 - En el calendario de Pagos pendientes, cada vencimiento muestra un pequeño foco si está pendiente y una palomita verde si ya se marcó pagado. Se muestran hasta tres iconos por día y `+N` si hay más; el detalle accesible conserva los nombres y estados.
 - En celular, al desplegar el menú lateral se reserva espacio sobre “MiAppPersonal” y “Organizar” para que el botón “Menú” no los tape.
 - Se actualizó la versión de caché de CSS y JavaScript a `12h-23-5-9-41`, para que el teléfono descargue los cambios publicados.
-- No se modificaron datos de usuario. No se ejecutaron pruebas automatizadas ni se confirmó todavía el resultado visual manual de estos cambios.
-- Commit `ca2f04c` — **Agregar botón Hoy e iconos al calendario de pagos**. Publicado en `backup/2026-10-11-12H-23-5-8`, fuente de GitHub Pages; `main` permanece intacta.\n- Siguiente paso: pedir a Kike que recargue la app en computadora y celular y confirme el botón Hoy, los iconos de pagos y el espacio del menú lateral.
+- Kike confirmó que los cambios funcionaron y le gustaron. No se modificaron datos de usuario ni se ejecutaron pruebas automatizadas.
+- Commit `ca2f04c` — **Agregar botón Hoy e iconos al calendario de pagos**. Publicado en `backup/2026-10-11-12H-23-5-8`, fuente de GitHub Pages; `main` permanece intacta. Kike confirmó que todo funcionó y le gustó.
+### 12H.23.5.9.42 — Módulo Compra Pen. Despensa — implementación en curso — 17/10/2026
+
+Kike pidió un módulo para organizar listas de compra junto con Yesica, con un catálogo de 80 productos, repetición hasta una fecha, check de compra y un historial desplegable de listas completadas. El módulo no tendrá pantalla de Resultados. Se conserva la preferencia previa de mantener Proyectos al final de la sección Organizar.
+
+- Las 80 opciones se organizan en ocho grupos: frutas, verduras, lácteos y huevo, carnes y proteínas, abarrotes, pan y tortillas, bebidas, y limpieza y hogar. También se puede escribir un producto fuera del catálogo y anotar cantidades.
+- Cada lista permite frecuencia diaria, semanal, quincenal, mensual o anual y fecha final inclusiva. Los checks de productos se guardan por ocurrencia; al marcar la compra como lista, esa ocurrencia se archiva y aparece la siguiente cuando se repite.
+- Las listas nuevas se compartirán por defecto con la cuenta vinculada; ambas cuentas pueden ver y editar. Solo quien creó una lista compartida puede eliminarla. Sin sesión, se conserva localmente en el dispositivo.
+- Se agregó localmente el módulo y su adaptador Firestore. `firestore.rules` incluye el módulo `despensa`, limitado al modelo existente de propietario y pareja autorizada; reglas aún por publicar.
+- Pendiente: revisión final del código, publicación de reglas de Firestore, publicación en `backup/2026-10-11-12H-23-5-8` (sin tocar `main`) y validación manual en computadora/celular con ambas cuentas.
