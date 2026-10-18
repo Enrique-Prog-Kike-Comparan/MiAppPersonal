@@ -133,4 +133,4 @@ async function remove(module, item) {
     await deleteDoc(reference);
 }
 
-window.miappPrivadosCloud = { save, remove };
+window.miappPrivadosCloud = { save, remove, getUid: () => currentUid };

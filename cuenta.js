@@ -103,7 +103,8 @@ document.getElementById("cerrarSesion").addEventListener("click", async function
 });
 
 onAuthStateChanged(auth, function(user) {
-    window.dispatchEvent(new CustomEvent("miapp:sesion-actualizada", { detail: { authenticated: Boolean(user) } }));
+    window.miappSesionUid = user?.uid || null;
+    window.dispatchEvent(new CustomEvent("miapp:sesion-actualizada", { detail: { authenticated: Boolean(user), uid: window.miappSesionUid } }));
     if (user) {
         estadoCuenta.textContent = "Sesión activa. Todos los módulos se conectan con esta cuenta; puedes compartir elementos individuales de Entrenamiento, Proyectos, Despensa, Tareas, Fechas especiales, Pagos e Izel.";
         correoSesion.textContent = "Sesión iniciada como: " + (user.email || "cuenta sin correo visible");

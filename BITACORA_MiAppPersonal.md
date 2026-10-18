@@ -354,6 +354,7 @@ Revisar y publicar en Firebase las reglas locales que incluyen Salud, una vez qu
 ### Siguiente actividad
 
 Validar en MiAppPersonal, primero con Kike y después con Yesica, que un nuevo registro privado de Finanzas, Salud, Objetivos, Aprendizajes y Tiempo se sincronice entre los dispositivos de la misma cuenta y no aparezca en la cuenta de la pareja. Confirmar también que cada Resultado refleje los registros de su cuenta. No importar datos locales anteriores ni limpiar los registros QA.
+
 ### 12H.23.5.9.55 — Publicar sincronización privada en la rama de respaldo — publicado — 17/10/2026
 
 - Con autorización de Kike, se creó el commit `3bf7f95` — **Sincronizar módulos privados entre dispositivos**.
@@ -364,3 +365,16 @@ Validar en MiAppPersonal, primero con Kike y después con Yesica, que un nuevo r
 ### Siguiente actividad
 
 Abrir la versión actualizada en computadora y celular y validar un registro nuevo en cada módulo privado con Kike. Después repetir con Yesica y confirmar que los registros privados de cada cuenta no se muestran a la otra. No introducir datos personales sensibles de salud en las pruebas; usar registros ficticios y eliminarlos solo cuando Kike indique la limpieza final.
+
+### 12H.23.5.9.56 — Evitar guardados privados antes de que termine la conexión — implementado localmente; publicación y prueba pendientes — 18/10/2026
+
+- Kike informó que anotó un registro en **¿En qué se me fue el tiempo?** desde el celular y no apareció en la computadora.
+- La revisión encontró una posible carrera al iniciar sesión: la interfaz puede reconocer la cuenta antes de que el adaptador privado termine de conectarse. En ese intervalo, una alta nueva podía seguir el camino local sin avisar. Este mecanismo es una causa posible; aún no se ha confirmado que fuera la causa exacta del registro de Kike.
+- Se ajustaron los cinco módulos privados —Finanzas, Salud, Objetivos, ¿Qué aprendí? y ¿En qué se me fue el tiempo?— para que las altas nuevas con sesión activa exijan que el UID de la sesión coincida con el del adaptador y la caché. Si la sincronización aún inicia, se muestra un mensaje para esperar y guardar de nuevo, en vez de aceptar un guardado solo local. `cuenta.js` ahora comparte el UID autenticado con la aplicación y el adaptador expone el UID conectado.
+- Se actualizó el identificador de caché de `app.js` y `modulos-privados-cloud.js` a `12h-23-5-9-56` para forzar la descarga de esta versión.
+- El registro que Kike ya escribió en el celular no se importará automáticamente, de acuerdo con su decisión de dejar los datos locales anteriores en cada dispositivo. Para comprobar la corrección, después de publicar habrá que crear un registro ficticio nuevo en Tiempo y confirmar que aparezca en la computadora con la misma cuenta.
+- No se ejecutaron pruebas automatizadas, no se alteraron datos de Firebase y aún no se hizo commit ni push. La causa precisa del fallo sigue pendiente de validación manual.
+
+### Siguiente actividad
+
+Publicar el ajuste en `backup/2026-10-11-12H-23-5-8`; luego, con la misma cuenta iniciada, crear un registro ficticio nuevo en Tiempo desde el celular y comprobar que aparezca en la computadora. Confirmar también que la app muestra un aviso si se intenta guardar antes de que la conexión esté lista. No importar el registro anterior ni borrar datos de prueba.
