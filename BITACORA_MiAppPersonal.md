@@ -240,7 +240,7 @@ Kike confirmó que las notificaciones ya funcionan en su celular. Se registra el
 - Se actualizó la versión de caché de CSS y JavaScript a `12h-23-5-9-41`, para que el teléfono descargue los cambios publicados.
 - Kike confirmó que los cambios funcionaron y le gustaron. No se modificaron datos de usuario ni se ejecutaron pruebas automatizadas.
 - Commit `ca2f04c` — **Agregar botón Hoy e iconos al calendario de pagos**. Publicado en `backup/2026-10-11-12H-23-5-8`, fuente de GitHub Pages; `main` permanece intacta. Kike confirmó que todo funcionó y le gustó.
-### 12H.23.5.9.42 — Módulo Compra Pen. Despensa — implementación en curso — 17/10/2026
+### 12H.23.5.9.42 — Módulo Compra Pen. Despensa — implementado y publicado; validación manual pendiente — 17/10/2026
 
 Kike pidió un módulo para organizar listas de compra junto con Yesica, con un catálogo de 80 productos, repetición hasta una fecha, check de compra y un historial desplegable de listas completadas. El módulo no tendrá pantalla de Resultados. Se conserva la preferencia previa de mantener Proyectos al final de la sección Organizar.
 
@@ -248,4 +248,4 @@ Kike pidió un módulo para organizar listas de compra junto con Yesica, con un 
 - Cada lista permite frecuencia diaria, semanal, quincenal, mensual o anual y fecha final inclusiva. Los checks de productos se guardan por ocurrencia; al marcar la compra como lista, esa ocurrencia se archiva y aparece la siguiente cuando se repite.
 - Las listas nuevas se compartirán por defecto con la cuenta vinculada; ambas cuentas pueden ver y editar. Solo quien creó una lista compartida puede eliminarla. Sin sesión, se conserva localmente en el dispositivo.
 - Se agregó localmente el módulo y su adaptador Firestore. `firestore.rules` incluye el módulo `despensa`, limitado al modelo existente de propietario y pareja autorizada; reglas aún por publicar.
-- Pendiente: revisión final del código, publicación de reglas de Firestore, publicación en `backup/2026-10-11-12H-23-5-8` (sin tocar `main`) y validación manual en computadora/celular con ambas cuentas.
+- Las reglas de Firestore se compilaron y publicaron correctamente en el proyecto `miapppersonal-5068d`.\r\n- El módulo se guardó en el commit `ed86244` (**Agregar modulo compartido de compras de despensa**) y se publicó en `backup/2026-10-11-12H-23-5-8`, fuente de GitHub Pages. `main` no se modificó.\r\n- No se ejecutaron pruebas automatizadas. Pendiente: validar manualmente en computadora y celular, con ambas cuentas, la visualización/edición compartida, checks, listas completadas y repetición hasta la fecha final.
