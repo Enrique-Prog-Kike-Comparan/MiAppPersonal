@@ -389,7 +389,7 @@ La validación posterior quedó registrada en 12H.23.5.9.57: Kike confirmó la s
 
 Hacer una revisión final de privacidad y uso cotidiano: verificar que los módulos privados sigan separados entre las cuentas de Kike y Yesica, y que el compartir de elementos individuales continúe limitado a los siete módulos acordados. Después revisar qué registros de prueba desea conservar o eliminar. La limpieza general se hará solo cuando Kike la indique; mantener el plan gratuito y no habilitar facturación.
 
-### 12H.23.5.9.58 — Registrar enfermedades en Salud y Mi peque Izel — preparado para validar — 18/10/2026
+### 12H.23.5.9.58 — Registrar enfermedades en Salud y Mi peque Izel — publicado — 18/10/2026
 
 - Se añadieron registros de enfermedad en **Salud** (nombre, inicio, término y medicamentos) y en **Mi peque Izel** (enfermedad, inicio, término y medicamentos).
 - El calendario de ambos módulos muestra el mini icono 🤒 en cada día comprendido entre las fechas de inicio y término, inclusive. Los registros aparecen al navegar por cualquiera de esos días.
@@ -397,19 +397,25 @@ Hacer una revisión final de privacidad y uso cotidiano: verificar que los módu
 - La duración cuenta ambos días, el de inicio y el de término. Los resúmenes agrupan cada episodio en el mes o año de inicio, aunque haya continuado en el periodo siguiente.
 - Se conserva la privacidad existente: Salud se guarda de forma privada en la cuenta de cada persona; cada registro de Izel conserva la opción individual para compartirlo. Los registros nuevos sincronizan entre dispositivos al iniciar sesión.
 - No se modificaron reglas de Firebase, datos existentes ni facturación. No se realizaron pruebas automatizadas ni validación manual de la interfaz en esta actividad.
-- Pendiente: publicar en `backup/2026-10-11-12H-23-5-8` y validar en computadora y celular con las cuentas de Kike y Yesica usando registros ficticios. Comprobar el icono en los días del rango, edición, resumen mensual/anual y privacidad/compartición.
+- La versión se publicó en la rama de respaldo. La validación manual de los cambios quedó confirmada por Kike en 12H.23.5.9.61.
 
-### 12H.23.5.9.59 — Ubicar el resumen de enfermedades de Izel en Resultados — preparado para validar — 18/10/2026
+### 12H.23.5.9.59 — Ubicar el resumen de enfermedades de Izel en Resultados — publicado — 18/10/2026
 
 - Se movió el bloque independiente de **Resumen de enfermedades** fuera de la parte inferior de **Mi peque Izel** y se colocó al final de **Resultados de Mi peque Izel**, debajo del resumen general.
 - Conserva sus selectores de mes/año y fecha de referencia, y muestra episodios, duración y medicamentos registrados. El resumen general de Izel también conserva las métricas de enfermedad.
 - Se actualizó el identificador de caché de `app.js` y `estilos.css` a `12h-23-5-9-59`.
-- Pendiente: publicar en la rama de respaldo y confirmar visualmente que el bloque solo aparezca en Resultados de Izel y que sus filtros respondan en computadora y celular.
+- La versión se publicó en la rama de respaldo. Kike confirmó que probó los cambios y funcionan en 12H.23.5.9.61.
 
-### 12H.23.5.9.60 — Añadir resumen de enfermedades a Resultados de Salud — preparado para validar — 18/10/2026
+### 12H.23.5.9.60 — Añadir resumen de enfermedades a Resultados de Salud — publicado — 18/10/2026
 
 - Se agregó un bloque **Resumen de enfermedades** dentro de **Resultados de Salud**, con filtros independientes por mes/año y fecha de referencia.
 - El bloque cuenta episodios por fecha de inicio, suma su duración (incluyendo inicio y término) y lista el nombre, fecha de término, duración y medicamentos anotados.
 - El resumen utiliza los registros privados de Salud de la cuenta activa. No cambia permisos, datos existentes ni reglas de Firebase.
 - Se actualizó el identificador de caché de `app.js` y `estilos.css` a `12h-23-5-9-60`.
-- Pendiente: publicar en la rama de respaldo y validar visualmente el resumen y sus filtros en computadora y celular.
+- La versión se publicó en la rama de respaldo. Kike confirmó que probó los cambios y funcionan en 12H.23.5.9.61.
+
+### 12H.23.5.9.61 — Validar registros y resultados de enfermedades — confirmado por Kike — 18/10/2026
+
+- Kike confirmó que probó todos los cambios de registro de enfermedad y los resúmenes de Salud e Izel; reportó que funcionan y le gustan.
+- Se consideran validados los iconos miniatura en los calendarios, duración, medicamentos y resúmenes por mes/año, incluido el bloque ubicado en Resultados de Izel y el añadido a Resultados de Salud.
+- No se borraron registros de prueba. La limpieza general sigue pendiente hasta que Kike la solicite expresamente.
