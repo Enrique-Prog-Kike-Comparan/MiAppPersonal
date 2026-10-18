@@ -1299,9 +1299,9 @@ document.addEventListener("keydown", function(event) {
     if (event.key === "Escape") alternarMenuMovil(false);
 });
 function mostrarPantalla(id){document.querySelectorAll(".pantalla").forEach(p=>p.classList.remove("activa"));const modal=document.getElementById("ventanaEdicion");if(modal)modal.style.display="none";const modalGasto=document.getElementById("modalGasto");if(modalGasto)modalGasto.style.display="none";const modalEntrenamiento=document.getElementById("modalEntrenamiento");if(modalEntrenamiento)modalEntrenamiento.style.display="none";const modalObjetivo=document.getElementById("modalObjetivo");if(modalObjetivo)modalObjetivo.style.display="none";const modalProyecto=document.getElementById("modalProyecto");if(modalProyecto)modalProyecto.style.display="none";const modalSalud=document.getElementById("modalSalud");if(modalSalud)modalSalud.style.display="none";const modalIzel=document.getElementById("modalIzel");if(modalIzel)modalIzel.style.display="none";const modalDespensa=document.getElementById("modalDespensa");if(modalDespensa)modalDespensa.style.display="none";const v=document.getElementById(id);if(!v)return;alternarMenuMovil(false);v.classList.add("activa");
-const useCal=["seccionFechas","seccionTareas","seccionPagos","seccionFinanzas","seccionEntrenamiento","seccionTiempo","seccionAprendizajes","seccionObjetivos","seccionSalud","seccionIzel"].includes(id),cal=document.getElementById("calendarioContextual");if(cal)cal.hidden=!useCal;
-document.querySelectorAll(".boton-nav").forEach(x=>{const on=x.dataset.pantalla===id;x.classList.toggle("activo",on);if(on)x.setAttribute("aria-current","page");else x.removeAttribute("aria-current");});const title=document.getElementById("tituloCalendario");if(title)title.textContent=id==="seccionFechas"?"Fechas especiales":id==="seccionTareas"?"Tareas":id==="seccionFinanzas"?"Finanzas":id==="seccionSalud"?"Salud":id==="seccionIzel"?"Mi peque Izel":"Calendario";
-if(id==="seccionFechas")mostrarFechas();if(id==="seccionDespensa"&&typeof mostrarListasDespensa==="function")mostrarListasDespensa();if(id==="seccionTiempo")mostrarListaTiempo();if(id==="seccionProyectos")mostrarListaProyectos();if(id==="seccionObjetivos")mostrarListaObjetivos();if(id==="seccionEntrenamiento")mostrarListaEntrenamientos();if(id==="seccionFinanzas")mostrarListaFinanzas();if(id==="resultadoEntrenamiento")mostrarResumenEntrenamiento();if(id==="resultadoTiempo")mostrarResumenTiempo();if(id==="resultadoAprendizajes")mostrarResumenAprendizajes();if(id==="resultadoFinanzas")mostrarResumenFinanzas();if(id==="seccionAprendizajes")mostrarListaAprendizajes();if(id==="seccionPagos")mostrarListaPagos();if(id==="resultadoPagos")mostrarResumenPagos();if(id==="seccionSalud")mostrarListaSalud();if(id==="seccionIzel")mostrarListaIzel();if(id==="resultadoSalud")mostrarResumenSalud();if(id==="resultadoIzel")mostrarResumenIzel();if(id==="resultadoTareas")mostrarResumenTareas();if(typeof actualizarAvisosDelDia==="function")actualizarAvisosDelDia();if(typeof actualizarCalendarioContextual==="function")actualizarCalendarioContextual();window.scrollTo({top:0,behavior:"smooth"});}
+const useCal=["seccionFechas","seccionTareas","seccionPagos","seccionFinanzas","seccionEntrenamiento","seccionTiempo","seccionAprendizajes","seccionObjetivos","seccionSalud","seccionIzel","seccionDespensa"].includes(id),cal=document.getElementById("calendarioContextual");if(cal)cal.hidden=!useCal;
+document.querySelectorAll(".boton-nav").forEach(x=>{const on=x.dataset.pantalla===id;x.classList.toggle("activo",on);if(on)x.setAttribute("aria-current","page");else x.removeAttribute("aria-current");});const title=document.getElementById("tituloCalendario");if(title)title.textContent=id==="seccionFechas"?"Fechas especiales":id==="seccionTareas"?"Tareas":id==="seccionFinanzas"?"Finanzas":id==="seccionSalud"?"Salud":id==="seccionIzel"?"Mi peque Izel":id==="seccionDespensa"?"Compra Pen. Despensa":"Calendario";
+if(id==="seccionFechas")mostrarFechas();if(id==="seccionDespensa"&&typeof mostrarListasDespensa==="function"){const fechaDespensa=document.getElementById("fechaDespensa");if(fechaDespensa)fechaDespensa.value=diaSeleccionado;mostrarListasDespensa();}if(id==="seccionTiempo")mostrarListaTiempo();if(id==="seccionProyectos")mostrarListaProyectos();if(id==="seccionObjetivos")mostrarListaObjetivos();if(id==="seccionEntrenamiento")mostrarListaEntrenamientos();if(id==="seccionFinanzas")mostrarListaFinanzas();if(id==="resultadoEntrenamiento")mostrarResumenEntrenamiento();if(id==="resultadoTiempo")mostrarResumenTiempo();if(id==="resultadoAprendizajes")mostrarResumenAprendizajes();if(id==="resultadoFinanzas")mostrarResumenFinanzas();if(id==="seccionAprendizajes")mostrarListaAprendizajes();if(id==="seccionPagos")mostrarListaPagos();if(id==="resultadoPagos")mostrarResumenPagos();if(id==="seccionSalud")mostrarListaSalud();if(id==="seccionIzel")mostrarListaIzel();if(id==="resultadoSalud")mostrarResumenSalud();if(id==="resultadoIzel")mostrarResumenIzel();if(id==="resultadoTareas")mostrarResumenTareas();if(typeof actualizarAvisosDelDia==="function")actualizarAvisosDelDia();if(typeof actualizarCalendarioContextual==="function")actualizarCalendarioContextual();window.scrollTo({top:0,behavior:"smooth"});}
 function mostrarInicio(){mostrarPantalla("inicio");}
 revisarRecordatoriosFechas();
 
@@ -1562,7 +1562,7 @@ function irAHoyCalendario(){
     diaSeleccionado=claveDiaCalendario(ahora);
     mesContextual=new Date(ahora.getFullYear(),ahora.getMonth(),1);
     const pantalla=document.querySelector(".contenedor>.pantalla.activa")?.id;
-    const camposFecha={seccionPagos:"fechaPago",seccionFinanzas:"fechaFinanzas",seccionEntrenamiento:"fechaEntrenamiento",seccionTiempo:"fechaTiempo",seccionAprendizajes:"fechaAprendizaje",seccionSalud:"fechaSalud",seccionIzel:"fechaIzel"};
+    const camposFecha={seccionPagos:"fechaPago",seccionFinanzas:"fechaFinanzas",seccionEntrenamiento:"fechaEntrenamiento",seccionTiempo:"fechaTiempo",seccionAprendizajes:"fechaAprendizaje",seccionSalud:"fechaSalud",seccionIzel:"fechaIzel",seccionDespensa:"fechaDespensa"};
     const campo=document.getElementById(camposFecha[pantalla]||"");
     if(campo)campo.value=diaSeleccionado;
     if(pantalla==="seccionFechas")mostrarFechas(true);
@@ -1574,10 +1574,11 @@ function irAHoyCalendario(){
     else if(pantalla==="seccionAprendizajes")mostrarListaAprendizajes();
     else if(pantalla==="seccionSalud")mostrarListaSalud();
     else if(pantalla==="seccionIzel")mostrarListaIzel();
+    else if(pantalla==="seccionDespensa")mostrarListasDespensa();
     else if(pantalla==="seccionObjetivos")mostrarListaObjetivos();
     actualizarCalendarioContextual();
 }
-function moverMesCalendario(n){const seleccionado=new Date(diaSeleccionado+"T00:00:00"),mesNuevo=new Date(mesContextual.getFullYear(),mesContextual.getMonth()+n,1),ultimoDia=new Date(mesNuevo.getFullYear(),mesNuevo.getMonth()+1,0).getDate();mesContextual=mesNuevo;diaSeleccionado=claveDiaCalendario(new Date(mesNuevo.getFullYear(),mesNuevo.getMonth(),Math.min(seleccionado.getDate(),ultimoDia)));const pantalla=document.querySelector(".contenedor>.pantalla.activa")?.id;if(pantalla==="seccionFechas")mostrarFechas(true);else if(pantalla==="seccionTareas")mostrarListaTareas();else if(pantalla==="seccionEntrenamiento")mostrarListaEntrenamientos();else{if(pantalla==="seccionSalud"){const input=document.getElementById("fechaSalud");if(input)input.value=diaSeleccionado;mostrarListaSalud();}if(pantalla==="seccionIzel"){const input=document.getElementById("fechaIzel");if(input)input.value=diaSeleccionado;mostrarListaIzel();}if(pantalla==="seccionAprendizajes"){const input=document.getElementById("fechaAprendizaje");if(input)input.value=diaSeleccionado;}if(pantalla==="seccionPagos"){const input=document.getElementById("fechaPago");if(input)input.value=diaSeleccionado;mostrarListaPagos();return;}if(pantalla==="seccionFinanzas"){const input=document.getElementById("fechaFinanzas");if(input)input.value=diaSeleccionado;mostrarListaFinanzas();}actualizarCalendarioContextual();}}
+function moverMesCalendario(n){const seleccionado=new Date(diaSeleccionado+"T00:00:00"),mesNuevo=new Date(mesContextual.getFullYear(),mesContextual.getMonth()+n,1),ultimoDia=new Date(mesNuevo.getFullYear(),mesNuevo.getMonth()+1,0).getDate();mesContextual=mesNuevo;diaSeleccionado=claveDiaCalendario(new Date(mesNuevo.getFullYear(),mesNuevo.getMonth(),Math.min(seleccionado.getDate(),ultimoDia)));const pantalla=document.querySelector(".contenedor>.pantalla.activa")?.id;if(pantalla==="seccionFechas")mostrarFechas(true);else if(pantalla==="seccionTareas")mostrarListaTareas();else if(pantalla==="seccionEntrenamiento")mostrarListaEntrenamientos();else if(pantalla==="seccionDespensa"){const input=document.getElementById("fechaDespensa");if(input)input.value=diaSeleccionado;mostrarListasDespensa();}else{if(pantalla==="seccionSalud"){const input=document.getElementById("fechaSalud");if(input)input.value=diaSeleccionado;mostrarListaSalud();}if(pantalla==="seccionIzel"){const input=document.getElementById("fechaIzel");if(input)input.value=diaSeleccionado;mostrarListaIzel();}if(pantalla==="seccionAprendizajes"){const input=document.getElementById("fechaAprendizaje");if(input)input.value=diaSeleccionado;}if(pantalla==="seccionPagos"){const input=document.getElementById("fechaPago");if(input)input.value=diaSeleccionado;mostrarListaPagos();return;}if(pantalla==="seccionFinanzas"){const input=document.getElementById("fechaFinanzas");if(input)input.value=diaSeleccionado;mostrarListaFinanzas();}actualizarCalendarioContextual();}}
 function actualizarCalendarioContextual() {
     const grid = document.getElementById("cuadriculaCalendario");
     const title = document.getElementById("mesCalendarioTitulo");
@@ -1596,6 +1597,7 @@ function actualizarCalendarioContextual() {
     const isTime = id === "seccionTiempo";
     const isHealth = id === "seccionSalud";
     const isIzel = id === "seccionIzel";
+    const isDespensa = id === "seccionDespensa";
     const items = [];
 
     if (isDates && Array.isArray(fechasImportantes)) {
@@ -1647,6 +1649,15 @@ function actualizarCalendarioContextual() {
                 const completado = izelRegistroCompletadoEnFecha(item, clave);
                 const icono = item.tipo === "vacuna" ? (completado ? "✅" : "💉") : item.tipo === "pendiente" ? (completado ? "☑️" : "✅") : "🌟";
                 items.push({ fecha: clave, texto: icono + " " + (item.titulo || "Registro de Izel"), tipoIzel: item.tipo, iconoIzel: icono });
+            }
+        });
+    }
+    if (isDespensa && Array.isArray(listasDespensa)) {
+        const totalDiasDespensa = new Date(mesContextual.getFullYear(), mesContextual.getMonth() + 1, 0).getDate();
+        listasDespensa.forEach(item => {
+            for (let dia = 1; dia <= totalDiasDespensa; dia++) {
+                const clave = claveDiaCalendario(new Date(mesContextual.getFullYear(), mesContextual.getMonth(), dia));
+                if (listaDespensaOcurreEnFecha(item, clave)) items.push({ fecha: clave, texto: "🛒 " + (item.nombre || "Lista de despensa") + " · " + (item.productos || []).length + " productos", esDespensa: true });
             }
         });
     }
@@ -1740,6 +1751,16 @@ function actualizarCalendarioContextual() {
             boton.appendChild(iconos);
             boton.classList.add("con-pagos");
             boton.setAttribute("aria-label",boton.getAttribute("aria-label")+". Pagos: "+pagosDia.map(item=>item.texto).join(", "));
+        } else if (isDespensa && elementosDia.length) {
+            const listasDia = elementosDia.filter(item => item.esDespensa);
+            const iconos = document.createElement("span");
+            iconos.className = "iconos-despensa-dia";
+            iconos.setAttribute("aria-hidden", "true");
+            listasDia.slice(0, 3).forEach(() => { const mini = document.createElement("span"); mini.className = "mini-icono-despensa"; mini.textContent = "🛒"; iconos.appendChild(mini); });
+            if (listasDia.length > 3) { const extra = document.createElement("span"); extra.className = "mas-iconos-despensa"; extra.textContent = "+" + (listasDia.length - 3); iconos.appendChild(extra); }
+            boton.appendChild(iconos);
+            boton.classList.add("con-listas-despensa");
+            boton.setAttribute("aria-label", boton.getAttribute("aria-label") + ". Compras pendientes: " + listasDia.map(item => item.texto).join(", "));
         } else if (isDates && elementosDia.length) {
             boton.classList.add("con-fechas-especiales");
             const tipos = ["cumpleanos", "aniversario", "importante"].filter(tipo => elementosDia.some(item => item.tipoFecha === tipo));
@@ -1862,6 +1883,12 @@ function actualizarCalendarioContextual() {
 
         boton.onclick = function() {
             diaSeleccionado = clave;
+            if (isDespensa) {
+                const input = document.getElementById("fechaDespensa");
+                if (input) input.value = clave;
+                mostrarListasDespensa();
+                return;
+            }
             if (isTasks) {
                 mostrarListaTareas();
                 return;
@@ -1926,7 +1953,7 @@ function actualizarCalendarioContextual() {
     const coincidencias = items.filter(item => item.fecha === diaSeleccionado);
     if (!coincidencias.length) {
         const mensaje = document.createElement("p");
-        mensaje.textContent = isDates || isTasks || isLearning || isPayments || isFinance || isTraining || isObjectives || isTime || isHealth || isIzel ? "No hay elementos registrados para este día." : "Los elementos aparecerán aquí cuando se construya el módulo.";
+        mensaje.textContent = isDates || isTasks || isLearning || isPayments || isFinance || isTraining || isObjectives || isTime || isHealth || isIzel || isDespensa ? "No hay elementos registrados para este día." : "Los elementos aparecerán aquí cuando se construya el módulo.";
         detail.appendChild(mensaje);
         return;
     }
@@ -1967,6 +1994,7 @@ function obtenerAvisosDelDia(fechaHoy) {
         const estado = item.tipo !== "fecha" && izelRegistroCompletadoEnFecha(item, fechaHoy) ? " · realizada" : "";
         avisos.push({ categoria:"Mi peque Izel", texto:(item.titulo||"Registro")+estado });
     });
+    if (typeof listasPendientesDespensaEnFecha === "function") listasPendientesDespensaEnFecha(fechaHoy).forEach(item => avisos.push({ categoria:"Compra Pen. Despensa", texto:item.nombre+" · "+item.productos.length+" producto(s)" }));
     return avisos;
 }
 
