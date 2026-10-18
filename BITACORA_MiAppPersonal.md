@@ -273,3 +273,4 @@ Kike pidió un módulo para organizar listas de compra junto con Yesica, con un 
 - `mostrarPantalla` bloquea el acceso a módulos si no hay sesión. Si se cierra sesión desde un módulo, la aplicación vuelve a Inicio. Con sesión iniciada, la barra lateral y la navegación se comportan como antes.
 - No se borraron datos ni se modificaron Firebase Rules. Se actualizó la versión de `estilos.css` y `app.js` a `12h-23-5-9-45` para refrescar la aplicación instalada.
 - Kike confirmó que probó en computadora y celular: sin sesión, la navegación queda restringida; la prueba funcionó en ambos dispositivos. La recuperación del menú después de iniciar sesión se conserva según la prueba reportada.
+- Commit `1996984` — **Restringir modulos sin sesion**. Publicado en `backup/2026-10-11-12H-23-5-8`; `main` permanece intacta.
