@@ -712,3 +712,18 @@ body>.contenedor{grid-column:2;grid-row:2;width:auto;max-width:none;margin:0;pad
 .aviso-del-dia-clicable{display:block;width:100%;padding:4px 6px;border:0;border-radius:5px;background:transparent;color:inherit;font:inherit;font-size:13px;text-align:left;cursor:pointer}
 .aviso-del-dia-clicable:hover,.aviso-del-dia-clicable:focus-visible{background:#fff3d7;outline:2px solid #9a6a13}
 @media(max-width:560px){.encabezado-aviso-del-dia{align-items:flex-start}.acciones-categoria-aviso{flex-wrap:wrap;justify-content:flex-end}.posponer-categoria-aviso{max-width:145px}}
+/* 12H.23.5.9.45 — Limitar el acceso a módulos cuando no hay sesión */
+body.sesion-restringida { grid-template-columns: minmax(0, 1fr); }
+body.sesion-restringida .barra-lateral,
+body.sesion-restringida #barraAvisos,
+body.sesion-restringida #calendarioContextual { display: none !important; }
+body.sesion-restringida > header { grid-column: 1; grid-row: 1; padding-left: 90px; min-height: 74px; }
+body.sesion-restringida > .contenedor { grid-column: 1; grid-row: 2; display: block; padding: 18px 30px; }
+body.sesion-restringida .contenedor > .pantalla { display: none !important; }
+body.sesion-restringida .contenedor > #inicio.activa,
+body.sesion-restringida .contenedor > #seccionCuenta.activa { display: block !important; }
+body.sesion-restringida .boton-menu-movil { display: inline-flex; position: fixed; top: 12px; left: 12px; z-index: 1003; }
+@media (max-width: 560px) {
+  body.sesion-restringida > header { padding: 68px 12px 14px; text-align: center; }
+  body.sesion-restringida > .contenedor { padding: 12px 9px; }
+}

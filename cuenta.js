@@ -103,6 +103,7 @@ document.getElementById("cerrarSesion").addEventListener("click", async function
 });
 
 onAuthStateChanged(auth, function(user) {
+    window.dispatchEvent(new CustomEvent("miapp:sesion-actualizada", { detail: { authenticated: Boolean(user) } }));
     if (user) {
         estadoCuenta.textContent = "Sesión activa. Agenda, Tareas, Pagos, Entrenamiento y Proyectos se conectan con esta cuenta; puedes elegir qué elementos compartir.";
         correoSesion.textContent = "Sesión iniciada como: " + (user.email || "cuenta sin correo visible");

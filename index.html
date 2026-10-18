@@ -6,10 +6,10 @@
     <link rel="manifest" href="manifest.json">
     <title>Mi App Personal</title>
 
-    <link rel="stylesheet" href="estilos.css?v=12h-23-5-9-44">
+    <link rel="stylesheet" href="estilos.css?v=12h-23-5-9-45">
 </head>
 
-<body>
+<body class="sesion-restringida">
 <button id="fondoMenuMovil" class="fondo-menu-movil" type="button" hidden tabindex="-1" aria-label="Cerrar menú" onclick="alternarMenuMovil(false)"></button>
 <aside id="barraLateral" class="barra-lateral" aria-label="Navegación"><strong class="marca-app">MiAppPersonal</strong><nav class="grupos-navegacion"><section><h2>Organizar</h2><button class="boton-nav" data-pantalla="seccionObjetivos" onclick="mostrarPantalla('seccionObjetivos')">🎯 Objetivos</button><button class="boton-nav" data-pantalla="seccionFechas" onclick="mostrarPantalla('seccionFechas')">🎂 Fechas especiales</button><button class="boton-nav" data-pantalla="seccionTareas" onclick="mostrarPantalla('seccionTareas')">✅ Tareas</button><button class="boton-nav" data-pantalla="seccionPagos" onclick="mostrarPantalla('seccionPagos')">💡 Pagos pendientes</button><button class="boton-nav" data-pantalla="seccionFinanzas" onclick="mostrarPantalla('seccionFinanzas')">💰 Finanzas</button><button class="boton-nav" data-pantalla="seccionEntrenamiento" onclick="mostrarPantalla('seccionEntrenamiento')">🏋️ Entrenamiento</button><button class="boton-nav" data-pantalla="seccionAprendizajes" onclick="mostrarPantalla('seccionAprendizajes')">🧠 ¿Qué aprendí?</button><button class="boton-nav" data-pantalla="seccionTiempo" onclick="mostrarPantalla('seccionTiempo')">⏱️ ¿En qué se me fue el tiempo?</button><button class="boton-nav" data-pantalla="seccionSalud" onclick="mostrarPantalla('seccionSalud')">🩺 Salud</button><button class="boton-nav" data-pantalla="seccionIzel" onclick="mostrarPantalla('seccionIzel')">👶 Mi peque Izel</button><button class="boton-nav" data-pantalla="seccionDespensa" onclick="mostrarPantalla('seccionDespensa')">🛒 Compra Pen. Despensa</button><button class="boton-nav" data-pantalla="seccionProyectos" onclick="mostrarPantalla('seccionProyectos')">📋 Proyectos</button></section><section class="grupo-resultados"><h2>Resultados</h2><button class="boton-nav" data-pantalla="resultadoFinanzas" onclick="mostrarPantalla('resultadoFinanzas')">📊 Resultados financieros</button><button class="boton-nav" data-pantalla="resultadoPagos" onclick="mostrarPantalla('resultadoPagos')">💡 Resumen de pagos</button><button class="boton-nav" data-pantalla="resultadoEntrenamiento" onclick="mostrarPantalla('resultadoEntrenamiento')">🏋️ Resumen entrenamiento</button><button class="boton-nav" data-pantalla="resultadoTareas" onclick="mostrarPantalla('resultadoTareas')">✅ Resultado de tareas</button><button class="boton-nav" data-pantalla="resultadoTiempo" onclick="mostrarPantalla('resultadoTiempo')">⏱️ Resultado del tiempo</button><button class="boton-nav" data-pantalla="resultadoSalud" onclick="mostrarPantalla('resultadoSalud')">🩺 Resultados de Salud</button><button class="boton-nav" data-pantalla="resultadoIzel" onclick="mostrarPantalla('resultadoIzel')">👶 Resultados de Izel</button><button class="boton-nav" data-pantalla="resultadoAprendizajes" onclick="mostrarPantalla('resultadoAprendizajes')">🧠 Resultado de aprendizajes</button></section></nav></aside>
 
@@ -326,7 +326,7 @@
 
     <aside id="calendarioContextual" class="panel-calendario" hidden><div class="cabecera-calendario"><h2 id="tituloCalendario">Calendario</h2><div class="acciones-navegacion-calendario"><button onclick="moverMesCalendario(-1)" aria-label="Mes anterior">‹</button><button type="button" class="boton-hoy-calendario" onclick="irAHoyCalendario()">Hoy</button><button onclick="moverMesCalendario(1)" aria-label="Mes siguiente">›</button></div></div><p id="mesCalendarioTitulo" class="mes-calendario"></p><div id="cuadriculaCalendario" class="cuadricula-calendario"></div><div id="detalleCalendario" class="detalle-calendario"></div></aside></main>
 <script type="module" src="firebase-config.js"></script>
-<script src="app.js?v=12h-23-5-9-44"></script>
+<script src="app.js?v=12h-23-5-9-45"></script>
 <script src="despensa.js?v=12h-23-5-9-43"></script>
 <script type="module" src="cuenta.js"></script>
     <script type="module" src="vinculo.js"></script>
