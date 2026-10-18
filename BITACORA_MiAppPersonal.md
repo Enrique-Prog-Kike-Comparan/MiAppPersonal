@@ -398,3 +398,10 @@ Hacer una revisión final de privacidad y uso cotidiano: verificar que los módu
 - Se conserva la privacidad existente: Salud se guarda de forma privada en la cuenta de cada persona; cada registro de Izel conserva la opción individual para compartirlo. Los registros nuevos sincronizan entre dispositivos al iniciar sesión.
 - No se modificaron reglas de Firebase, datos existentes ni facturación. No se realizaron pruebas automatizadas ni validación manual de la interfaz en esta actividad.
 - Pendiente: publicar en `backup/2026-10-11-12H-23-5-8` y validar en computadora y celular con las cuentas de Kike y Yesica usando registros ficticios. Comprobar el icono en los días del rango, edición, resumen mensual/anual y privacidad/compartición.
+
+### 12H.23.5.9.59 — Ubicar el resumen de enfermedades de Izel en Resultados — preparado para validar — 18/10/2026
+
+- Se movió el bloque independiente de **Resumen de enfermedades** fuera de la parte inferior de **Mi peque Izel** y se colocó al final de **Resultados de Mi peque Izel**, debajo del resumen general.
+- Conserva sus selectores de mes/año y fecha de referencia, y muestra episodios, duración y medicamentos registrados. El resumen general de Izel también conserva las métricas de enfermedad.
+- Se actualizó el identificador de caché de `app.js` y `estilos.css` a `12h-23-5-9-59`.
+- Pendiente: publicar en la rama de respaldo y confirmar visualmente que el bloque solo aparezca en Resultados de Izel y que sus filtros respondan en computadora y celular.

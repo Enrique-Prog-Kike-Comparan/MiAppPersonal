@@ -3946,11 +3946,11 @@ function mostrarListaIzel() {
         const borrar = document.createElement("button"); borrar.type = "button"; borrar.textContent = "Eliminar"; borrar.disabled = Boolean(item.ownerUid && item.ownerUid !== izelUsuarioUid); if (borrar.disabled) borrar.title = "Solo quien creó el registro puede eliminarlo."; borrar.onclick = () => eliminarRegistroIzel(indice);
         acciones.append(editar, borrar); card.appendChild(acciones); lista.appendChild(card);
     });
-    actualizarCalendarioContextual(); mostrarResumenEnfermedadesIzelModulo();
+    actualizarCalendarioContextual();
 }
 function mostrarResumenIzel() {
     const panel = document.getElementById("panelResumenIzel"), periodoEl = document.getElementById("periodoResumenIzel"), fechaEl = document.getElementById("fechaReferenciaIzel");
-    if (!panel || !periodoEl || !fechaEl) { mostrarResumenEnfermedadesIzelModulo(); return; }
+    if (!panel || !periodoEl || !fechaEl) return;
     if (!fechaEl.value) fechaEl.value = fechaClaveCalendario(new Date());
     panel.replaceChildren();
     const rango = obtenerRangoResumenFinanzas(periodoEl.value, fechaEl.value), ocurrencias = [], enfermedades = izelRegistros.filter(item => item.tipo === "enfermedad" && item.fecha >= rango.desde && item.fecha <= rango.hasta);
