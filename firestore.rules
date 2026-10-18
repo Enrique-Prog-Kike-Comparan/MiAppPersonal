@@ -131,7 +131,7 @@ service cloud.firestore {
         && record.sharedWithUids.size() <= 1
         && record.module in [
           'agenda', 'tareas', 'pagos', 'aprendizajes', 'finanzas',
-          'entrenamiento', 'objetivos', 'tiempo', 'proyectos', 'izel', 'despensa'
+          'entrenamiento', 'objetivos', 'tiempo', 'proyectos', 'izel', 'despensa', 'salud'
         ]
         && record.data is map
         && record.createdAt is timestamp

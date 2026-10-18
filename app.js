@@ -21,7 +21,58 @@ let proyectosLocalesEnDispositivo=JSON.parse(localStorage.getItem("proyectos")||
 const firmasProyectosSincronizados=new Map(),colasProyectosSincronizando=new Map();
 let pagosLocalesEnDispositivo=JSON.parse(localStorage.getItem("pagosPendientes")||"[]").filter(pago=>!pago.ownerUid),pagosPendientes=pagosLocalesEnDispositivo.slice(),pagosNube=[],pagosUsuarioUid=null,pagosVinculoActivo=false,pagoEditando=null;
 const notificacionesEnProceso = new Set();
-
+let modulosPrivadosUid = null;
+const modulosPrivadosNube = { finanzas: [], salud: [], objetivos: [], aprendizajes: [], tiempo: [] };
+const configuracionModulosPrivados = {
+    finanzas: { localKey: "gastosFinanzas", get: () => gastos, set: value => gastos = value, render: () => { mostrarListaFinanzas(); mostrarResumenFinanzas(); } },
+    salud: { localKey: "saludRegistros", get: () => saludRegistros, set: value => saludRegistros = value, render: () => { mostrarListaSalud(); mostrarResumenSalud(); } },
+    objetivos: { localKey: "objetivos", get: () => objetivos, set: value => objetivos = value, render: () => mostrarListaObjetivos() },
+    aprendizajes: { localKey: "aprendizajes", get: () => aprendizajes, set: value => aprendizajes = value, render: () => { mostrarListaAprendizajes(); mostrarResumenAprendizajes(); } },
+    tiempo: { localKey: "registrosTiempo", get: () => registrosTiempo, set: value => registrosTiempo = value, render: () => { mostrarListaTiempo(); mostrarResumenTiempo(); } }
+};
+function claveCachePrivado(modulo, uid) { return "miappPrivado:" + uid + ":" + modulo; }
+function leerCachePrivado(modulo, uid) {
+    try { const guardado = localStorage.getItem(claveCachePrivado(modulo, uid)); const parsed = guardado ? JSON.parse(guardado) : []; return Array.isArray(parsed) ? parsed : []; }
+    catch (_) { return []; }
+}
+function guardarCachePrivado(modulo) {
+    const config = configuracionModulosPrivados[modulo];
+    if (!config) return;
+    const locales = config.get().filter(item => !item.ownerUid);
+    if (modulosPrivadosUid) localStorage.setItem(claveCachePrivado(modulo, modulosPrivadosUid), JSON.stringify(locales));
+    else localStorage.setItem(config.localKey, JSON.stringify(locales));
+}
+function combinarModuloPrivado(modulo, nube) {
+    const config = configuracionModulosPrivados[modulo];
+    if (!config) return;
+    const nubeValida = Array.isArray(nube) ? nube : [];
+    modulosPrivadosNube[modulo] = nubeValida;
+    const idsNube = new Set(nubeValida.map(item => item.id));
+    const locales = modulosPrivadosUid ? leerCachePrivado(modulo, modulosPrivadosUid) : [];
+    config.set(locales.filter(item => !idsNube.has(item.id)).concat(nubeValida));
+    guardarCachePrivado(modulo);
+    config.render();
+    if (typeof actualizarCalendarioContextual === "function") actualizarCalendarioContextual();
+    if (typeof actualizarAvisosDelDia === "function") actualizarAvisosDelDia();
+}
+async function guardarRegistroPrivado(modulo, registro) {
+    if (!modulosPrivadosUid || !window.miappPrivadosCloud) throw new Error("Inicia sesión para sincronizar este registro con tu cuenta.");
+    const guardado = await window.miappPrivadosCloud.save(modulo, registro);
+    modulosPrivadosNube[modulo] = modulosPrivadosNube[modulo].filter(item => item.id !== guardado.id).concat(guardado);
+    const config = configuracionModulosPrivados[modulo];
+    config.set(config.get().filter(item => item.id !== guardado.id).concat(guardado));
+    config.render();
+    return guardado;
+}
+async function eliminarRegistroPrivado(modulo, registro) {
+    if (!registro.ownerUid) return;
+    if (!window.miappPrivadosCloud) throw new Error("La sincronización todavía se está iniciando.");
+    await window.miappPrivadosCloud.remove(modulo, registro);
+    modulosPrivadosNube[modulo] = modulosPrivadosNube[modulo].filter(item => item.id !== registro.id);
+    const config = configuracionModulosPrivados[modulo];
+    config.set(config.get().filter(item => item.id !== registro.id));
+    config.render();
+}
 function mostrarTareas() {
     document.getElementById("seccionTareas").scrollIntoView({
         behavior: "smooth"
@@ -1490,6 +1541,31 @@ alert(
 
 }
 
+window.addEventListener("miapp:privados-usuario", event => {
+    const uid = event.detail?.uid || null;
+    if (uid === modulosPrivadosUid) return;
+    modulosPrivadosUid = uid;
+    Object.keys(configuracionModulosPrivados).forEach(modulo => {
+        const config = configuracionModulosPrivados[modulo];
+        if (uid) {
+            const key = claveCachePrivado(modulo, uid);
+            if (localStorage.getItem(key) === null) localStorage.setItem(key, "[]");
+            config.set(leerCachePrivado(modulo, uid));
+        } else {
+            modulosPrivadosNube[modulo] = [];
+            let locales = [];
+            try { const parsed = JSON.parse(localStorage.getItem(config.localKey) || "[]"); locales = Array.isArray(parsed) ? parsed.filter(item => !item.ownerUid) : []; } catch (_) {}
+            config.set(locales);
+        }
+        guardarCachePrivado(modulo);
+        config.render();
+    });
+});
+window.addEventListener("miapp:privados-datos", event => {
+    const { uid, module, records } = event.detail || {};
+    if (!uid || uid !== modulosPrivadosUid || !configuracionModulosPrivados[module]) return;
+    combinarModuloPrivado(module, records);
+});
 window.addEventListener("miapp:agenda-usuario", function(event) {
     const uid = event.detail && event.detail.uid;
     agendaUsuarioUid = uid || null;
@@ -2082,20 +2158,19 @@ function revisarRecordatoriosTareas() {
 }
 
 
-function guardarAprendizajesEnDispositivo(){localStorage.setItem("aprendizajes",JSON.stringify(aprendizajes));}
+function guardarAprendizajesEnDispositivo(){guardarCachePrivado("aprendizajes");}
 function mostrarListaAprendizajes(){const lista=document.getElementById("listaAprendizajes");if(!lista)return;lista.replaceChildren();if(!aprendizajes.length){const p=document.createElement("p");p.textContent="Aún no has guardado aprendizajes.";lista.appendChild(p);if(typeof actualizarCalendarioContextual==="function")actualizarCalendarioContextual();return;}
 const ordenados=aprendizajes.map((item,indice)=>({item,indice})).sort((a,b)=>b.item.fecha.localeCompare(a.item.fecha));ordenados.forEach(({item,indice})=>{const tarjeta=document.createElement("article");tarjeta.className="tarjeta-aprendizaje";const fecha=document.createElement("h3");const d=new Date(item.fecha+"T00:00:00");fecha.textContent=d.toLocaleDateString("es-MX",{weekday:"long",year:"numeric",month:"long",day:"numeric"});const texto=document.createElement("p");texto.textContent=item.texto;const acciones=document.createElement("div");acciones.className="acciones-tarjeta-aprendizaje";const editar=document.createElement("button");editar.type="button";editar.textContent="Editar";editar.onclick=function(){editarAprendizaje(indice);};const borrar=document.createElement("button");borrar.type="button";borrar.textContent="Eliminar";borrar.onclick=function(){eliminarAprendizaje(indice);};acciones.append(editar,borrar);tarjeta.append(fecha,texto,acciones);lista.appendChild(tarjeta);});if(typeof actualizarCalendarioContextual==="function")actualizarCalendarioContextual();}
-function guardarAprendizaje(){const campoFecha=document.getElementById("fechaAprendizaje"),campoTexto=document.getElementById("textoAprendizaje"),fecha=campoFecha.value,texto=campoTexto.value.trim();if(!fecha){alert("Selecciona el día del aprendizaje.");return;}if(!texto){alert("Escribe qué aprendiste.");campoTexto.focus();return;}if(aprendizajeEditando===null)aprendizajes.push({fecha,texto});else{aprendizajes[aprendizajeEditando]={...aprendizajes[aprendizajeEditando],fecha,texto};aprendizajeEditando=null;}guardarAprendizajesEnDispositivo();campoFecha.value=fechaClaveCalendario(new Date());campoTexto.value="";document.getElementById("botonGuardarAprendizaje").textContent="Guardar aprendizaje";document.getElementById("botonCancelarAprendizaje").hidden=true;mostrarListaAprendizajes();}
+async function guardarAprendizaje(){const campoFecha=document.getElementById("fechaAprendizaje"),campoTexto=document.getElementById("textoAprendizaje"),fecha=campoFecha.value,texto=campoTexto.value.trim();if(!fecha){alert("Selecciona el día del aprendizaje.");return;}if(!texto){alert("Escribe qué aprendiste.");campoTexto.focus();return;}const anterior=aprendizajeEditando===null?null:aprendizajes[aprendizajeEditando];const registro={...anterior,id:anterior?.id||"aprendizaje-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),fecha,texto};try{if(anterior?.ownerUid||(!anterior&&modulosPrivadosUid))await guardarRegistroPrivado("aprendizajes",registro);else{if(aprendizajeEditando===null)aprendizajes.push(registro);else aprendizajes[aprendizajeEditando]=registro;}aprendizajeEditando=null;guardarAprendizajesEnDispositivo();campoFecha.value=fechaClaveCalendario(new Date());campoTexto.value="";document.getElementById("botonGuardarAprendizaje").textContent="Guardar aprendizaje";document.getElementById("botonCancelarAprendizaje").hidden=true;mostrarListaAprendizajes();mostrarResumenAprendizajes();}catch(error){alert(error.message||"No se pudo guardar el aprendizaje en tu cuenta.");}}
 function editarAprendizaje(indice){const item=aprendizajes[indice];if(!item)return;aprendizajeEditando=indice;document.getElementById("fechaAprendizaje").value=item.fecha;document.getElementById("textoAprendizaje").value=item.texto;document.getElementById("botonGuardarAprendizaje").textContent="Guardar cambios";document.getElementById("botonCancelarAprendizaje").hidden=false;document.getElementById("textoAprendizaje").focus();}
 function cancelarEdicionAprendizaje(){aprendizajeEditando=null;document.getElementById("fechaAprendizaje").value=fechaClaveCalendario(new Date());document.getElementById("textoAprendizaje").value="";document.getElementById("botonGuardarAprendizaje").textContent="Guardar aprendizaje";document.getElementById("botonCancelarAprendizaje").hidden=true;}
-function eliminarAprendizaje(indice){if(!aprendizajes[indice])return;if(!confirm("¿Quieres eliminar este aprendizaje?"))return;aprendizajes.splice(indice,1);guardarAprendizajesEnDispositivo();mostrarListaAprendizajes();}
+async function eliminarAprendizaje(indice){const item=aprendizajes[indice];if(!item||!confirm("¿Quieres eliminar este aprendizaje?"))return;try{if(item.ownerUid)await eliminarRegistroPrivado("aprendizajes",item);else aprendizajes.splice(indice,1);guardarAprendizajesEnDispositivo();mostrarListaAprendizajes();mostrarResumenAprendizajes();}catch(error){alert(error.message||"No se pudo eliminar el aprendizaje.");}}
 if(document.getElementById("fechaAprendizaje"))document.getElementById("fechaAprendizaje").value=fechaClaveCalendario(new Date());mostrarListaAprendizajes();
 
 
 function guardarObjetivosEnDispositivo() {
-    localStorage.setItem("objetivos", JSON.stringify(objetivos));
+    guardarCachePrivado("objetivos");
 }
-
 function abrirNuevoObjetivo() {
     objetivoEditando = null;
     document.getElementById("tituloObjetivo").value = "";
@@ -2130,57 +2205,44 @@ function cerrarModalObjetivo() {
     objetivoEditando = null;
 }
 
-function guardarObjetivo() {
-    const tituloCampo = document.getElementById("tituloObjetivo");
-    const titulo = tituloCampo.value.trim();
-    const progresoCampo = document.getElementById("progresoObjetivo");
-    const progreso = Number(progresoCampo.value);
+async function guardarObjetivo() {
+    const tituloCampo = document.getElementById("tituloObjetivo"), titulo = tituloCampo.value.trim();
+    const progresoCampo = document.getElementById("progresoObjetivo"), progreso = Number(progresoCampo.value);
     if (!titulo) { alert("Escribe el objetivo que quieres alcanzar."); tituloCampo.focus(); return; }
     if (!Number.isFinite(progreso) || progreso < 0 || progreso > 100) { alert("El progreso debe ser un número entre 0 y 100."); progresoCampo.focus(); return; }
     const anterior = objetivoEditando === null ? null : objetivos[objetivoEditando];
     const estadoSeleccionado = document.getElementById("estadoObjetivo").value;
-    const objetivo = {
+    const objetivo = { ...anterior,
         id: anterior?.id || "objetivo-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
-        titulo,
-        descripcion: document.getElementById("descripcionObjetivo").value.trim(),
+        titulo, descripcion: document.getElementById("descripcionObjetivo").value.trim(),
         fechaMeta: document.getElementById("fechaMetaObjetivo").value,
         progreso: estadoSeleccionado === "completado" ? 100 : Math.round(progreso),
-        progresoAntesDeCompletar: estadoSeleccionado === "completado"
-            ? (anterior?.progresoAntesDeCompletar ?? (anterior?.estado === "completado" ? 0 : Math.round(progreso)))
-            : undefined,
+        progresoAntesDeCompletar: estadoSeleccionado === "completado" ? (anterior?.progresoAntesDeCompletar ?? (anterior?.estado === "completado" ? 0 : Math.round(progreso))) : undefined,
         estado: estadoSeleccionado
     };
-    if (objetivoEditando === null) objetivos.push(objetivo);
-    else objetivos[objetivoEditando] = objetivo;
-    guardarObjetivosEnDispositivo();
-    cerrarModalObjetivo();
-    mostrarListaObjetivos();
+    try {
+        if (anterior?.ownerUid || (!anterior && modulosPrivadosUid)) await guardarRegistroPrivado("objetivos", objetivo);
+        else if (objetivoEditando === null) objetivos.push(objetivo);
+        else objetivos[objetivoEditando] = objetivo;
+        objetivoEditando = null; guardarObjetivosEnDispositivo(); cerrarModalObjetivo(); mostrarListaObjetivos();
+    } catch (error) { alert(error.message || "No se pudo guardar el objetivo en tu cuenta."); }
 }
-
-function eliminarObjetivo(indice) {
-    if (!objetivos[indice] || !confirm("¿Quieres eliminar este objetivo?")) return;
-    objetivos.splice(indice, 1);
-    guardarObjetivosEnDispositivo();
-    mostrarListaObjetivos();
-}
-
-function cambiarEstadoObjetivo(indice, completado) {
+async function eliminarObjetivo(indice) {
     const objetivo = objetivos[indice];
-    if (!objetivo) return;
-    if (completado) {
-        objetivo.progresoAntesDeCompletar = Math.max(0, Math.min(99, Math.round(Number(objetivo.progreso) || 0)));
-        objetivo.progreso = 100;
-        objetivo.estado = "completado";
-    } else {
-        objetivo.progreso = Math.max(0, Math.min(99, Math.round(Number(objetivo.progresoAntesDeCompletar) || 0)));
-        objetivo.estado = "activo";
-        delete objetivo.progresoAntesDeCompletar;
-    }
-    guardarObjetivosEnDispositivo();
-    mostrarListaObjetivos();
+    if (!objetivo || !confirm("¿Quieres eliminar este objetivo?")) return;
+    try { if (objetivo.ownerUid) await eliminarRegistroPrivado("objetivos", objetivo); else objetivos.splice(indice, 1); guardarObjetivosEnDispositivo(); mostrarListaObjetivos(); }
+    catch (error) { alert(error.message || "No se pudo eliminar el objetivo."); }
+}
+async function cambiarEstadoObjetivo(indice, completado) {
+    const objetivo = objetivos[indice]; if (!objetivo) return;
+    const actualizado = { ...objetivo };
+    if (completado) { actualizado.progresoAntesDeCompletar = Math.max(0, Math.min(99, Math.round(Number(objetivo.progreso) || 0))); actualizado.progreso = 100; actualizado.estado = "completado"; }
+    else { actualizado.progreso = Math.max(0, Math.min(99, Math.round(Number(objetivo.progresoAntesDeCompletar) || 0))); actualizado.estado = "activo"; delete actualizado.progresoAntesDeCompletar; }
+    try { if (objetivo.ownerUid) await guardarRegistroPrivado("objetivos", actualizado); else objetivos[indice] = actualizado; guardarObjetivosEnDispositivo(); mostrarListaObjetivos(); }
+    catch (error) { alert(error.message || "No se pudo actualizar el objetivo."); }
 }
 function guardarRegistrosTiempoEnDispositivo() {
-    localStorage.setItem("registrosTiempo", JSON.stringify(registrosTiempo));
+    guardarCachePrivado("tiempo");
 }
 
 function seleccionarFechaTiempo(fecha) {
@@ -2242,41 +2304,22 @@ function mostrarListaTiempo() {
     actualizarCalendarioContextual();
 }
 
-function guardarRegistroTiempo() {
-    const fecha = document.getElementById("fechaTiempo").value;
-    const campoTexto = document.getElementById("textoRegistroTiempo");
-    const texto = campoTexto.value.trim();
+async function guardarRegistroTiempo() {
+    const fecha = document.getElementById("fechaTiempo").value, campoTexto = document.getElementById("textoRegistroTiempo"), texto = campoTexto.value.trim();
     if (!fecha) { alert("Selecciona el día que quieres registrar."); return; }
     if (!texto) { alert("Escribe la actividad en la que sientes que perdiste tiempo."); campoTexto.focus(); return; }
-    const duracionCampo = document.getElementById("duracionRegistroTiempo");
-    const minutos = duracionCampo.value.trim() === "" ? null : Number(duracionCampo.value);
-    if (minutos !== null && (!Number.isInteger(minutos) || minutos < 1 || minutos > 1440)) {
-        alert("El tiempo debe ser un número entero entre 1 y 1440 minutos, o puedes dejarlo vacío.");
-        duracionCampo.focus();
-        return;
-    }
+    const duracionCampo = document.getElementById("duracionRegistroTiempo"), minutos = duracionCampo.value.trim() === "" ? null : Number(duracionCampo.value);
+    if (minutos !== null && (!Number.isInteger(minutos) || minutos < 1 || minutos > 1440)) { alert("El tiempo debe ser un número entero entre 1 y 1440 minutos, o puedes dejarlo vacío."); duracionCampo.focus(); return; }
     const anterior = registroTiempoEditando === null ? null : registrosTiempo[registroTiempoEditando];
-    const registro = {
-        id: anterior?.id || "tiempo-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8),
-        fecha,
-        texto,
-        minutos,
-        creadoEn: anterior?.creadoEn || new Date().toISOString()
-    };
-    if (registroTiempoEditando === null) registrosTiempo.push(registro);
-    else registrosTiempo[registroTiempoEditando] = registro;
-    diaSeleccionado = fecha;
-    const seleccionada = new Date(fecha + "T00:00:00");
-    mesContextual = new Date(seleccionada.getFullYear(), seleccionada.getMonth(), 1);
-    registroTiempoEditando = null;
-    campoTexto.value = "";
-    document.getElementById("duracionRegistroTiempo").value = "";
-    document.getElementById("botonGuardarRegistroTiempo").textContent = "Guardar actividad";
-    document.getElementById("botonCancelarRegistroTiempo").hidden = true;
-    guardarRegistrosTiempoEnDispositivo();
-    mostrarListaTiempo();
+    const registro = { ...anterior, id: anterior?.id || "tiempo-" + Date.now() + "-" + Math.random().toString(36).slice(2, 8), fecha, texto, minutos, creadoEn: anterior?.creadoEn || new Date().toISOString() };
+    try {
+        if (anterior?.ownerUid || (!anterior && modulosPrivadosUid)) await guardarRegistroPrivado("tiempo", registro);
+        else if (registroTiempoEditando === null) registrosTiempo.push(registro); else registrosTiempo[registroTiempoEditando] = registro;
+        diaSeleccionado = fecha; const seleccionada = new Date(fecha + "T00:00:00"); mesContextual = new Date(seleccionada.getFullYear(), seleccionada.getMonth(), 1);
+        registroTiempoEditando = null; campoTexto.value = ""; duracionCampo.value = ""; document.getElementById("botonGuardarRegistroTiempo").textContent = "Guardar actividad"; document.getElementById("botonCancelarRegistroTiempo").hidden = true;
+        guardarRegistrosTiempoEnDispositivo(); mostrarListaTiempo(); mostrarResumenTiempo();
+    } catch (error) { alert(error.message || "No se pudo guardar la actividad en tu cuenta."); }
 }
-
 function editarRegistroTiempo(indice) {
     const registro = registrosTiempo[indice];
     if (!registro) return;
@@ -2302,13 +2345,11 @@ function cancelarEdicionRegistroTiempo() {
     document.getElementById("botonCancelarRegistroTiempo").hidden = true;
 }
 
-function eliminarRegistroTiempo(indice) {
-    if (!registrosTiempo[indice] || !confirm("¿Quieres eliminar esta actividad de tiempo?")) return;
-    registrosTiempo.splice(indice, 1);
-    guardarRegistrosTiempoEnDispositivo();
-    mostrarListaTiempo();
-}
-function guardarProyectosEnDispositivo() {
+async function eliminarRegistroTiempo(indice) {
+    const registro = registrosTiempo[indice]; if (!registro || !confirm("¿Quieres eliminar esta actividad de tiempo?")) return;
+    try { if (registro.ownerUid) await eliminarRegistroPrivado("tiempo", registro); else registrosTiempo.splice(indice, 1); guardarRegistrosTiempoEnDispositivo(); mostrarListaTiempo(); mostrarResumenTiempo(); }
+    catch (error) { alert(error.message || "No se pudo eliminar la actividad."); }
+}function guardarProyectosEnDispositivo() {
     proyectosLocalesEnDispositivo=proyectos.filter(proyecto=>!proyecto.ownerUid);
     localStorage.setItem("proyectos", JSON.stringify(proyectosLocalesEnDispositivo));
     proyectos.filter(proyecto=>Boolean(proyecto.ownerUid)).forEach(proyecto=>sincronizarProyectoPendiente(proyecto.id));
@@ -3103,15 +3144,19 @@ function mostrarListaEntrenamientos() {
     });
     actualizarCalendarioContextual();
 }
-function guardarGastosEnDispositivo(){localStorage.setItem("gastosFinanzas",JSON.stringify(gastos));}
-function normalizarCategoriaGasto(categoria){const categorias=["fijos_esenciales","variables_necesarios","compromisos_financieros","gustos_salidas"];if(categorias.includes(categoria))return categoria;const anteriores={vivienda:"fijos_esenciales",educacion:"fijos_esenciales",comida:"variables_necesarios",transporte:"variables_necesarios",salud:"variables_necesarios",entretenimiento:"gustos_salidas",otros:"variables_necesarios"};return anteriores[categoria]||"variables_necesarios";}
+function guardarGastosEnDispositivo(){guardarCachePrivado("finanzas");}function normalizarCategoriaGasto(categoria){const categorias=["fijos_esenciales","variables_necesarios","compromisos_financieros","gustos_salidas"];if(categorias.includes(categoria))return categoria;const anteriores={vivienda:"fijos_esenciales",educacion:"fijos_esenciales",comida:"variables_necesarios",transporte:"variables_necesarios",salud:"variables_necesarios",entretenimiento:"gustos_salidas",otros:"variables_necesarios"};return anteriores[categoria]||"variables_necesarios";}
 function informacionCategoriaGasto(categoria){const categoriaNormalizada=normalizarCategoriaGasto(categoria);const opciones={fijos_esenciales:{icono:"🏠",nombre:"Fijos y esenciales"},variables_necesarios:{icono:"🛒",nombre:"Variables necesarios"},compromisos_financieros:{icono:"💳",nombre:"Compromisos financieros"},gustos_salidas:{icono:"🎉",nombre:"Gustos y salidas"}};return opciones[categoriaNormalizada];}
 function seleccionarFechaFinanzas(fecha){if(!fecha)return;diaSeleccionado=fecha;const seleccionada=new Date(fecha+"T00:00:00");mesContextual=new Date(seleccionada.getFullYear(),seleccionada.getMonth(),1);mostrarListaFinanzas();}
 function abrirNuevoGasto(){gastoEditando=null;document.getElementById("conceptoGasto").value="";document.getElementById("montoGasto").value="";document.getElementById("fechaGasto").value=diaSeleccionado;document.getElementById("categoriaGasto").value="variables_necesarios";document.getElementById("notaGasto").value="";document.getElementById("tituloModalGasto").textContent="＋ Nuevo gasto";document.getElementById("botonGuardarGasto").textContent="Guardar gasto";document.getElementById("modalGasto").style.display="flex";document.getElementById("conceptoGasto").focus();}
 function editarGasto(indice){const gasto=gastos[indice];if(!gasto)return;gastoEditando=indice;document.getElementById("conceptoGasto").value=gasto.concepto||"";document.getElementById("montoGasto").value=Number(gasto.monto)||"";document.getElementById("fechaGasto").value=gasto.fecha||"";document.getElementById("categoriaGasto").value=normalizarCategoriaGasto(gasto.categoria);document.getElementById("notaGasto").value=gasto.nota||"";document.getElementById("tituloModalGasto").textContent="✏️ Editar gasto";document.getElementById("botonGuardarGasto").textContent="Guardar cambios";document.getElementById("modalGasto").style.display="flex";document.getElementById("conceptoGasto").focus();}
 function cerrarModalGasto(){gastoEditando=null;document.getElementById("modalGasto").style.display="none";}
-function guardarGasto(){const conceptoCampo=document.getElementById("conceptoGasto"),montoCampo=document.getElementById("montoGasto"),fechaCampo=document.getElementById("fechaGasto"),concepto=conceptoCampo.value.trim(),monto=Number(montoCampo.value),fecha=fechaCampo.value;if(!concepto){alert("Escribe el concepto del gasto.");conceptoCampo.focus();return;}if(!Number.isFinite(monto)||monto<=0){alert("Escribe un monto mayor que cero.");montoCampo.focus();return;}if(!fecha){alert("Selecciona la fecha del gasto.");fechaCampo.focus();return;}const registro={id:gastoEditando===null?"gasto-"+Date.now()+"-"+Math.random().toString(36).slice(2,8):gastos[gastoEditando].id,concepto,monto,fecha,categoria:document.getElementById("categoriaGasto").value,nota:document.getElementById("notaGasto").value.trim()};if(gastoEditando===null)gastos.push(registro);else gastos[gastoEditando]=registro;diaSeleccionado=fecha;mesContextual=new Date(new Date(fecha+"T00:00:00").getFullYear(),new Date(fecha+"T00:00:00").getMonth(),1);guardarGastosEnDispositivo();cerrarModalGasto();document.getElementById("fechaFinanzas").value=fecha;mostrarListaFinanzas();}
-function eliminarGasto(indice){if(!gastos[indice]||!confirm("¿Quieres eliminar este gasto?"))return;gastos.splice(indice,1);guardarGastosEnDispositivo();mostrarListaFinanzas();}
+async function guardarGasto(){
+const conceptoCampo=document.getElementById("conceptoGasto"),montoCampo=document.getElementById("montoGasto"),fechaCampo=document.getElementById("fechaGasto"),concepto=conceptoCampo.value.trim(),monto=Number(montoCampo.value),fecha=fechaCampo.value;
+if(!concepto){alert("Escribe el concepto del gasto.");conceptoCampo.focus();return;}if(!Number.isFinite(monto)||monto<=0){alert("Escribe un monto mayor que cero.");montoCampo.focus();return;}if(!fecha){alert("Selecciona la fecha del gasto.");return;}
+const anterior=gastoEditando===null?null:gastos[gastoEditando],registro={...anterior,id:anterior?.id||"gasto-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),concepto,monto,fecha,categoria:document.getElementById("categoriaGasto").value,nota:document.getElementById("notaGasto").value.trim()};
+try{if(anterior?.ownerUid||(!anterior&&modulosPrivadosUid))await guardarRegistroPrivado("finanzas",registro);else if(gastoEditando===null)gastos.push(registro);else gastos[gastoEditando]=registro;diaSeleccionado=fecha;mesContextual=new Date(new Date(fecha+"T00:00:00").getFullYear(),new Date(fecha+"T00:00:00").getMonth(),1);guardarGastosEnDispositivo();cerrarModalGasto();document.getElementById("fechaFinanzas").value=fecha;mostrarListaFinanzas();mostrarResumenFinanzas();}catch(error){alert(error.message||"No se pudo guardar el gasto en tu cuenta.");}
+}
+async function eliminarGasto(indice){const gasto=gastos[indice];if(!gasto||!confirm("¿Quieres eliminar este gasto?"))return;try{if(gasto.ownerUid)await eliminarRegistroPrivado("finanzas",gasto);else gastos.splice(indice,1);guardarGastosEnDispositivo();mostrarListaFinanzas();mostrarResumenFinanzas();}catch(error){alert(error.message||"No se pudo eliminar el gasto.");}}
 function mostrarListaFinanzas(){const lista=document.getElementById("listaGastos");if(!lista)return;const selector=document.getElementById("fechaFinanzas");if(selector)selector.value=diaSeleccionado;lista.replaceChildren();const gastosDelDia=gastos.map((gasto,indice)=>({gasto,indice})).filter(({gasto})=>gasto.fecha===diaSeleccionado).sort((a,b)=>a.gasto.concepto.localeCompare(b.gasto.concepto,"es-MX"));const total=gastosDelDia.reduce((suma,{gasto})=>suma+(Number(gasto.monto)||0),0);const resumen=document.getElementById("resumenDiaFinanzas");if(resumen)resumen.textContent=gastosDelDia.length?gastosDelDia.length+(gastosDelDia.length===1?" gasto":" gastos")+" · Total del día: "+formatoMonedaPago(total):"Sin gastos registrados para este día.";if(!gastosDelDia.length){const vacio=document.createElement("p");vacio.className="estado-vacio-finanzas";vacio.textContent="Agrega un gasto o elige otro día en el calendario.";lista.appendChild(vacio);}gastosDelDia.forEach(({gasto,indice})=>{const tarjeta=document.createElement("article");tarjeta.className="tarjeta-gasto";const infoCategoria=informacionCategoriaGasto(gasto.categoria);const titulo=document.createElement("h3");titulo.textContent=infoCategoria.icono+" "+gasto.concepto;const importe=document.createElement("strong");importe.textContent=formatoMonedaPago(gasto.monto);const detalle=document.createElement("p");detalle.textContent=infoCategoria.nombre+(gasto.nota?" · "+gasto.nota:"");const acciones=document.createElement("div");acciones.className="acciones-gasto";const editar=document.createElement("button");editar.type="button";editar.textContent="Editar";editar.onclick=function(){editarGasto(indice);};const eliminar=document.createElement("button");eliminar.type="button";eliminar.textContent="Eliminar";eliminar.onclick=function(){eliminarGasto(indice);};acciones.append(editar,eliminar);tarjeta.append(titulo,importe,detalle,acciones);lista.appendChild(tarjeta);});actualizarCalendarioContextual();}
 if(document.getElementById("fechaFinanzas"))document.getElementById("fechaFinanzas").value=diaSeleccionado;
 mostrarListaFinanzas();
@@ -3743,25 +3788,13 @@ function editarRegistroSalud(indice) {
     document.getElementById("modalSalud").style.display = "flex";
 }
 function cerrarModalSalud() { document.getElementById("modalSalud").style.display = "none"; saludEditando = null; }
-function guardarRegistroSalud() {
-    const fecha = document.getElementById("fechaRegistroSalud").value;
-    const pesoRaw = document.getElementById("pesoSalud").value.trim();
-    const sistRaw = document.getElementById("presionSistolicaSalud").value.trim();
-    const diasRaw = document.getElementById("presionDiastolicaSalud").value.trim();
-    const glucosaRaw = document.getElementById("glucosaSalud").value.trim();
-    const doctor = document.getElementById("doctorSalud").value.trim();
-    const nota = document.getElementById("notaSalud").value.trim();
-    const proximaFecha = document.getElementById("proximaFechaSalud").value;
-    if (!fecha) { alert("Selecciona la fecha del chequeo."); return; }
-    if (Boolean(sistRaw) !== Boolean(diasRaw)) { alert("Para presión arterial, captura ambos valores: sistólica y diastólica."); return; }
-    if (proximaFecha && proximaFecha < fecha) { alert("La próxima revisión debe ser en la fecha del chequeo o después."); return; }
-    if (![pesoRaw, sistRaw, glucosaRaw, doctor, nota, proximaFecha].some(Boolean)) { alert("Agrega al menos una medición, una nota o la fecha de próxima revisión."); return; }
-    const item = { id: saludEditando === null ? "salud-" + Date.now() : saludRegistros[saludEditando].id || "salud-" + Date.now(), fecha, peso: pesoRaw ? Number(pesoRaw) : null, sistolica: sistRaw ? Number(sistRaw) : null, diastolica: diasRaw ? Number(diasRaw) : null, glucosa: glucosaRaw ? Number(glucosaRaw) : null, doctor, nota, proximaFecha };
-    if (saludEditando === null) saludRegistros.push(item); else saludRegistros[saludEditando] = item;
-    localStorage.setItem("saludRegistros", JSON.stringify(saludRegistros)); diaSeleccionado = fecha; mesContextual = new Date(new Date(fecha + "T00:00:00").getFullYear(), new Date(fecha + "T00:00:00").getMonth(), 1);
-    cerrarModalSalud(); mostrarListaSalud(); mostrarResumenSalud();
+async function guardarRegistroSalud() {
+    const fecha=document.getElementById("fechaRegistroSalud").value,pesoRaw=document.getElementById("pesoSalud").value.trim(),sistRaw=document.getElementById("presionSistolicaSalud").value.trim(),diasRaw=document.getElementById("presionDiastolicaSalud").value.trim(),glucosaRaw=document.getElementById("glucosaSalud").value.trim(),doctor=document.getElementById("doctorSalud").value.trim(),nota=document.getElementById("notaSalud").value.trim(),proximaFecha=document.getElementById("proximaFechaSalud").value;
+    if(!fecha){alert("Selecciona la fecha del chequeo.");return;}if(Boolean(sistRaw)!==Boolean(diasRaw)){alert("Para presión arterial, captura ambos valores: sistólica y diastólica.");return;}if(proximaFecha&&proximaFecha<fecha){alert("La próxima revisión debe ser en la fecha del chequeo o después.");return;}if(![pesoRaw,sistRaw,glucosaRaw,doctor,nota,proximaFecha].some(Boolean)){alert("Agrega al menos una medición, una nota o la fecha de próxima revisión.");return;}
+    const anterior=saludEditando===null?null:saludRegistros[saludEditando],item={...anterior,id:anterior?.id||"salud-"+Date.now()+"-"+Math.random().toString(36).slice(2,8),fecha,peso:pesoRaw?Number(pesoRaw):null,sistolica:sistRaw?Number(sistRaw):null,diastolica:diasRaw?Number(diasRaw):null,glucosa:glucosaRaw?Number(glucosaRaw):null,doctor,nota,proximaFecha};
+    try{if(anterior?.ownerUid||(!anterior&&modulosPrivadosUid))await guardarRegistroPrivado("salud",item);else if(saludEditando===null)saludRegistros.push(item);else saludRegistros[saludEditando]=item;guardarCachePrivado("salud");diaSeleccionado=fecha;mesContextual=new Date(new Date(fecha+"T00:00:00").getFullYear(),new Date(fecha+"T00:00:00").getMonth(),1);cerrarModalSalud();mostrarListaSalud();mostrarResumenSalud();}catch(error){alert(error.message||"No se pudo guardar el chequeo en tu cuenta.");}
 }
-function eliminarRegistroSalud(indice) { if (!saludRegistros[indice] || !confirm("¿Quieres eliminar este registro de Salud?")) return; saludRegistros.splice(indice, 1); localStorage.setItem("saludRegistros", JSON.stringify(saludRegistros)); mostrarListaSalud(); mostrarResumenSalud(); }
+async function eliminarRegistroSalud(indice){const item=saludRegistros[indice];if(!item||!confirm("¿Quieres eliminar este registro de Salud?"))return;try{if(item.ownerUid)await eliminarRegistroPrivado("salud",item);else saludRegistros.splice(indice,1);guardarCachePrivado("salud");mostrarListaSalud();mostrarResumenSalud();}catch(error){alert(error.message||"No se pudo eliminar el registro de Salud.");}}
 function mostrarListaSalud() {
     const lista = document.getElementById("listaSalud"); if (!lista) return; const campoFecha = document.getElementById("fechaSalud"); if (campoFecha) campoFecha.value = diaSeleccionado; lista.replaceChildren();
     const registros = saludRegistros.map((item, indice) => ({ item, indice })).filter(({ item }) => item.fecha === diaSeleccionado);

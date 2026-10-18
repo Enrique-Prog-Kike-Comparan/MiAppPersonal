@@ -48,7 +48,7 @@ formCrearCuenta.addEventListener("submit", async function(event) {
     try {
         await createUserWithEmailAndPassword(auth, correo, contrasena);
         formCrearCuenta.reset();
-        mensajeCuenta.textContent = "Cuenta creada. Agenda, Tareas, Pagos, Entrenamiento, Proyectos e Izel ya pueden conectarse con esta cuenta. Los registros permanecen privados salvo que elijas compartirlos.";
+        mensajeCuenta.textContent = "Cuenta creada. Todos los módulos se conectan con esta cuenta y sus registros privados solo son visibles para ti. Puedes compartir elementos individuales de Entrenamiento, Proyectos, Despensa, Tareas, Fechas especiales, Pagos e Izel.";
     } catch (error) {
         mensajeCuenta.textContent = mostrarErrorCuenta(error);
     } finally {
@@ -69,7 +69,7 @@ formIniciarSesion.addEventListener("submit", async function(event) {
     try {
         await signInWithEmailAndPassword(auth, correo, contrasena);
         formIniciarSesion.reset();
-        mensajeCuenta.textContent = "Sesión iniciada. Agenda, Tareas, Pagos, Entrenamiento, Proyectos e Izel se están conectando con esta cuenta. Puedes elegir qué elementos compartir con la cuenta vinculada.";
+        mensajeCuenta.textContent = "Sesión iniciada. Todos los módulos se están conectando con esta cuenta. Tus registros privados solo son visibles para ti; puedes compartir elementos individuales de Entrenamiento, Proyectos, Despensa, Tareas, Fechas especiales, Pagos e Izel.";
     } catch (error) {
         mensajeCuenta.textContent = mostrarErrorCuenta(error);
     } finally {
@@ -105,7 +105,7 @@ document.getElementById("cerrarSesion").addEventListener("click", async function
 onAuthStateChanged(auth, function(user) {
     window.dispatchEvent(new CustomEvent("miapp:sesion-actualizada", { detail: { authenticated: Boolean(user) } }));
     if (user) {
-        estadoCuenta.textContent = "Sesión activa. Agenda, Tareas, Pagos, Entrenamiento y Proyectos se conectan con esta cuenta; puedes elegir qué elementos compartir.";
+        estadoCuenta.textContent = "Sesión activa. Todos los módulos se conectan con esta cuenta; puedes compartir elementos individuales de Entrenamiento, Proyectos, Despensa, Tareas, Fechas especiales, Pagos e Izel.";
         correoSesion.textContent = "Sesión iniciada como: " + (user.email || "cuenta sin correo visible");
         sesionActiva.hidden = false;
         formulariosCuenta.hidden = true;

@@ -303,6 +303,54 @@ Kike pidió un módulo para organizar listas de compra junto con Yesica, con un 
 - La preferencia de gratuidad no confirma por sí sola el plan que actualmente muestra Firebase Console; ese estado no se verificó.
 - Antes de proponer una función nueva que requiera Blaze, informar que puede tener cargos y buscar una alternativa compatible con el plan sin costo. No habilitarla sin autorización explícita.
 
+### 12H.23.5.9.50 — Confirmar alcance y probar las reglas de sincronización — emulador validado; prueba manual pendiente — 17/10/2026
+
+Kike confirmó que deben poder compartirse entre su cuenta y la de Yesica: **Entrenamiento, Proyectos, Compra Pen. Despensa, Tareas, Fechas especiales, Pagos pendientes y Mi peque Izel**. Los demás módulos conservan su comportamiento actual; Finanzas permanece local.
+
+- La inspección de `index.html` y `app.js` encontró cargados los adaptadores e interfaces de Agenda (Fechas especiales), Tareas, Pagos e Izel. Los adaptadores de Entrenamiento, Proyectos y Despensa también están cargados. Los flujos incluyen privacidad por defecto, opción para compartir con la cuenta vinculada, edición por ambas cuentas y eliminación reservada a quien creó el registro.
+- Las reglas locales de Firestore ya permiten los siete módulos. Se dejaron intactas para no cambiar el comportamiento de los demás módulos. No fue necesario modificar los adaptadores de la aplicación en este paso.
+- Se amplió `tests/firestore-rules.test.js` para recorrer los siete módulos. Con el emulador local de Firestore y el proyecto de demostración `demo-miapppersonal-rules`, pasaron **8/8 pruebas**. Para cada módulo, los casos comprobaron escritura/lectura privada solo por el propietario, lectura y edición por la pareja activa de un registro compartido, rechazo de eliminación por la pareja y eliminación permitida al propietario. Los `PERMISSION_DENIED` esperados de los intentos de eliminación fueron parte de los casos exitosos. No se accedió a la base real ni se alteraron datos de Firebase.
+- Las pruebas no validan los formularios ni el flujo en la app publicada. Queda pendiente la prueba manual con las dos cuentas en computadora y celular, empezando por Tareas. Las reglas publicadas en Firebase Console no se verificaron ni modificaron. La limpieza de los datos de prueba permanece aplazada y la aplicación debe continuar compatible con el plan gratuito.
+
+### 12H.23.5.9.51 — Validación manual entre Kike y Yesica: Tareas, Fechas especiales y Compra Pen. Despensa — validado en computadora y celular — 17/10/2026
+
+- **Tareas:** se comprobó que una tarea privada de Kike no aparece en Yesica y que la tarea compartida sí aparece. Yesica pudo editar la tarea y la eliminación quedó deshabilitada. Firestore guardó el cambio. En computadora, Kike vio la edición después de recargar la aplicación; en el celular confirmó que aparece sin recargar. La actualización en tiempo real quedó confirmada en móvil; observar si el retraso de escritorio vuelve a ocurrir.
+- **Fechas especiales:** se creó la fecha ficticia compartida `PRUEBA QA Sync Fecha 2026-10-20`. Yesica la recibió, pudo editarla y no tuvo opción para eliminarla. Kike vio el cambio tras volver a su cuenta. En la prueba móvil final, confirmó que la edición de Yesica aparece en el celular sin recargar. Se usó el tipo cumpleaños predeterminado del formulario, por lo que el calendario mostró el icono de pastel.
+- **Compra Pen. Despensa:** se creó la lista ficticia compartida `PRUEBA QA Sync Despensa 2026-10-17` con una manzana. Yesica la recibió, pudo editarla y no pudo eliminarla; Kike vio la edición al volver a su cuenta. El calendario mostró el icono de carrito. Kike confirmó que en su celular apareció la edición sin recargar la app.
+- Kike ya había confirmado pruebas manuales separadas de privacidad, edición y eliminación para **Entrenamiento** y **Proyectos**. Las pruebas previas de **Pagos pendientes** y **Mi peque Izel** también constan en el historial del proyecto. Este paso añadió comprobación manual directa para Tareas, Fechas especiales y Despensa. En la pasada móvil, Kike confirmó que las ediciones compartidas de Tareas, Fechas especiales y Despensa aparecen sin recargar la app.
+- Las pruebas automatizadas del emulador local siguen en **8/8 aprobadas**. Los registros QA creados en Firebase permanecen allí para la limpieza general al cierre del proyecto; no se borraron datos.
+- No se hizo commit ni push. La rama `master` permanece en `e88eff0`, alineada con `origin/backup/2026-10-11-12H-23-5-8` al momento de la revisión.
+
 ### Siguiente actividad
 
-Continuar el desarrollo de MiAppPersonal dentro del alcance acordado y compatible con el plan gratuito. Kike elegirá la siguiente mejora funcional; la limpieza de datos de prueba permanece aplazada hasta el cierre del proyecto.
+Completar la sincronización privada de Finanzas, Salud, Objetivos, Aprendizajes y Tiempo entre dispositivos de cada cuenta; no importar los datos locales anteriores. Después, publicar las reglas de Salud con autorización de Kike y validar manualmente en computadora y celular la sincronización privada y sus Resultados. Mantener pendiente la limpieza de datos QA hasta el cierre del proyecto y no habilitar facturación.
+### 12H.23.5.9.52 — Alcance confirmado: sincronización de todos los módulos y resultados — acordado por Kike — 17/10/2026
+
+- Kike confirmó que todos los módulos de **Organizar** y **Resultados** deben estar disponibles y sincronizados entre los dispositivos de cada cuenta. Yesi podrá usar todos los módulos y ver sus propios resultados; esto no comparte automáticamente sus datos privados con Kike.
+- Cada persona conserva sus registros privados bajo su propia cuenta. Solo se podrán compartir elementos individuales de **Entrenamiento, Proyectos, Compra Pen. Despensa, Tareas, Fechas especiales, Pagos pendientes y Mi peque Izel**. La selección de compartir seguirá siendo por elemento. Los demás módulos, incluidos **Finanzas, Salud, Objetivos, ¿Qué aprendí? y ¿En qué se me fue el tiempo?**, se sincronizan entre dispositivos de su propietario sin acceso de la pareja.
+- Kike autorizó explícitamente almacenar los datos privados de todos los módulos en **Firebase Firestore**, incluidos Finanzas y Salud. Los Resultados se calculan con los registros disponibles para la cuenta: datos propios y, en los módulos habilitados, elementos compartidos con ella.
+- Revisión del código: ya existen adaptadores de nube para los siete módulos que permiten compartir; Finanzas, Salud, Objetivos, Aprendizajes y Tiempo todavía leen/escriben sus registros en `localStorage`. Firestore Rules enumeran esos módulos salvo `salud`, que requiere incorporarse a la lista permitida para su almacenamiento privado. No se modificó código ni reglas en esta revisión.
+- Kike decidió que los registros locales previos no se importen: solo se sincronizarán los registros nuevos creados con una sesión activa. Los datos anteriores permanecen en el almacenamiento local del dispositivo y no se asignan ni suben automáticamente a ninguna cuenta.
+- Aún no se hizo commit, push ni publicación de reglas para este alcance. Mantener el plan gratuito: no habilitar facturación ni servicios que la requieran.
+### 12H.23.5.9.53 — Sincronización privada para los módulos restantes — código preparado; publicación y validación pendientes — 17/10/2026
+
+- Se conectaron **Finanzas, Salud, Objetivos, ¿Qué aprendí? y ¿En qué se me fue el tiempo?** a una colección privada de Firestore. Cada registro nuevo creado con sesión iniciada se guarda bajo la cuenta activa con `sharedWithUids` vacío y `pairId` nulo; solo su propietario puede consultarlo o editarlo. Los módulos compartibles anteriores conservan su selector individual para compartir.
+- Las altas, ediciones y eliminaciones de registros propiedad de la cuenta se escriben en Firestore. El cambio de estado del objetivo también se sincroniza. Los cinco Resultados se recalculan desde los registros disponibles para la cuenta; los resultados compartidos de los siete módulos acordados continúan usando sus adaptadores existentes.
+- Por decisión de Kike, **los datos locales anteriores no se suben ni se asignan a una cuenta**. Permanecen en el almacenamiento local del dispositivo. Al iniciar sesión, la vista utiliza una caché separada por UID, que comienza vacía; solo registros nuevos creados con sesión activa se sincronizan entre dispositivos. Los registros locales anteriores no se convierten automáticamente en registros de nube al editarlos o eliminarlos.
+- Se añadió `salud` a la lista permitida de `firestore.rules`. La publicación remota quedó registrada en 12H.23.5.9.54. No se habilitó facturación.
+- Se actualizó el texto de Cuenta para explicar el alcance privado y la opción de compartir elemento por elemento, las descripciones de Resultados, y los parámetros de caché a `12h-23-5-9-53`.
+- No se ejecutaron pruebas automatizadas ni se hizo commit, push o publicación en GitHub Pages. Falta validar manualmente la sincronización en dos dispositivos por cuenta, verificar privacidad entre Kike y Yesica y confirmar que los Resultados se actualizan.
+
+### Siguiente actividad
+
+Revisar y publicar en Firebase las reglas locales que incluyen Salud, una vez que Kike confirme esa publicación. Después validar en computadora y celular con Kike y Yesica que los cinco módulos nuevos sincronizan entre dispositivos del propietario, que la pareja no puede verlos y que los Resultados reflejan los registros correspondientes. Mantener intactos los datos locales previos, los registros QA y el plan gratuito.
+### 12H.23.5.9.54 — Publicar regla privada de Salud — publicado en Firebase — 17/10/2026
+
+- Con autorización expresa de Kike, se publicó `firestore.rules` en el proyecto Firebase `miapppersonal-5068d` mediante `firebase deploy --only firestore:rules --project miapppersonal-5068d`.
+- Firebase confirmó que las reglas compilaron correctamente y que fueron liberadas a Cloud Firestore. El cambio permite usar el módulo privado `salud` junto con los demás módulos de registros.
+- No se modificaron datos, no se habilitó facturación y no se publicó la aplicación en GitHub Pages. No se hizo commit ni push.
+- Pendiente: validación manual en computadora y celular para cada cuenta, incluyendo privacidad entre Kike y Yesica y actualización de los Resultados.
+
+### Siguiente actividad
+
+Validar en MiAppPersonal, primero con Kike y después con Yesica, que un nuevo registro privado de Finanzas, Salud, Objetivos, Aprendizajes y Tiempo se sincronice entre los dispositivos de la misma cuenta y no aparezca en la cuenta de la pareja. Confirmar también que cada Resultado refleje los registros de su cuenta. No importar datos locales anteriores ni limpiar los registros QA.

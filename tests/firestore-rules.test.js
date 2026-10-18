@@ -8,6 +8,7 @@ import {
 } from "@firebase/rules-unit-testing";
 import {
     collection,
+    deleteDoc,
     doc,
     getDoc,
     getDocs,
@@ -248,4 +249,34 @@ test("al revocar el vínculo, la pareja pierde acceso al elemento", async functi
     }));
 
     await assertFails(getDoc(doc(partnerDb, "records", "shared-a")));
+});
+
+test("los siete módulos acordados admiten registros privados y compartidos con edición por la pareja", async function() {
+    await createActivePair();
+    const ownerDb = signedIn("user-a");
+    const partnerDb = signedIn("user-b");
+    const modules = ["entrenamiento", "proyectos", "despensa", "tareas", "agenda", "pagos", "izel"];
+
+    for (const moduleName of modules) {
+        const privateId = `${moduleName}-private`;
+        const privateRecord = recordData("user-a", { module: moduleName });
+        await assertSucceeds(setDoc(doc(ownerDb, "records", privateId), privateRecord));
+        await assertSucceeds(getDoc(doc(ownerDb, "records", privateId)));
+        await assertFails(getDoc(doc(partnerDb, "records", privateId)));
+
+        const sharedId = `${moduleName}-shared`;
+        const sharedRecord = recordData("user-a", {
+            module: moduleName,
+            sharedWithUids: ["user-b"],
+            pairId: "pair-a-b"
+        });
+        await assertSucceeds(setDoc(doc(ownerDb, "records", sharedId), sharedRecord));
+        await assertSucceeds(getDoc(doc(partnerDb, "records", sharedId)));
+        await assertSucceeds(updateDoc(doc(partnerDb, "records", sharedId), {
+            data: { title: `Editado en ${moduleName}` },
+            updatedAt: serverTimestamp()
+        }));
+        await assertFails(deleteDoc(doc(partnerDb, "records", sharedId)));
+        await assertSucceeds(deleteDoc(doc(ownerDb, "records", sharedId)));
+    }
 });
