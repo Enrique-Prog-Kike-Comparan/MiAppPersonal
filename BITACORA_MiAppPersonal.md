@@ -366,15 +366,25 @@ Validar en MiAppPersonal, primero con Kike y después con Yesica, que un nuevo r
 
 Abrir la versión actualizada en computadora y celular y validar un registro nuevo en cada módulo privado con Kike. Después repetir con Yesica y confirmar que los registros privados de cada cuenta no se muestran a la otra. No introducir datos personales sensibles de salud en las pruebas; usar registros ficticios y eliminarlos solo cuando Kike indique la limpieza final.
 
-### 12H.23.5.9.56 — Evitar guardados privados antes de que termine la conexión — implementado localmente; publicación y prueba pendientes — 18/10/2026
+### 12H.23.5.9.56 — Evitar guardados privados antes de que termine la conexión — publicado — 18/10/2026
 
 - Kike informó que anotó un registro en **¿En qué se me fue el tiempo?** desde el celular y no apareció en la computadora.
 - La revisión encontró una posible carrera al iniciar sesión: la interfaz puede reconocer la cuenta antes de que el adaptador privado termine de conectarse. En ese intervalo, una alta nueva podía seguir el camino local sin avisar. Este mecanismo es una causa posible; aún no se ha confirmado que fuera la causa exacta del registro de Kike.
 - Se ajustaron los cinco módulos privados —Finanzas, Salud, Objetivos, ¿Qué aprendí? y ¿En qué se me fue el tiempo?— para que las altas nuevas con sesión activa exijan que el UID de la sesión coincida con el del adaptador y la caché. Si la sincronización aún inicia, se muestra un mensaje para esperar y guardar de nuevo, en vez de aceptar un guardado solo local. `cuenta.js` ahora comparte el UID autenticado con la aplicación y el adaptador expone el UID conectado.
 - Se actualizó el identificador de caché de `app.js` y `modulos-privados-cloud.js` a `12h-23-5-9-56` para forzar la descarga de esta versión.
-- El registro que Kike ya escribió en el celular no se importará automáticamente, de acuerdo con su decisión de dejar los datos locales anteriores en cada dispositivo. Para comprobar la corrección, después de publicar habrá que crear un registro ficticio nuevo en Tiempo y confirmar que aparezca en la computadora con la misma cuenta.
-- No se ejecutaron pruebas automatizadas, no se alteraron datos de Firebase y aún no se hizo commit ni push. La causa precisa del fallo sigue pendiente de validación manual.
+- El registro que Kike ya escribió en el celular no se importará automáticamente, de acuerdo con su decisión de dejar los datos locales anteriores en cada dispositivo. Kike confirmó después la sincronización de todos los módulos en 12H.23.5.9.57.
+- Se creó el commit `8850d69` — **Evitar guardados antes de sincronizar** — y se publicó en `origin/backup/2026-10-11-12H-23-5-8`; `main` quedó intacta.
+- No se ejecutaron pruebas automatizadas ni se alteraron datos de Firebase. La causa exacta del fallo original no se aisló antes de la corrección.
 
 ### Siguiente actividad
 
-Publicar el ajuste en `backup/2026-10-11-12H-23-5-8`; luego, con la misma cuenta iniciada, crear un registro ficticio nuevo en Tiempo desde el celular y comprobar que aparezca en la computadora. Confirmar también que la app muestra un aviso si se intenta guardar antes de que la conexión esté lista. No importar el registro anterior ni borrar datos de prueba.
+La validación posterior quedó registrada en 12H.23.5.9.57: Kike confirmó la sincronización de todos los módulos y Resultados. No importar el registro anterior ni borrar datos de prueba.
+
+### 12H.23.5.9.57 — Validar sincronización entre dispositivos y módulos de Resultados — confirmado por Kike — 18/10/2026
+
+- Kike confirmó que probó la sincronización en todos los módulos, incluidos los módulos de Resultados.
+- La validación manual general queda confirmada por Kike. No se alteraron datos de Firebase ni se limpiaron registros de prueba.
+
+### Siguiente actividad
+
+Hacer una revisión final de privacidad y uso cotidiano: verificar que los módulos privados sigan separados entre las cuentas de Kike y Yesica, y que el compartir de elementos individuales continúe limitado a los siete módulos acordados. Después revisar qué registros de prueba desea conservar o eliminar. La limpieza general se hará solo cuando Kike la indique; mantener el plan gratuito y no habilitar facturación.
