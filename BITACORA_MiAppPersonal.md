@@ -295,6 +295,14 @@ Kike pidió un módulo para organizar listas de compra junto con Yesica, con un 
 - La app obtiene un token FCM y el Service Worker registra un manejador de mensajes en segundo plano. En los archivos inspeccionados no se encontró un servicio emisor de avisos programados. Por eso no se da por validado el envío automático a una hora futura con la app completamente cerrada; para esa modalidad hará falta definir un emisor confiable y su costo/operación. FCM por sí solo no tiene costo según la [tabla oficial](https://firebase.google.com/pricing).
 - No se inspeccionó el plan de facturación actual desde Firebase Console ni se estimó consumo real. No se cambió el plan, no se vinculó un medio de pago y no se desplegaron servicios facturables.
 
-### Siguiente actividad recomendada
+### 12H.23.5.9.49 — Decisión sobre avisos con la app cerrada y facturación — acordado por Kike — 17/10/2026
 
-**12H.23.5.9.49 — Definir el alcance de notificaciones con la app cerrada.** Confirmar si Kike necesita envíos automáticos programados incluso cuando MiAppPersonal está cerrada. Si la respuesta es sí, preparar primero una propuesta local con arquitectura, cuotas, alertas de presupuesto y costo potencial; solicitar autorización explícita antes de vincular facturación o desplegar el backend. La limpieza de datos de prueba permanece para el final, según lo acordado.
+- Kike no necesita avisos cuando MiAppPersonal está completamente cerrada y prevé trabajar así por mucho tiempo.
+- La aplicación debe mantenerse gratuita. No vincular una cuenta de facturación, cambiar a Blaze ni desplegar Cloud Functions u otro servicio que requiera facturación.
+- Se conservan los avisos y notificaciones que funcionan con los flujos actuales de la app abierta/PWA. No se implementará un emisor automático de notificaciones cuando la app esté cerrada.
+- La preferencia de gratuidad no confirma por sí sola el plan que actualmente muestra Firebase Console; ese estado no se verificó.
+- Antes de proponer una función nueva que requiera Blaze, informar que puede tener cargos y buscar una alternativa compatible con el plan sin costo. No habilitarla sin autorización explícita.
+
+### Siguiente actividad
+
+Continuar el desarrollo de MiAppPersonal dentro del alcance acordado y compatible con el plan gratuito. Kike elegirá la siguiente mejora funcional; la limpieza de datos de prueba permanece aplazada hasta el cierre del proyecto.
