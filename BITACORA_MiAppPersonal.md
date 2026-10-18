@@ -3,7 +3,7 @@
 **Actualizada:** 18 de octubre de 2026
 **Proyecto:** `C:\MiAppPersonal`
 **Rama de publicación:** `backup/2026-10-11-12H-23-5-8` (Git local: `master`)
-**Último commit previo a esta reorganización:** `ad0e8c7`
+**Último commit de código antes del cierre documental:** `769792b`
 
 ## 1. Propósito
 
@@ -122,23 +122,29 @@ Se conserva la numeración asentada. Los huecos no se reconstruyen ni se inventa
 - **12H.23.5.9.60 — Resumen de Salud:** añadido a Resultados de Salud.
 - **12H.23.5.9.61 — Validación:** Kike confirmó que los cambios funcionan y le gustan.
 - **12H.23.5.9.62 — Limpieza y cierre:** Kike autorizó borrar pruebas; Firestore y el navegador de esta computadora se limpiaron. Falta el almacenamiento local del celular.
+- **12H.23.5.9.63 — Reorganización y respaldo comentado:** bitácora reordenada; se preparó una copia de fuentes, historial Git y código comentado en `C:\MiAppPersonal_Respaldo_Final_2026-10-18`.
 
 ## 7. Git y publicación
 
 - GitHub Pages usa `backup/2026-10-11-12H-23-5-8`; `main` permanece intacta.
-- El último commit previo a esta reorganización es `ad0e8c7` — registrar la validación de resúmenes de Salud e Izel.
+- El último commit de código antes del cierre documental es `769792b` — reorganizar bitácora para la versión final.
 - Se registrarán la bitácora final y la copia comentada en un nuevo commit; no incluir datos privados ni contraseñas.
 
-## 8. Próximos pasos
+## 8. Copia de seguridad y comentarios del código
+
+Ubicación: `C:\MiAppPersonal_Respaldo_Final_2026-10-18`. Contiene fuentes originales en ZIP, historial Git en bundle, copia comentada del código y bitácora anterior íntegra. En la copia comentada se añadió el propósito de cada archivo y comentarios antes de cada función con nombre. Los archivos JSON no admiten comentarios válidos; su propósito se documenta en la bitácora y el README del respaldo.
+
+## 9. Próximos pasos
 
 1. Limpiar en Chrome Android los datos del sitio de MiAppPersonal y volver a iniciar sesión. Si Yesica conservó datos locales antiguos en su teléfono, repetirlo allí.
 2. Conservar el respaldo comentado en `C:\MiAppPersonal_Respaldo_Final_2026-10-18`.
 3. Empezar a usar la app con datos reales solo cuando Kike lo decida.
 
-## 9. Reglas para continuar
+## 10. Reglas para continuar
 
 - Revisar la bitácora y el estado de Git antes de cambiar archivos.
 - Trabajar en `C:\MiAppPersonal`; los archivos `sources/` del espejo del proyecto ChatGPT son solo lectura.
 - Seguir la numeración sin inventar pasos completados.
 - Distinguir claramente lo validado, lo pendiente y lo que reportó Kike.
 - No borrar cuentas ni vínculo al limpiar datos de los módulos.
+
